@@ -1,5 +1,6 @@
 from propositions.syntax import *
 from propositions.semantics import *
+from propositions.proofs import *
 import itertools
 
 if __name__ == '__main__':
@@ -10,9 +11,10 @@ if __name__ == '__main__':
     a = '(p<->p)'
     # print(Formula.from_infix(a))
     # 	Or(a = ((p&q)|((q&r)|~p)), out = out);
-    print_truth_table(Formula.from_infix(h))
-    print_truth_table(Formula.from_infix(q))
-
+    # print_truth_table(Formula.from_infix(h))
+    # print_truth_table(Formula.from_infix(q))
+    truth_list = list(all_models(list(Formula.from_infix(h).variables())))
+    print(truth_list)
     # And(a=r, b=p, out=bAndsel);p&r
     # Not( in = p, out = notsel); ~p
     # Or(a=r, b=~p, out=bOrNotsel); r|~p

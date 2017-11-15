@@ -5,13 +5,14 @@
 
 from propositions.syntax import *
 import itertools
-
+from propositions.proofs import *
 FALSE_IN_FORM = 'F'
 TRUE_IN_FORM = 'T'
 NEGATE_OPERATOR = '~'
 OR_OPERATOR = '|'
 IMPLICATION_OPERATOR = '->'
 BICONDITIONAL_OPERATOR = '<->'
+TERNARY_OPERATOR = '?:'
 NAND_OPERATOR = '-&'
 NOR_OPERATOR = '-|'
 AND_OPERATOR = '&'
@@ -38,9 +39,13 @@ def evaluate(formula, model):
             second = evaluate(formula.second,model)
             return (first and second) or (not first and not second)
         elif formula.root == NAND_OPERATOR:
-            not evaluate(formula.first, model) and evaluate(formula.second, model)
+            first = evaluate(formula.first, model)
+            second = evaluate(formula.second, model)
+            return not (first and second)
         elif formula.root == NOR_OPERATOR:
-            not evaluate(formula.first, model) or evaluate(formula.second, model)
+            first = evaluate(formula.first, model)
+            second = evaluate(formula.second, model)
+            return not (first or second)
     else:
         return evaluate(formula.second, model) if evaluate(formula.first, model) else evaluate(formula.third,model)
 
@@ -177,7 +182,11 @@ def synthesize(models, values):
 
 def evaluate_inference(rule, model):
     """ Return whether the given inference rule holds in the given model """
-    # Task 4.2
+    truth_list = list(all_models(list(rule.variables())))
+    assumption_truth_list = []
+    for assuumption in rule.assumptions:
+        assumption_truth_list.append(truth_values(assumption,))
+    # rule.conclusion.truth_values(tr)
 
 
 def is_tautological_inference(rule):
