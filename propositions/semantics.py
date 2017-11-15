@@ -68,6 +68,7 @@ def all_models(variables):
         given list of variables. The order of the models is lexicographic
         according to the order of the variables in the given list, where False
         precedes True """
+    return_list.clear()
     create_model(variables, 0, {})
     for dict in return_list:
         yield dict
@@ -182,14 +183,19 @@ def synthesize(models, values):
 
 def evaluate_inference(rule, model):
     """ Return whether the given inference rule holds in the given model """
-    truth_list = list(all_models(list(rule.variables())))
-    assumption_truth_list = []
     for assuumption in rule.assumptions:
-        assumption_truth_list.append(truth_values(assumption,))
-    # rule.conclusion.truth_values(tr)
+        # assumptions_truth_list.append(truth_values(assuumption,truth_list))
+        if not evaluate(assuumption, model) :
+            # if the assumption returns False for the model, we want to keep check the other assumptions.
+            # if all are False, then we will return automatic True.
+            return True
+        # else (if check was True, we would like to tell that all of the other assumptions were True also
+    return  evaluate(rule.conclusion,model)
 
 
 def is_tautological_inference(rule):
     """ Return whether the given inference rule is a semantically correct
         implication of its assumptions """
-    # Task 4.3
+    list_of_evaluate_interface = [evaluate_inference(rule,a) for a in list(all_models(list(rule.variables())))]
+    return False if False in list_of_evaluate_interface else True
+

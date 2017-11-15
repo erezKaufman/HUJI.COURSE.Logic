@@ -40,6 +40,7 @@ class InferenceRule:
         for assumption in self.assumptions:
             return_set.update(assumption.variables())
         return_set.update(self.conclusion.variables())
+        return return_set
         
     def is_instance_of(self, rule, instantiation_map=None):
         """ Return whether there exist formulae f1,...,fn and variables
@@ -48,7 +49,16 @@ class InferenceRule:
             in all of the assumptions of rule as well as in its conclusion.
             If so, and if instantiation_map is given, then it is (cleared and)
             populated with the mapping from each vi to the corresponding fi """
-        # Task 4.4
+        if instantiation_map == None:
+            instantiation_map = {}
+        if len(rule.assumptions) > len(rule.assumptions):
+            return False
+
+        for self_assumption,rule_assumption  in zip(self.assumptions, rule.assumptions):
+            # for  rule_assumption in rule.assumptions:
+            if not InferenceRule._update_instantiation_map(self_assumption,rule_assumption,instantiation_map):
+                return False
+        return InferenceRule._update_instantiation_map(self.conclusion,rule.conclusion,instantiation_map)
 
     @staticmethod
     def _update_instantiation_map(formula, template, instantiation_map):
@@ -60,8 +70,38 @@ class InferenceRule:
             variables to formulae). If so, then instantiation_map is updated
             with any additional substitutions dictated by this matching. If
             not, then instantiation_map may be modified arbitrarily """
-        # Task 4.4
-    
+
+        if is_variable(template.root):
+            # if we reached the variable in the template, we would like to know if the corresponding formula that we
+            # reached after descending the formula tree appears in the instantiation_map as the value for the
+            # variable's key
+            if template.root not in instantiation_map:
+                instantiation_map[template.root ] = formula
+                return True
+            else:
+                return instantiation_map[template.root] == formula
+        elif is_constant(template.root) and template.root == formula.root:
+            return True
+        elif is_binary(template.root) and template.root == formula.root:
+            first_bool = InferenceRule._update_instantiation_map(formula.first,template.first,instantiation_map)
+            second_bool = InferenceRule._update_instantiation_map(formula.second, template.second, instantiation_map)
+            if first_bool and second_bool:
+                return True
+            else:
+                instantiation_map.clear()
+                return False
+
+        elif is_ternary(template.root) and template.root == formula.root:
+            first_bool = InferenceRule._update_instantiation_map(formula.first, template.first, instantiation_map)
+            second_bool = InferenceRule._update_instantiation_map(formula.second, template.second, instantiation_map)
+            third_bool = InferenceRule._update_instantiation_map(formula.third, template.third, instantiation_map)
+            return True if first_bool and second_bool and third_bool else False
+        elif is_unary(template.root) and template.root == formula.root:
+            first_bool = InferenceRule._update_instantiation_map(formula.first, template.first, instantiation_map)
+            return first_bool
+        else:
+            return False
+
 class DeductiveProof:
     """ A deductive proof, i.e., a statement of an inference rule, a list of
         assumed inference rules, and a list of lines that prove the former from

@@ -4,19 +4,26 @@ from propositions.proofs import *
 import itertools
 
 if __name__ == '__main__':
-    f = '|&&||||&~|&|&|w6r3y10F|FTp7F&t1r5TFT|q2t7z1&u9F'
-    q = '((r&(q|~p))|(p&q))'
-    h = '(p?q:r)'
-    t = '?:'+f+q+h
-    a = '(p<->p)'
-    # print(Formula.from_infix(a))
-    # 	Or(a = ((p&q)|((q&r)|~p)), out = out);
-    # print_truth_table(Formula.from_infix(h))
-    # print_truth_table(Formula.from_infix(q))
-    truth_list = list(all_models(list(Formula.from_infix(h).variables())))
-    print(truth_list)
-    # And(a=r, b=p, out=bAndsel);p&r
-    # Not( in = p, out = notsel); ~p
-    # Or(a=r, b=~p, out=bOrNotsel); r|~p
-    # And(a=q, b=bOrNotsel, out=aAndbOrNotsel); (q&(r|~p))
-    # Or(a=(p&r), b=(q&(r|~p)), out=out);
+    debug = True
+    # Test 2
+    a = Formula.from_infix('(~p|q)')
+    b = Formula.from_infix('p')
+    c = Formula.from_infix('q')
+    aa = Formula.from_infix('(~x|y)')
+    bb = Formula.from_infix('x')
+    cc = Formula.from_infix('y')
+    rule = InferenceRule([a, b], c)
+    instantiation_map = {'p': Formula.from_infix('x'),
+                         'q': Formula.from_infix('y')}
+    for assumptions, conclusion, value in [[[aa, bb], cc, True],
+                                           [[aa, bb], c, False],
+                                           [[aa, b], cc, False],
+                                           [[a, bb], cc, False]]:
+        candidate = InferenceRule(assumptions, conclusion)
+        if debug:
+            print('Testing whether', candidate, 'is an instance of', rule)
+        assert candidate.is_instance_of(rule) == value
+        if value:
+            map_ = {}
+            assert candidate.is_instance_of(rule, map_)
+            assert map_ == instantiation_map
