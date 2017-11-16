@@ -51,8 +51,6 @@ class InferenceRule:
             populated with the mapping from each vi to the corresponding fi """
         if instantiation_map == None:
             instantiation_map = {}
-        if len(rule.assumptions) > len(rule.assumptions):
-            return False
 
         for self_assumption,rule_assumption  in zip(self.assumptions, rule.assumptions):
             # for  rule_assumption in rule.assumptions:
@@ -144,12 +142,25 @@ class DeductiveProof:
     def instance_for_line(self, line):
         """ Return the instantiated inference rule that corresponds to the
             given line number """
-        # Task 4.5
-        
+    # (p|q),(~p|r)=>(q|r)
+#     None=>(~p|p)
+#     (x|y)
+#         return_inference_rule =
+        assumption_list = []
+        conclusion = self.lines[line].conclusion
+        if self.lines[line].justification != None:
+            for index in self.lines[line].justification:
+                assumption_list.append(self.lines[index].conclusion)
+        return InferenceRule(assumption_list,conclusion)
+
     def is_valid(self):
         """ Return whether lines are a valid proof of statement from rules """
-        # Task 4.6
-
+        for lineNum in range(len(self.lines)):
+            # corresponding_rule =
+            instance = self.instance_for_line(lineNum)
+            if not instance.is_instance_of(self.lines[lineNum].rule):
+                return False
+        return True
 
 def instantiate(formula, instantiation_map):
     """ Return a formula obtained from the given formula by simultaneously
@@ -168,3 +179,4 @@ def inline_proof(main_proof, lemma_proof):
         lemma_proof, as well as via the inference rules used in lemma_proof
         (with duplicates removed) """
     # Task 5.2.2
+

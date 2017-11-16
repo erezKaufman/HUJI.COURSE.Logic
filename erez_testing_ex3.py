@@ -5,25 +5,22 @@ import itertools
 
 if __name__ == '__main__':
     debug = True
-    # Test 2
-    a = Formula.from_infix('(~p|q)')
-    b = Formula.from_infix('p')
-    c = Formula.from_infix('q')
-    aa = Formula.from_infix('(~x|y)')
-    bb = Formula.from_infix('x')
-    cc = Formula.from_infix('y')
-    rule = InferenceRule([a, b], c)
-    instantiation_map = {'p': Formula.from_infix('x'),
-                         'q': Formula.from_infix('y')}
-    for assumptions, conclusion, value in [[[aa, bb], cc, True],
-                                           [[aa, bb], c, False],
-                                           [[aa, b], cc, False],
-                                           [[a, bb], cc, False]]:
-        candidate = InferenceRule(assumptions, conclusion)
-        if debug:
-            print('Testing whether', candidate, 'is an instance of', rule)
-        assert candidate.is_instance_of(rule) == value
-        if value:
-            map_ = {}
-            assert candidate.is_instance_of(rule, map_)
-            assert map_ == instantiation_map
+    DISJUNCTION_COMMUTATIVITY_PROOF = DeductiveProof(
+        InferenceRule([Formula.from_infix('(x|y)')], Formula.from_infix('(y|x)')),
+        [InferenceRule([Formula.from_infix('(p|q)'), Formula.from_infix('(~p|r)')],
+                       Formula.from_infix('(q|r)')),
+         InferenceRule([], Formula.from_infix('(~p|p)'))],
+        [DeductiveProof.Line(Formula.from_infix('(x|y)')),
+         DeductiveProof.Line(Formula.from_infix('(~x|x)'), 1, []),
+         DeductiveProof.Line(Formula.from_infix('(y|x)'), 0, [0, 1])])
+
+    print(DISJUNCTION_COMMUTATIVITY_PROOF)
+
+    for line, assumptions, conclusion in [[1, [], '(~x|x)'],
+                                          [2, ['(x|y)', '(~x|x)'], '(y|x)']]:
+        # if debug:
+        #     print('Testing instance for line', line,
+        #           'of the following deductive proof:\n' +
+        #           str(DISJUNCTION_COMMUTATIVITY_PROOF))
+        print(InferenceRule([Formula.from_infix(a) for a in assumptions],
+              Formula.from_infix(conclusion)))

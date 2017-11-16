@@ -220,20 +220,29 @@ def test_is_instance_of(debug=False):
 # Two proofs for use in various tests below:
 
 DISJUNCTION_COMMUTATIVITY_PROOF = DeductiveProof(
-    InferenceRule([Formula.from_infix('(x|y)')], Formula.from_infix('(y|x)')),
-    [InferenceRule([Formula.from_infix('(p|q)'), Formula.from_infix('(~p|r)')],
-                   Formula.from_infix('(q|r)')),
-     InferenceRule([], Formula.from_infix('(~p|p)'))],
-    [DeductiveProof.Line(Formula.from_infix('(x|y)')),
-     DeductiveProof.Line(Formula.from_infix('(~x|x)'), 1, []),
-     DeductiveProof.Line(Formula.from_infix('(y|x)'), 0, [0, 1])])
+    InferenceRule([Formula.from_infix('(x|y)')], Formula.from_infix('(y|x)')), ### STATEMENT
+
+
+    [InferenceRule([Formula.from_infix('(p|q)'), Formula.from_infix('(~p|r)')], ## RULES
+                   Formula.from_infix('(q|r)')) , ## FIRST RULE
+     InferenceRule([], Formula.from_infix('(~p|p)'))], ## SECOND RULE
+
+
+    [DeductiveProof.Line(Formula.from_infix('(x|y)')), # LINE #1
+     DeductiveProof.Line(Formula.from_infix('(~x|x)'), 1, []), # LINE #2
+     DeductiveProof.Line(Formula.from_infix('(y|x)'), 0, [0, 1])]) # LINE #3
+
 
 DISJUNCTION_RIGHT_ASSOCIATIVITY_PROOF = DeductiveProof(
     InferenceRule([Formula.from_infix('((x|y)|z)')],
-                  Formula.from_infix('(x|(y|z))')),
-    [InferenceRule([Formula.from_infix('(x|y)')], Formula.from_infix('(y|x)')),
+                  Formula.from_infix('(x|(y|z))')),  ### STATEMENT
+
+
+    [InferenceRule([Formula.from_infix('(x|y)')], Formula.from_infix('(y|x)')), # RULE #1
      InferenceRule([Formula.from_infix('(x|(y|z))')],
-                   Formula.from_infix('((x|y)|z)'))],
+                   Formula.from_infix('((x|y)|z)'))],  ## RULE #2
+
+
     [DeductiveProof.Line(Formula.from_infix('((x|y)|z)')),
      DeductiveProof.Line(Formula.from_infix('(z|(x|y))'), 0, [0]),
      DeductiveProof.Line(Formula.from_infix('((z|x)|y)'), 1, [1]),
