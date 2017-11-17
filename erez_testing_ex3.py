@@ -24,3 +24,12 @@ if __name__ == '__main__':
         #           str(DISJUNCTION_COMMUTATIVITY_PROOF))
         print(InferenceRule([Formula.from_infix(a) for a in assumptions],
               Formula.from_infix(conclusion)))
+
+
+    proof = DeductiveProof(InferenceRule([Formula.from_infix('(x|y)')],
+                                         Formula.from_infix('(x|y)')),
+                           DISJUNCTION_COMMUTATIVITY_PROOF.rules,
+                           DISJUNCTION_COMMUTATIVITY_PROOF.lines)
+    if debug:
+        print('Testing validity of the following deductive proof:\n' + str(proof))
+    assert not proof.is_valid()
