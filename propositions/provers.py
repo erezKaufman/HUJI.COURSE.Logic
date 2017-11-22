@@ -41,15 +41,15 @@ def prove_implies_self():
 
     statement = InferenceRule([], Formula.from_infix('(p->p)'))  # create conclusion
 
-    rules = [I1, I2, MP]  # create rules for the proof
+    rules = [MP,I1, I2]  # create rules for the proof
 
     # create lines
     lines = []
-    lines.append(DeductiveProof.Line(Formula.from_infix('((p->((p->p)->p))->((p->(p->p))->(p->p)))'), 1, []))
-    lines.append(DeductiveProof.Line(Formula.from_infix('(p->(p->p))'), 0, []))
-    lines.append(DeductiveProof.Line(Formula.from_infix('(p->((p->p)->p))'), 0, []))
-    lines.append(DeductiveProof.Line(Formula.from_infix('((p->(p->p))->(p->p))'), 2, [2, 0]))
-    lines.append(DeductiveProof.Line(Formula.from_infix('(p->p)'), 2, [1, 3]))
+    lines.append(DeductiveProof.Line(Formula.from_infix('((p->((p->p)->p))->((p->(p->p))->(p->p)))'), 2, []))
+    lines.append(DeductiveProof.Line(Formula.from_infix('(p->(p->p))'), 1, []))
+    lines.append(DeductiveProof.Line(Formula.from_infix('(p->((p->p)->p))'), 1, []))
+    lines.append(DeductiveProof.Line(Formula.from_infix('((p->(p->p))->(p->p))'), 0, [2, 0]))
+    lines.append(DeductiveProof.Line(Formula.from_infix('(p->p)'), 0, [1, 3]))
     dec = DeductiveProof(statement, rules, lines)
     print(dec)
     return dec

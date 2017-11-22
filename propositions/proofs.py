@@ -183,11 +183,30 @@ class DeductiveProof:
         return self.lines[len(self.lines) - 1].conclusion == self.statement.conclusion
 
 
+
+
+# def create_instanse(formula, instantiation_map):
+
+
 def instantiate(formula, instantiation_map):
     """ Return a formula obtained from the given formula by simultaneously
         substituting, for each variable v that is a key of instantiation_map,
         each occurrence v with the formula instantiation_map[v] """
     # Task 5.2.1
+    if is_variable(formula.root):
+        return instantiation_map[formula.root]
+    elif is_constant(formula.root):
+        return formula.root
+    elif is_unary(formula.root):
+        formula.first = instantiate(formula.first, instantiation_map)
+    elif is_binary(formula.root):
+        formula.first = instantiate(formula.first, instantiation_map)
+        formula.second = instantiate(formula.second, instantiation_map)
+    elif is_ternary(formula.root):
+        formula.first = instantiate(formula.first, instantiation_map)
+        formula.second = instantiate(formula.second, instantiation_map)
+        formula.third = instantiate(formula.third, instantiation_map)
+    return formula
 
 
 def prove_instance(proof, instance):
