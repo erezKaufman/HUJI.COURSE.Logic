@@ -158,7 +158,7 @@ class DeductiveProof:
         for lineNum in range(0, len(self.lines)):
             # cehck if the number of line is smaller than the numbers in justification
             if self.lines[lineNum].justification is not None:
-                if len(self.lines[lineNum].justification) > 0: # if there are justifications
+                if len(self.lines[lineNum].justification) > 0:  # if there are justifications
                     for i in self.lines[lineNum].justification:
                         if i > lineNum:
                             return False
@@ -166,15 +166,15 @@ class DeductiveProof:
                     if self.lines[lineNum].rule is None:
                         if self.lines[lineNum].conclusion in self.statement.assumptions:
                             continue
-                        else: # if the conclusion of the line is not in the assumptions of the statement
+                        else:  # if the conclusion of the line is not in the assumptions of the statement
                             return False
 
-            else: # if the justification is None, we will check if rule is none. if so than
+            else:  # if the justification is None, we will check if rule is none. if so than
                 if self.lines[lineNum].rule is None:
-                        if self.lines[lineNum].conclusion in self.statement.assumptions:
-                            continue
-                        else: # if the conclusion of the line is not in the assumptions of the statement
-                            return False
+                    if self.lines[lineNum].conclusion in self.statement.assumptions:
+                        continue
+                    else:  # if the conclusion of the line is not in the assumptions of the statement
+                        return False
             # if self.lines[lineNum].just
             instance = self.instance_for_line(lineNum)
             rule = self.rules[self.lines[lineNum].rule]
@@ -183,9 +183,6 @@ class DeductiveProof:
         return self.lines[len(self.lines) - 1].conclusion == self.statement.conclusion
 
 
-
-
-# def create_instanse(formula, instantiation_map):
 
 
 def instantiate(formula, instantiation_map):
@@ -212,8 +209,26 @@ def instantiate(formula, instantiation_map):
 def prove_instance(proof, instance):
     """ Return a proof of the given instance of the inference rule that proof
         proves, via the same inference rules used by proof """
-    # Task 5.2.1
+    instantiation_map = {}
+    if not instance.is_instance_of(proof.statement, instantiation_map):
+        return False
 
+        # for assumption_index in range(len(proof.statement.assumptions)):
+        #     if not InferenceRule._update_instantiation_map(instance.assumptions[
+        #                                                        assumption_index], proof.statement.assumptions[
+        #                                                            assumption_index], instantiation_map):
+        #         return False
+    assumptions = []
+    proof.statement.conclusion = instantiate(proof.statement.conclusion,instantiation_map)
+    for assumption_index in range(len(proof.statement.assumptions)):
+        assumptions.append(instantiate( proof.statement.assumptions[assumption_index],instantiation_map))
+    for rule_index in range(len(proof.rules)):
+        proof.rules[rule_index].conclusion = instantiate(proof.rules[rule_index].conclusion,instantiation_map)
+        for index in range(len(proof.rules[rule_index].assumptions)):
+            proof.rules[rule_index].assumptions[index] = instantiate(proof.rules[rule_index].assumptions[index],instantiation_map)
+    for line_num in range(len(proof.lines)):
+        proof.lines[line_num].conclusion = instantiate(proof.lines[line_num].conclusion,instantiation_map)
+    return proof
 
 def inline_proof(main_proof, lemma_proof):
     """ Return a proof of the inference rule that main_proof proves, via the
