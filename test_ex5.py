@@ -11,8 +11,8 @@ def test_task1(debug=False):
 
 def test_task2(debug=False):
     # test_instantiate(debug)
-    test_prove_instance(debug)
-    # test_inline_proof(debug)
+    # test_prove_instance(debug)
+    test_inline_proof(debug)
     # test_inline_proof_extended(debug)
 
 def test_task3(debug=False):

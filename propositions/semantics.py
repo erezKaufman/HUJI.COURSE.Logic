@@ -6,17 +6,7 @@
 from propositions.syntax import *
 import itertools
 from propositions.proofs import *
-FALSE_IN_FORM = 'F'
-TRUE_IN_FORM = 'T'
-NEGATE_OPERATOR = '~'
-OR_OPERATOR = '|'
-IMPLICATION_OPERATOR = '->'
-BICONDITIONAL_OPERATOR = '<->'
-TERNARY_OPERATOR = '?:'
-NAND_OPERATOR = '-&'
-NOR_OPERATOR = '-|'
-AND_OPERATOR = '&'
-return_list = []
+
 
 
 def evaluate(formula, model):

@@ -6,40 +6,42 @@
 from propositions.syntax import *
 from propositions.proofs import *
 
+
 # Tests for InferenceRule:
 
 def test_variables(debug=False):
     for assumptions, conclusion, variables in [
-            [[], 'T', set()],
-            [['p', 'q'], 'r', {'p', 'q', 'r'}],
-            [['(p|q)', '(q|r)', '(r|p)'], '(p?q:s)', {'p', 'q', 'r', 's'}],
-            [['(x1-&x2)', '(x3-|x4)'], '(x1->x11)', {'x1', 'x2', 'x3', 'x4', 'x11'}],
-            [['~z', '~y', '~x'], '(((x|y)|z)|w)', {'z', 'y', 'x', 'w'}],
-            [['~~z'], '(~~z?z:z)', {'z'}]]:
+        [[], 'T', set()],
+        [['p', 'q'], 'r', {'p', 'q', 'r'}],
+        [['(p|q)', '(q|r)', '(r|p)'], '(p?q:s)', {'p', 'q', 'r', 's'}],
+        [['(x1-&x2)', '(x3-|x4)'], '(x1->x11)', {'x1', 'x2', 'x3', 'x4', 'x11'}],
+        [['~z', '~y', '~x'], '(((x|y)|z)|w)', {'z', 'y', 'x', 'w'}],
+        [['~~z'], '(~~z?z:z)', {'z'}]]:
         rule = InferenceRule([Formula.from_infix(a) for a in assumptions],
                              Formula.from_infix(conclusion))
         if debug:
             print('Testing variables of the inference rule', rule)
         assert rule.variables() == variables
 
+
 def test_update_instantiation_map(debug=False):
     for template_infix, candidate_infix, instantiation_map_infix, conflicting_map_infix in [
-            ['(~p|p)', '(~q|q)', {'p': 'q'}, {'p': 'q7'}],
-            ['(~p|p)', '(~p|p)', {'p': 'p'}, {'p': 'p1'}],
-            ['(~p|p)', '(~p4|p4)', {'p': 'p4'}, {'p': '~p4'}],
-            ['(~p|p)', '(~r7|r7)', {'p': 'r7'}, {'p': 'r71'}],
-            ['(~p|p)', '(~~(p|q)|~(p|q))', {'p': '~(p|q)'}, {'p': '~(p|p)'}],
-            ['(~p|p)', '(~p|q)', None, {'p': 'p'}],
-            ['(~p|p)', '(~p1|p2)', None, {'p': 'p2'}],
-            ['(~p|p)', '(~~(p|p)|~(p|q))', None, {'p': '(p|q)'}],
-            ['~(x?((p->(q-&x))|((p-|y)<->(r&q))):y)',
-             '~(y?((p->((q?x:y)-&y))|((p-|x)<->((r|q)&(q?x:y)))):x)',
-             {'x': 'y', 'y': 'x', 'p': 'p', 'q': '(q?x:y)', 'r': '(r|q)'},
-             {'x': 'y', 'y': 'x', 'p': 'p', 'q': '(q?x:z)', 'r': '(r|q)'}],
-            ['~(x?((p->(q-&x))|((p-|y)<->(r&q))):y)',
-             '~(y?((p->((q?x:y)-&y))|((p-|x1)<->((r|q)&(q?x:y)))):x)',
-             None,
-             {'x': 'y', 'y': 'x1', 'p': 'p', 'q': '(q?x:y)', 'r': '(r|q)'}]]:
+        ['(~p|p)', '(~q|q)', {'p': 'q'}, {'p': 'q7'}],
+        ['(~p|p)', '(~p|p)', {'p': 'p'}, {'p': 'p1'}],
+        ['(~p|p)', '(~p4|p4)', {'p': 'p4'}, {'p': '~p4'}],
+        ['(~p|p)', '(~r7|r7)', {'p': 'r7'}, {'p': 'r71'}],
+        ['(~p|p)', '(~~(p|q)|~(p|q))', {'p': '~(p|q)'}, {'p': '~(p|p)'}],
+        ['(~p|p)', '(~p|q)', None, {'p': 'p'}],
+        ['(~p|p)', '(~p1|p2)', None, {'p': 'p2'}],
+        ['(~p|p)', '(~~(p|p)|~(p|q))', None, {'p': '(p|q)'}],
+        ['~(x?((p->(q-&x))|((p-|y)<->(r&q))):y)',
+         '~(y?((p->((q?x:y)-&y))|((p-|x)<->((r|q)&(q?x:y)))):x)',
+         {'x': 'y', 'y': 'x', 'p': 'p', 'q': '(q?x:y)', 'r': '(r|q)'},
+         {'x': 'y', 'y': 'x', 'p': 'p', 'q': '(q?x:z)', 'r': '(r|q)'}],
+        ['~(x?((p->(q-&x))|((p-|y)<->(r&q))):y)',
+         '~(y?((p->((q?x:y)-&y))|((p-|x1)<->((r|q)&(q?x:y)))):x)',
+         None,
+         {'x': 'y', 'y': 'x1', 'p': 'p', 'q': '(q?x:y)', 'r': '(r|q)'}]]:
         template = Formula.from_infix(template_infix)
         candidate = Formula.from_infix(candidate_infix)
         if instantiation_map_infix is not None:
@@ -62,7 +64,7 @@ def test_update_instantiation_map(debug=False):
         # Partial initial map
         if instantiation_map_infix is not None:
             variables = sorted(list(template.variables()))
-            for i in range(1, len(variables)+1):
+            for i in range(1, len(variables) + 1):
                 map_ = {variable: instantiation_map[variable]
                         for variable in variables[:i]}
                 if debug:
@@ -71,7 +73,7 @@ def test_update_instantiation_map(debug=False):
                 assert InferenceRule._update_instantiation_map(
                     candidate, template, map_)
                 assert map_ == instantiation_map
-            
+
         # Conflicting initial map
         conflicting_map = \
             {variable: Formula.from_infix(conflicting_map_infix[variable])
@@ -81,19 +83,20 @@ def test_update_instantiation_map(debug=False):
                   template, 'with (conflicting) initial map', conflicting_map)
         assert not InferenceRule._update_instantiation_map(
             candidate, template, conflicting_map)
-    
+
+
 def test_is_instance_of(debug=False):
     # Test 1
     rule = InferenceRule([], Formula.from_infix('(~p|p)'))
     for conclusion, instantiation_map_infix in [
-            ['(~q|q)', {'p': 'q'}],
-            ['(~p|p)', {'p': 'p'}],
-            ['(~p4|p4)', {'p': 'p4'}],
-            ['(~r7|r7)', {'p': 'r7'}],
-            ['(~~(p|q)|~(p|q))', {'p': '~(p|q)'}],
-            ['(~p|q)', None],
-            ['(~p1|p2)', None],
-            ['(~~(p|p)|~(p|q))', None]]:
+        ['(~q|q)', {'p': 'q'}],
+        ['(~p|p)', {'p': 'p'}],
+        ['(~p4|p4)', {'p': 'p4'}],
+        ['(~r7|r7)', {'p': 'r7'}],
+        ['(~~(p|q)|~(p|q))', {'p': '~(p|q)'}],
+        ['(~p|q)', None],
+        ['(~p1|p2)', None],
+        ['(~~(p|p)|~(p|q))', None]]:
         candidate = InferenceRule([], Formula.from_infix(conclusion))
         if debug:
             print('Testing whether', candidate, 'is an instance of', rule)
@@ -114,8 +117,8 @@ def test_is_instance_of(debug=False):
     rule = InferenceRule(
         [], Formula.from_infix('~(x?((p->(q-&x))|((p-|y)<->(r&q))):y)'))
     for conclusion, value in [
-            ['~(y?((p->((q?x:y)-&y))|((p-|x)<->((r|q)&(q?x:y)))):x)', True],
-            ['~(y?((p->((q?x:y)-&y))|((p-|x1)<->((r|q)&(q?x:y)))):x)', False]]:
+        ['~(y?((p->((q?x:y)-&y))|((p-|x)<->((r|q)&(q?x:y)))):x)', True],
+        ['~(y?((p->((q?x:y)-&y))|((p-|x1)<->((r|q)&(q?x:y)))):x)', False]]:
         candidate = InferenceRule([], Formula.from_infix(conclusion))
         if debug:
             print('Testing whether', candidate, 'is an instance of', rule)
@@ -143,7 +146,7 @@ def test_is_instance_of(debug=False):
             map_ = {}
             assert candidate.is_instance_of(rule, map_)
             assert map_ == instantiation_map
-            
+
     # Test 3
     a = Formula.from_infix('(p|q)')
     b = Formula.from_infix('(~p|r)')
@@ -217,29 +220,35 @@ def test_is_instance_of(debug=False):
             assert candidate.is_instance_of(rule, map_)
             assert map_ == instantiation_map
 
+
 # Two proofs for use in various tests below:
 
 DISJUNCTION_COMMUTATIVITY_PROOF = DeductiveProof(
-    InferenceRule([Formula.from_infix('(x|y)')], Formula.from_infix('(y|x)')),
+    InferenceRule([Formula.from_infix('(x|y)')], Formula.from_infix('(y|x)')),  ## statement
+
     [InferenceRule([Formula.from_infix('(p|q)'), Formula.from_infix('(~p|r)')],
                    Formula.from_infix('(q|r)')),
-     InferenceRule([], Formula.from_infix('(~p|p)'))],
-    [DeductiveProof.Line(Formula.from_infix('(x|y)')),
+     InferenceRule([], Formula.from_infix('(~p|p)'))],  # RULES
+
+    [DeductiveProof.Line(Formula.from_infix('(x|y)')),  # lines
      DeductiveProof.Line(Formula.from_infix('(~x|x)'), 1, []),
      DeductiveProof.Line(Formula.from_infix('(y|x)'), 0, [0, 1])])
 
 DISJUNCTION_RIGHT_ASSOCIATIVITY_PROOF = DeductiveProof(
     InferenceRule([Formula.from_infix('((x|y)|z)')],
-                  Formula.from_infix('(x|(y|z))')),
+                  Formula.from_infix('(x|(y|z))')),  # statement
+
     [InferenceRule([Formula.from_infix('(x|y)')], Formula.from_infix('(y|x)')),
      InferenceRule([Formula.from_infix('(x|(y|z))')],
-                   Formula.from_infix('((x|y)|z)'))],
-    [DeductiveProof.Line(Formula.from_infix('((x|y)|z)')),
+                   Formula.from_infix('((x|y)|z)'))],  # RULES
+
+    [DeductiveProof.Line(Formula.from_infix('((x|y)|z)')),  # LINES
      DeductiveProof.Line(Formula.from_infix('(z|(x|y))'), 0, [0]),
      DeductiveProof.Line(Formula.from_infix('((z|x)|y)'), 1, [1]),
      DeductiveProof.Line(Formula.from_infix('(y|(z|x))'), 0, [2]),
      DeductiveProof.Line(Formula.from_infix('((y|z)|x)'), 1, [3]),
      DeductiveProof.Line(Formula.from_infix('(x|(y|z))'), 0, [4])])
+
 
 # Tests for DeductiveProof:
 
@@ -252,8 +261,8 @@ def test_instance_for_line(debug=False):
                   'of the following deductive proof:\n' +
                   str(DISJUNCTION_COMMUTATIVITY_PROOF))
         assert DISJUNCTION_COMMUTATIVITY_PROOF.instance_for_line(line) == \
-            InferenceRule([Formula.from_infix(a) for a in assumptions],
-                          Formula.from_infix(conclusion))
+               InferenceRule([Formula.from_infix(a) for a in assumptions],
+                             Formula.from_infix(conclusion))
 
     # Test over lines of DISJUNCTION_RIGHT_ASSOCIATIVITY_PROOF
     for line, assumptions, conclusion in [[1, ['((x|y)|z)'], '(z|(x|y))'],
@@ -268,6 +277,7 @@ def test_instance_for_line(debug=False):
         assert DISJUNCTION_RIGHT_ASSOCIATIVITY_PROOF.instance_for_line(line) == \
                InferenceRule([Formula.from_infix(a) for a in assumptions],
                              Formula.from_infix(conclusion))
+
 
 def test_is_valid(debug=False):
     # Test variations on DISJUNCTION_COMMUTATIVITY_PROOF
@@ -334,20 +344,21 @@ def test_is_valid(debug=False):
         print('Testing validity of the following deductive proof:\n' + str(proof))
     assert not proof.is_valid()
 
+
 # Tests for functions:
 
 def test_instantiate(debug=True):
     for template_infix, instantiation_map_infix, instance_infix in [
-            ['(~p|p)', {'p': 'q'}, '(~q|q)'],
-            ['(~p|p)', {'p': 'p'}, '(~p|p)'],
-            ['(~p|p)', {'p': 'p4'}, '(~p4|p4)'],
-            ['(~p|p)', {'p': 'r7'}, '(~r7|r7)'],
-            ['(~p|p)', {'p': '~(p|q)'}, '(~~(p|q)|~(p|q))'],
-            ['~(x?((p->(q-&x))|((p-|y)<->(r&q))):y)',
-             {'x': 'y', 'y': 'x', 'p': 'p', 'q': '(q?x:y)', 'r': '(r|q)'},
-             '~(y?((p->((q?x:y)-&y))|((p-|x)<->((r|q)&(q?x:y)))):x)']]:
-        template = Formula.from_infix(template_infix) # (~p|p)
-        instance = Formula.from_infix(instance_infix) # (~q|q)
+        ['(~p|p)', {'p': 'q'}, '(~q|q)'],
+        ['(~p|p)', {'p': 'p'}, '(~p|p)'],
+        ['(~p|p)', {'p': 'p4'}, '(~p4|p4)'],
+        ['(~p|p)', {'p': 'r7'}, '(~r7|r7)'],
+        ['(~p|p)', {'p': '~(p|q)'}, '(~~(p|q)|~(p|q))'],
+        ['~(x?((p->(q-&x))|((p-|y)<->(r&q))):y)',
+         {'x': 'y', 'y': 'x', 'p': 'p', 'q': '(q?x:y)', 'r': '(r|q)'},
+         '~(y?((p->((q?x:y)-&y))|((p-|x)<->((r|q)&(q?x:y)))):x)']]:
+        template = Formula.from_infix(template_infix)  # (~p|p)
+        instance = Formula.from_infix(instance_infix)  # (~q|q)
         instantiation_map = \
             {variable: Formula.from_infix(instantiation_map_infix[variable])
              for variable in instantiation_map_infix}
@@ -355,6 +366,7 @@ def test_instantiate(debug=True):
             print('Testing instantiation of', template,
                   'with instantiation map', instantiation_map)
         assert instantiate(template, instantiation_map) == instance
+
 
 def test_prove_instance(debug=False):
     # Test instantiations of DISJUNCTION_COMMUTATIVITY_PROOF
@@ -394,22 +406,48 @@ def test_prove_instance(debug=False):
         # Will be tested with the course staff's implementation of is_valid()
         assert instance_proof.is_valid()
 
+
 def test_inline_proof(debug=False):
-    lemma1_proof = DISJUNCTION_COMMUTATIVITY_PROOF
-    lemma2_proof = DISJUNCTION_RIGHT_ASSOCIATIVITY_PROOF
+    lemma1_proof = DeductiveProof(
+        InferenceRule([Formula.from_infix('(x|y)')], Formula.from_infix('(y|x)')),  # statement
+
+        [InferenceRule([Formula.from_infix('(p|q)'), Formula.from_infix('(~p|r)')],
+                       Formula.from_infix('(q|r)')),
+         InferenceRule([], Formula.from_infix('(~p|p)'))],  # RULES
+
+        [DeductiveProof.Line(Formula.from_infix('(x|y)')),  # lines
+         DeductiveProof.Line(Formula.from_infix('(~x|x)'), 1, []),
+         DeductiveProof.Line(Formula.from_infix('(y|x)'), 0, [0, 1])])
+
+    lemma2_proof = DeductiveProof(
+        InferenceRule([Formula.from_infix('((x|y)|z)')],
+                      Formula.from_infix('(x|(y|z))')),  # statement
+
+        [InferenceRule([Formula.from_infix('(x|y)')], Formula.from_infix('(y|x)')),  # 0
+         InferenceRule([Formula.from_infix('(x|(y|z))')],
+                       Formula.from_infix('((x|y)|z)'))],  # 1  #RULES
+
+        [DeductiveProof.Line(Formula.from_infix('((x|y)|z)')),  # LINES
+         DeductiveProof.Line(Formula.from_infix('(z|(x|y))'), 0, [0]),
+         DeductiveProof.Line(Formula.from_infix('((z|x)|y)'), 1, [1]),
+         DeductiveProof.Line(Formula.from_infix('(y|(z|x))'), 0, [2]),
+         DeductiveProof.Line(Formula.from_infix('((y|z)|x)'), 1, [3]),
+         DeductiveProof.Line(Formula.from_infix('(x|(y|z))'), 0, [4])])
 
     # A proof that uses both disjunction commutativity (lemma 1) and
     # disjunction right associativity (lemma2), whose proof in turn also uses
     # disjunction commutativity (lemma 1).
     proof = DeductiveProof(
-        InferenceRule([Formula.from_infix('((p|q)|r)')],
+        InferenceRule([Formula.from_infix('((p|q)|r)')],  # statement
                       Formula.from_infix('((r|p)|q)')),
-        [InferenceRule([Formula.from_infix('((x|y)|z)')],
-                       Formula.from_infix('(x|(y|z))')),
+
+        [InferenceRule([Formula.from_infix('((x|y)|z)')],  # RULES
+                       Formula.from_infix('(x|(y|z))')),  # 0
          InferenceRule([Formula.from_infix('(x|y)')],
-                       Formula.from_infix('(y|x)')),
-         InferenceRule([], Formula.from_infix('(~p|p)'))],
-        [DeductiveProof.Line(Formula.from_infix('((p|q)|r)')),
+                       Formula.from_infix('(y|x)')),  # 1
+         InferenceRule([], Formula.from_infix('(~p|p)'))],  # 2
+
+        [DeductiveProof.Line(Formula.from_infix('((p|q)|r)')),  # LINES
          DeductiveProof.Line(Formula.from_infix('(p|(q|r))'), 0, [0]),
          DeductiveProof.Line(Formula.from_infix('((q|r)|p)'), 1, [1]),
          DeductiveProof.Line(Formula.from_infix('(q|(r|p))'), 0, [2]),
@@ -476,7 +514,7 @@ def test_inline_proof(debug=False):
 
     # Test inlining (lemma1_proof into lemma2_proof) into (lemma1_proof into proof)
 
-    inlined_proof = inline_proof(proof, lemma1_proof) # Already tested above
+    inlined_proof = inline_proof(proof, lemma1_proof)  # Already tested above
 
     if debug:
         print('Testing inline_proof for the following main proof:\n' +
@@ -524,27 +562,29 @@ def test_inline_proof(debug=False):
     # Will be tested with the course staff's implementation of is_valid()
     assert inlined_proof.is_valid()
 
+
 def test_inline_proof_extended(debug):
     from propositions.provers import MP, I1, I2
 
     # Test inlining the proof of a lemma with two assumptions
     I2_decomposed = InferenceRule(
-            [Formula.from_infix('(p->(q->r))'), Formula.from_infix('(p->q)')],
-            Formula.from_infix('(p->r)'))
+        [Formula.from_infix('(p->(q->r))'), Formula.from_infix('(p->q)')],
+        Formula.from_infix('(p->r)'))
     I2_decomposed_proof = DeductiveProof(I2_decomposed, [MP, I1, I2],
-        [DeductiveProof.Line(Formula.from_infix('(p->(q->r))')),
-         DeductiveProof.Line(Formula.from_infix('(p->q)')),
-         DeductiveProof.Line(Formula.from_infix('((p->(q->r))->((p->q)->(p->r)))'), 2, []),
-         DeductiveProof.Line(Formula.from_infix('((p->q)->(p->r))'), 0, [0, 2]),
-         DeductiveProof.Line(Formula.from_infix('(p->r)'), 0, [1, 3])])
+                                         [DeductiveProof.Line(Formula.from_infix('(p->(q->r))')),
+                                          DeductiveProof.Line(Formula.from_infix('(p->q)')),
+                                          DeductiveProof.Line(Formula.from_infix('((p->(q->r))->((p->q)->(p->r)))'), 2,
+                                                              []),
+                                          DeductiveProof.Line(Formula.from_infix('((p->q)->(p->r))'), 0, [0, 2]),
+                                          DeductiveProof.Line(Formula.from_infix('(p->r)'), 0, [1, 3])])
 
     statement = InferenceRule([Formula.from_infix('((x|y)->(z->r))'),
                                Formula.from_infix('((x|y)->z)')],
                               Formula.from_infix('((x|y)->r)'))
     proof = DeductiveProof(statement, [I2_decomposed],
-        [DeductiveProof.Line(Formula.from_infix('((x|y)->(z->r))')),
-         DeductiveProof.Line(Formula.from_infix('((x|y)->z)')),
-         DeductiveProof.Line(Formula.from_infix('((x|y)->r)'), 0, [0, 1])])
+                           [DeductiveProof.Line(Formula.from_infix('((x|y)->(z->r))')),
+                            DeductiveProof.Line(Formula.from_infix('((x|y)->z)')),
+                            DeductiveProof.Line(Formula.from_infix('((x|y)->r)'), 0, [0, 1])])
     if debug:
         print('Testing inline_proof for the following main proof:\n' +
               str(proof) + '\nand the following lemma proof:\n' +
@@ -558,7 +598,7 @@ def test_inline_proof_extended(debug):
     # Test inlining the proof of a lemma with no assumptions
     I1_renamed = InferenceRule([], Formula.from_infix('(x->(y->x))'))
     I1_renamed_degenerate_proof = DeductiveProof(I1_renamed, [I1],
-        [DeductiveProof.Line(I1.conclusion, 0, [])])
+                                                 [DeductiveProof.Line(I1.conclusion, 0, [])])
     proof = DeductiveProof(
         InferenceRule([Formula('p')], Formula.from_infix('(q->p)')), [MP, I1_renamed],
         [DeductiveProof.Line(Formula('p')),

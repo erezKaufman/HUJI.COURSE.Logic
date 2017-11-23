@@ -2,7 +2,17 @@
     Mathematical Logic through Programming
     by Gonczarowski and Nisan.
     File name: code/propositions/syntax.py """
-
+FALSE_IN_FORM = 'F'
+TRUE_IN_FORM = 'T'
+NEGATE_OPERATOR = '~'
+OR_OPERATOR = '|'
+IMPLICATION_OPERATOR = '->'
+BICONDITIONAL_OPERATOR = '<->'
+TERNARY_OPERATOR = '?:'
+NAND_OPERATOR = '-&'
+NOR_OPERATOR = '-|'
+AND_OPERATOR = '&'
+return_list = []
 
 def is_variable(s):
     """ Is s an atomic proposition?  """
@@ -39,7 +49,9 @@ class Formula:
         """ Create a new formula from its root (a string) and, when needed, the
         first and second operands (each of them a Formula).
         - I added to each object a variable of string to save each time the current state of the formula's string """
-        if is_constant(root) or is_variable(root):
+        boolB = is_variable(root)
+        boolaA = is_constant(root)
+        if boolaA or boolB:
             assert first is None and second is None
             self.root = root
         elif is_unary(root):

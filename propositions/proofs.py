@@ -60,7 +60,7 @@ class InferenceRule:
         return InferenceRule._update_instantiation_map(self.conclusion, rule.conclusion, instantiation_map)
 
     @staticmethod
-    def _update_instantiation_map(formula, template, instantiation_map):
+    def _update_instantiation_map(formula: Formula, template: Formula, instantiation_map: dict):
         """ Return whether the given formula can be obtained from the given
             template formula by simultaneously and consistantly substituting,
             for every variable in the given template formula, every occurrence
@@ -183,9 +183,7 @@ class DeductiveProof:
         return self.lines[len(self.lines) - 1].conclusion == self.statement.conclusion
 
 
-
-
-def instantiate(formula, instantiation_map):
+def instantiate(formula: Formula, instantiation_map: dict):
     """ Return a formula obtained from the given formula by simultaneously
         substituting, for each variable v that is a key of instantiation_map,
         each occurrence v with the formula instantiation_map[v] """
@@ -195,44 +193,114 @@ def instantiate(formula, instantiation_map):
     elif is_constant(formula.root):
         return formula.root
     elif is_unary(formula.root):
-        formula.first = instantiate(formula.first, instantiation_map)
+        first = instantiate(formula.first, instantiation_map)
+        return Formula(NEGATE_OPERATOR, first)
     elif is_binary(formula.root):
-        formula.first = instantiate(formula.first, instantiation_map)
-        formula.second = instantiate(formula.second, instantiation_map)
+        first = instantiate(formula.first, instantiation_map)
+        second = instantiate(formula.second, instantiation_map)
+        return Formula(formula.root, first, second)
     elif is_ternary(formula.root):
-        formula.first = instantiate(formula.first, instantiation_map)
-        formula.second = instantiate(formula.second, instantiation_map)
-        formula.third = instantiate(formula.third, instantiation_map)
+        first = instantiate(formula.first, instantiation_map)
+        second = instantiate(formula.second, instantiation_map)
+        third = instantiate(formula.third, instantiation_map)
+        return Formula(formula.root, first, second, third)
     return formula
 
 
-def prove_instance(proof, instance):
+def prove_instance(proof: DeductiveProof, instance: InferenceRule):
     """ Return a proof of the given instance of the inference rule that proof
         proves, via the same inference rules used by proof """
+
     instantiation_map = {}
     if not instance.is_instance_of(proof.statement, instantiation_map):
+        print(
+            "there is a bug! you should've brought a valid proof. proof: {}, and instance: {}".format(proof, instance))
         return False
+    lines = []
+    for line in proof.lines:
+        line_conclusion = instantiate(line.conclusion, instantiation_map)
+        new_line = DeductiveProof.Line(line_conclusion, line.rule, line.justification)
+        lines.append(new_line)
+    return DeductiveProof(instance, proof.rules, lines)
 
-        # for assumption_index in range(len(proof.statement.assumptions)):
-        #     if not InferenceRule._update_instantiation_map(instance.assumptions[
-        #                                                        assumption_index], proof.statement.assumptions[
-        #                                                            assumption_index], instantiation_map):
-        #         return False
-    assumptions = []
-    proof.statement.conclusion = instantiate(proof.statement.conclusion,instantiation_map)
-    for assumption_index in range(len(proof.statement.assumptions)):
-        assumptions.append(instantiate( proof.statement.assumptions[assumption_index],instantiation_map))
-    for rule_index in range(len(proof.rules)):
-        proof.rules[rule_index].conclusion = instantiate(proof.rules[rule_index].conclusion,instantiation_map)
-        for index in range(len(proof.rules[rule_index].assumptions)):
-            proof.rules[rule_index].assumptions[index] = instantiate(proof.rules[rule_index].assumptions[index],instantiation_map)
-    for line_num in range(len(proof.lines)):
-        proof.lines[line_num].conclusion = instantiate(proof.lines[line_num].conclusion,instantiation_map)
-    return proof
 
-def inline_proof(main_proof, lemma_proof):
+def inline_proof(main_proof: DeductiveProof, lemma_proof: DeductiveProof) -> DeductiveProof:
     """ Return a proof of the inference rule that main_proof proves, via the
         inference rules used in main_proof except for the one proven by
         lemma_proof, as well as via the inference rules used in lemma_proof
         (with duplicates removed) """
     # Task 5.2.2
+
+
+    # 1. look for the inference rule that is represented in the lemme_proof. DON'T FORGET TO REMEMBER THE NUMBER OF
+    # THE LEMMA_PROOF'S STATEMENT (for future use)
+    index_to_switch = -1
+    rules = []
+    rules_dict = {}
+    main_rules_dict = {}
+    proof_rule_index = 0
+    rules_counter = 0
+    for main_proof_rules_index in range(len(main_proof.rules)):  # run on all rules of the main proof by index
+        # add each rule to a dictionary. the index is the key and the rule is the value
+        main_rules_dict[rules_counter] = main_proof.rules[main_proof_rules_index]
+        rules_counter += 1
+        # if we find the rule that the lemma proofs = we save it's index and continue the loop
+        if lemma_proof.statement.is_instance_of(main_proof.rules[main_proof_rules_index]):
+            index_to_switch = main_proof_rules_index
+            continue
+        # else - we save the rule in a rule dictionary. where the rule is the key and its index is the value
+        rules_dict[main_proof.rules[main_proof_rules_index]] = proof_rule_index
+        proof_rule_index += 1
+
+    # 2. create a new rule list that holds: first all the rules in the main_proof (without the lemma_proof statement)
+    #  and then all the rules from the lemma_proof (without any duplicates)
+
+    # create an instantiated lemma version
+    lemma_proof_instantiated = prove_instance(lemma_proof, main_proof.rules[index_to_switch])
+
+    lemma_rules_dict = {}
+    rules_counter = 0
+    for lemma_rule in lemma_proof.rules: # run on all rules of the lemma
+        # add the rule to the dictionary. the index is the key and the # rule is the value
+        lemma_rules_dict[rules_counter] = lemma_rule
+
+        rules_counter += 1
+        is_duplicate = False
+        # for each lemma_rule , we will check if it's an instance of the main_proof rules. if duplicated, don't add.
+        for proof_rule in rules:
+            if lemma_rule.is_instance_of(proof_rule):
+                is_duplicate = True
+        if not is_duplicate:
+            rules_dict[lemma_rule] = proof_rule_index
+            proof_rule_index += 1
+            # lemma_rules.append(lemma_rule)
+
+    # rules.append(lemma_rules)
+
+
+    # 3. create new lines for the new proof. create a line that proofs the new statement, and fix all indexes
+
+    lines = []
+    # DeductiveProof.Line(conclusion=,rule=,justification=)
+    for line_index in range(len(main_proof.lines)):
+        line = main_proof.lines[line_index]
+        if line.rule is None:
+            lines.append(DeductiveProof.Line(line.conclusion))
+        if line.rule == index_to_switch:  # here we need to insert the lemma proof
+            # line = lemma_proof_instantiated.lines[1]
+            # lines.append(DeductiveProof.Line(line.conclusion,))
+            for main_proof_rules_index in range(len(lemma_proof_instantiated.lines)):
+                line = lemma_proof_instantiated.lines[main_proof_rules_index]
+                if (line.rule is None):
+                    continue
+                rule_num = line
+
+                lines.append(DeductiveProof.Line(line.conclusion, ))
+        else:
+            if line_index < index_to_switch:
+                lines.append(DeductiveProof.Line(line.conclusion, line.rule, line.justification))
+            else:  # it's now in the index-1
+                lines.append(DeductiveProof.Line(line.conclusion, line.rule - 1,
+                                                 [just_num if just_num < index_to_switch else (just_num - 1) for
+                                                  just_num in
+                                                  line.justification]))
