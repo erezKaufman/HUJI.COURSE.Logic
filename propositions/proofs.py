@@ -52,7 +52,8 @@ class InferenceRule:
             populated with the mapping from each vi to the corresponding fi """
         if instantiation_map is None:
             instantiation_map = {}
-
+        if len(self.assumptions) != len(rule.assumptions):
+            return False
         for self_assumption, rule_assumption in zip(self.assumptions, rule.assumptions):
             # for  rule_assumption in rule.assumptions:
             if not InferenceRule._update_instantiation_map(self_assumption, rule_assumption, instantiation_map):
@@ -230,77 +231,153 @@ def inline_proof(main_proof: DeductiveProof, lemma_proof: DeductiveProof) -> Ded
         lemma_proof, as well as via the inference rules used in lemma_proof
         (with duplicates removed) """
     # Task 5.2.2
-
-
     # 1. look for the inference rule that is represented in the lemme_proof. DON'T FORGET TO REMEMBER THE NUMBER OF
     # THE LEMMA_PROOF'S STATEMENT (for future use)
     index_to_switch = -1
     rules = []
-    rules_dict = {}
-    main_rules_dict = {}
+    rules_dict = {}  # dictionary for all the rules that we want to add to the new proof
+    main_rules_dict = {}  # dictionary of all the main proof rules
+    lemma_rules_dict = {}  # dictionary of all the lemma proof rules
     proof_rule_index = 0
     rules_counter = 0
+    index_to_switch, lemma_rules = create_rules(index_to_switch, lemma_proof,
+                                                lemma_rules_dict, main_proof, main_rules_dict,
+                                                proof_rule_index, rules, rules_counter,
+                                                rules_dict)
+
+    rules = rules + lemma_rules
+
+    # 3. create new lines for the new proof. create a line that proofs the new statement, and fix all indexes
+    lines = []
+    # DeductiveProof.Line(conclusion=,rule=,justification=)
+
+    create_lines(index_to_switch, lemma_proof, lemma_rules_dict, lines, main_proof,
+                 main_rules_dict, rules_dict)
+
+    return DeductiveProof(main_proof.statement, rules, lines)
+
+
+def create_rules(index_to_switch, lemma_proof, lemma_rules_dict, main_proof, main_rules_dict, proof_rule_index, rules,
+                 rules_counter, rules_dict):
+    """
+    helper for inline_proof. its purpose is to make an order in the rules between the main_proof and the lemma,
+    and create a list of rules to return
+    :param index_to_switch:
+    :param lemma_proof:
+    :param lemma_rules_dict:
+    :param main_proof:
+    :param main_rules_dict:
+    :param proof_rule_index:
+    :param rules:
+    :param rules_counter:
+    :param rules_dict:
+    :return:
+    """
+    # run on each line of the main proof
     for main_proof_rules_index in range(len(main_proof.rules)):  # run on all rules of the main proof by index
         # add each rule to a dictionary. the index is the key and the rule is the value
         main_rules_dict[rules_counter] = main_proof.rules[main_proof_rules_index]
         rules_counter += 1
+
         # if we find the rule that the lemma proofs = we save it's index and continue the loop
         if lemma_proof.statement.is_instance_of(main_proof.rules[main_proof_rules_index]):
             index_to_switch = main_proof_rules_index
             continue
         # else - we save the rule in a rule dictionary. where the rule is the key and its index is the value
-        rules_dict[main_proof.rules[main_proof_rules_index]] = proof_rule_index
+        rules_dict[main_proof.rules[main_proof_rules_index].conclusion.infix()] = proof_rule_index
         proof_rule_index += 1
 
-    # 2. create a new rule list that holds: first all the rules in the main_proof (without the lemma_proof statement)
-    #  and then all the rules from the lemma_proof (without any duplicates)
+        rules.append(main_proof.rules[main_proof_rules_index])
 
     # create an instantiated lemma version
-    lemma_proof_instantiated = prove_instance(lemma_proof, main_proof.rules[index_to_switch])
-
-    lemma_rules_dict = {}
+    # lemma_proof_instantiated = prove_instance(lemma_proof, main_proof.rules[index_to_switch])
+    lemma_start_index = len(rules)
+    lemma_rules = []
     rules_counter = 0
-    for lemma_rule in lemma_proof.rules: # run on all rules of the lemma
+    for lemma_rule in lemma_proof.rules:  # run on all rules of the lemma
         # add the rule to the dictionary. the index is the key and the # rule is the value
         lemma_rules_dict[rules_counter] = lemma_rule
 
         rules_counter += 1
+
         is_duplicate = False
+
         # for each lemma_rule , we will check if it's an instance of the main_proof rules. if duplicated, don't add.
         for proof_rule in rules:
             if lemma_rule.is_instance_of(proof_rule):
                 is_duplicate = True
         if not is_duplicate:
-            rules_dict[lemma_rule] = proof_rule_index
+            lemma_rules.append(lemma_rule)
+
+            rules_dict[lemma_rule.conclusion.infix()] = proof_rule_index
             proof_rule_index += 1
-            # lemma_rules.append(lemma_rule)
-
-    # rules.append(lemma_rules)
+    return index_to_switch, lemma_rules
 
 
-    # 3. create new lines for the new proof. create a line that proofs the new statement, and fix all indexes
-
-    lines = []
-    # DeductiveProof.Line(conclusion=,rule=,justification=)
+def create_lines(index_to_switch, lemma_proof, lemma_rules_dict, lines, main_proof,
+                 main_rules_dict, rules_dict):
+    """
+    helper method for inline_proof. its purpose is to create a list of lines which we will return for the new proof.
+    :param index_to_switch:
+    :param lemma_proof:
+    :param lemma_rules_dict:
+    :param lines:
+    :param main_proof:
+    :param main_rules_dict:
+    :param rules_dict:
+    :return:
+    """
+    line_counter = 0
+    old_lines_dict = {}
     for line_index in range(len(main_proof.lines)):
-        line = main_proof.lines[line_index]
-        if line.rule is None:
-            lines.append(DeductiveProof.Line(line.conclusion))
-        if line.rule == index_to_switch:  # here we need to insert the lemma proof
+
+        main_line = main_proof.lines[line_index]
+        if main_line.rule is None:  # if it's none, than keep it that way...
+            old_lines_dict[line_index] = line_counter
+            lines.append(DeductiveProof.Line(main_line.conclusion))
+            line_counter += 1
+        elif main_line.rule == index_to_switch:  # if the rule of the line matches the lemma we want to switch, go here
+
+            inference_rule = main_proof.instance_for_line(line_index)
+            new_proof = prove_instance(lemma_proof, inference_rule)
+
+            lemma_line_counter = 0
+            # current_line_switched = line_index
             # line = lemma_proof_instantiated.lines[1]
             # lines.append(DeductiveProof.Line(line.conclusion,))
-            for main_proof_rules_index in range(len(lemma_proof_instantiated.lines)):
-                line = lemma_proof_instantiated.lines[main_proof_rules_index]
-                if (line.rule is None):
-                    continue
-                rule_num = line
+            lemma_line_dictionary = {}
+            pivot_index = line_counter
+            for lemma_index in range(len(new_proof.lines)):  # for every line in the lemma's proof
+                lemma_line = new_proof.lines[lemma_index]
+                # new_lemma_line_rule = line.rule + lemma_start_index
 
-                lines.append(DeductiveProof.Line(line.conclusion, ))
+                if lemma_line.rule is None:
+                    for i in range (len(lines)):
+                        if lemma_line.conclusion == lines[i].conclusion:
+                            lemma_line_dictionary[lemma_index] = i
+                    continue
+
+                lemma_line_dictionary[lemma_index] = line_counter
+                rule_num = rules_dict[lemma_rules_dict[lemma_line.rule].conclusion.infix()]
+
+                justification_list = [lemma_line_dictionary[a] for a in lemma_line.justification]
+                lines.append(DeductiveProof.Line(lemma_line.conclusion, rule_num, justification_list))
+                current_line_after_lemma = len(lines) - 1
+                line_counter += 1
+                lemma_line_counter += 1
+            old_lines_dict[line_index] = line_counter-1
+
         else:
-            if line_index < index_to_switch:
-                lines.append(DeductiveProof.Line(line.conclusion, line.rule, line.justification))
-            else:  # it's now in the index-1
-                lines.append(DeductiveProof.Line(line.conclusion, line.rule - 1,
-                                                 [just_num if just_num < index_to_switch else (just_num - 1) for
-                                                  just_num in
-                                                  line.justification]))
+            old_lines_dict[line_index] = line_counter
+            rule_num = rules_dict[main_rules_dict[main_line.rule].conclusion.infix()]
+
+            justification_list = [old_lines_dict[a] for a in main_line.justification]
+            lines.append(DeductiveProof.Line(main_line.conclusion, rule_num, justification_list))
+            # if line_index < index_to_switch:
+            #     lines.append(DeductiveProof.Line(line.conclusion, line.rule, line.justification))
+            # else:  # it's now in the index-1
+            #     lines.append(DeductiveProof.Line(line.conclusion, line.rule - 1,
+            #                                      [just_num if just_num < index_to_switch else (just_num - 1) for
+            #                                       just_num in
+            #                                       line.justification]))
+            line_counter += 1
