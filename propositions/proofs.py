@@ -231,8 +231,6 @@ def inline_proof(main_proof: DeductiveProof, lemma_proof: DeductiveProof) -> Ded
         lemma_proof, as well as via the inference rules used in lemma_proof
         (with duplicates removed) """
     # Task 5.2.2
-    # 1. look for the inference rule that is represented in the lemme_proof. DON'T FORGET TO REMEMBER THE NUMBER OF
-    # THE LEMMA_PROOF'S STATEMENT (for future use)
     index_to_switch = -1
     rules = []
     rules_dict = {}  # dictionary for all the rules that we want to add to the new proof
@@ -247,9 +245,7 @@ def inline_proof(main_proof: DeductiveProof, lemma_proof: DeductiveProof) -> Ded
 
     rules = rules + lemma_rules
 
-    # 3. create new lines for the new proof. create a line that proofs the new statement, and fix all indexes
     lines = []
-    # DeductiveProof.Line(conclusion=,rule=,justification=)
 
     create_lines(index_to_switch, lemma_proof, lemma_rules_dict, lines, main_proof,
                  main_rules_dict, rules_dict)
@@ -290,8 +286,6 @@ def create_rules(index_to_switch, lemma_proof, lemma_rules_dict, main_proof, mai
         rules.append(main_proof.rules[main_proof_rules_index])
 
     # create an instantiated lemma version
-    # lemma_proof_instantiated = prove_instance(lemma_proof, main_proof.rules[index_to_switch])
-    lemma_start_index = len(rules)
     lemma_rules = []
     rules_counter = 0
     for lemma_rule in lemma_proof.rules:  # run on all rules of the lemma
@@ -329,9 +323,10 @@ def create_lines(index_to_switch, lemma_proof, lemma_rules_dict, lines, main_pro
     """
     line_counter = 0
     old_lines_dict = {}
+    # run on the number of lines in the main proof, by index
     for line_index in range(len(main_proof.lines)):
 
-        main_line = main_proof.lines[line_index]
+        main_line = main_proof.lines[line_index]  # variable for the main_proof current line
         if main_line.rule is None:  # if it's none, than keep it that way...
             old_lines_dict[line_index] = line_counter
             lines.append(DeductiveProof.Line(main_line.conclusion))
@@ -342,19 +337,17 @@ def create_lines(index_to_switch, lemma_proof, lemma_rules_dict, lines, main_pro
             new_proof = prove_instance(lemma_proof, inference_rule)
 
             lemma_line_counter = 0
-            # current_line_switched = line_index
-            # line = lemma_proof_instantiated.lines[1]
-            # lines.append(DeductiveProof.Line(line.conclusion,))
-            lemma_line_dictionary = {}
-            pivot_index = line_counter
-            for lemma_index in range(len(new_proof.lines)):  # for every line in the lemma's proof
-                lemma_line = new_proof.lines[lemma_index]
-                # new_lemma_line_rule = line.rule + lemma_start_index
 
-                if lemma_line.rule is None:
-                    for i in range (len(lines)):
+            lemma_line_dictionary = {}
+            for lemma_index in range(len(new_proof.lines)):  # for every line in the lemma's proof, by index
+                lemma_line = new_proof.lines[lemma_index]  # variable for the new_lemma_proof current line
+
+                if lemma_line.rule is None: # if the lemma rule is None - that means it's part of the assumptions. we
+                                            #  will look at all the lines in the main_proof and match the right line
+                    for i in range(len(lines)): # for every line in the new proof, by index
                         if lemma_line.conclusion == lines[i].conclusion:
                             lemma_line_dictionary[lemma_index] = i
+                            continue
                     continue
 
                 lemma_line_dictionary[lemma_index] = line_counter
@@ -362,10 +355,10 @@ def create_lines(index_to_switch, lemma_proof, lemma_rules_dict, lines, main_pro
 
                 justification_list = [lemma_line_dictionary[a] for a in lemma_line.justification]
                 lines.append(DeductiveProof.Line(lemma_line.conclusion, rule_num, justification_list))
-                current_line_after_lemma = len(lines) - 1
+
                 line_counter += 1
                 lemma_line_counter += 1
-            old_lines_dict[line_index] = line_counter-1
+            old_lines_dict[line_index] = line_counter - 1
 
         else:
             old_lines_dict[line_index] = line_counter
@@ -373,11 +366,5 @@ def create_lines(index_to_switch, lemma_proof, lemma_rules_dict, lines, main_pro
 
             justification_list = [old_lines_dict[a] for a in main_line.justification]
             lines.append(DeductiveProof.Line(main_line.conclusion, rule_num, justification_list))
-            # if line_index < index_to_switch:
-            #     lines.append(DeductiveProof.Line(line.conclusion, line.rule, line.justification))
-            # else:  # it's now in the index-1
-            #     lines.append(DeductiveProof.Line(line.conclusion, line.rule - 1,
-            #                                      [just_num if just_num < index_to_switch else (just_num - 1) for
-            #                                       just_num in
-            #                                       line.justification]))
+
             line_counter += 1
