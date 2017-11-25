@@ -156,29 +156,29 @@ class DeductiveProof:
 
     def is_valid(self):
         """ Return whether lines are a valid proof of statement from rules """
-        for lineNum in range(0, len(self.lines)):
+        for lineNum,line in enumerate(self.lines):
             # cehck if the number of line is smaller than the numbers in justification
-            if self.lines[lineNum].justification is not None:
-                if len(self.lines[lineNum].justification) > 0:  # if there are justifications
-                    for i in self.lines[lineNum].justification:
+            if line.justification is not None:
+                if len(line.justification) > 0:  # if there are justifications
+                    for i in line.justification:
                         if i > lineNum:
                             return False
                 else:  # else, the list is empty, so we might have a
-                    if self.lines[lineNum].rule is None:
-                        if self.lines[lineNum].conclusion in self.statement.assumptions:
+                    if line.rule is None:
+                        if line.conclusion in self.statement.assumptions:
                             continue
                         else:  # if the conclusion of the line is not in the assumptions of the statement
                             return False
 
             else:  # if the justification is None, we will check if rule is none. if so than
-                if self.lines[lineNum].rule is None:
-                    if self.lines[lineNum].conclusion in self.statement.assumptions:
+                if line.rule is None:
+                    if line.conclusion in self.statement.assumptions:
                         continue
                     else:  # if the conclusion of the line is not in the assumptions of the statement
                         return False
             # if self.lines[lineNum].just
             instance = self.instance_for_line(lineNum)
-            rule = self.rules[self.lines[lineNum].rule]
+            rule = self.rules[line.rule]
             if not instance.is_instance_of(rule):
                 return False
         return self.lines[len(self.lines) - 1].conclusion == self.statement.conclusion
@@ -211,6 +211,10 @@ def instantiate(formula: Formula, instantiation_map: dict):
 def prove_instance(proof: DeductiveProof, instance: InferenceRule):
     """ Return a proof of the given instance of the inference rule that proof
         proves, via the same inference rules used by proof """
+
+
+
+
 
     instantiation_map = {}
     if not instance.is_instance_of(proof.statement, instantiation_map):

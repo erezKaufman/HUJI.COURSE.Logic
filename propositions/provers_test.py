@@ -40,6 +40,7 @@ def test_inverse_mp(debug=False):
            Formula.from_infix('((x|y)->(y|x))')
     assert implication_proof.rules == proof.rules
     # Will be tested with the course staff's implementation of is_valid
+    print(implication_proof)
     assert implication_proof.is_valid()
 
     # Test 2
@@ -110,6 +111,7 @@ def test_inverse_mp(debug=False):
                Formula('->', assumption, implication_proof.statement.conclusion)
         assert double_implication_proof.rules == proof.rules
         # Will be tested with the course staff's implementation of is_valid
+        print(double_implication_proof)
         assert double_implication_proof.is_valid()
 
 def test_prove_hypothetical_syllogism(debug=False):
