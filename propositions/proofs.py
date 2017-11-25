@@ -157,7 +157,7 @@ class DeductiveProof:
     def is_valid(self):
         """ Return whether lines are a valid proof of statement from rules """
         for lineNum,line in enumerate(self.lines):
-            # cehck if the number of line is smaller than the numbers in justification
+             # cehck if the number of line is smaller than the numbers in justification
             if line.justification is not None:
                 if len(line.justification) > 0:  # if there are justifications
                     for i in line.justification:

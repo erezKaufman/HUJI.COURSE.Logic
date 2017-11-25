@@ -70,6 +70,7 @@ def test_inverse_mp(debug=False):
            Formula.from_infix('(((p|q)|r)->((r|p)|q))')
     assert implication_proof.rules == proof.rules
     # Will be tested with the course staff's implementation of is_valid
+    print(implication_proof)
     assert implication_proof.is_valid()
 
     # Test 3: sequential elimination of two assumptions in both possible orders
@@ -99,6 +100,7 @@ def test_inverse_mp(debug=False):
                Formula('->', assumption, proof.statement.conclusion)
         assert implication_proof.rules == proof.rules
         # Will be tested with the course staff's implementation of is_valid
+        print(implication_proof)
         assert implication_proof.is_valid()
 
         assumption = proof.statement.assumptions[elimination_order[1]]
