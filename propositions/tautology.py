@@ -45,27 +45,34 @@ def prove_in_model_implies_not(formula, model):
             return formula
 
         # (psi -> psi)
-        if is_binary(formula.root): # root is ->
+        elif is_binary(formula.root): # root is ->
+
             if evaluate(formula.first, model) is False: #psi_1 is not true in M
                 not_p = Formula('~', formula.first)
                 l3 = Formula('->' , not_p, Formula('->', formula.first, formula.second))
-                lines.append(DeductiveProof.Line(l3, 3, None)) # from I3
+                lines.append(DeductiveProof.Line(l3, 3, [])) # from I3
                 l2 = Formula('->', formula.first, formula.second)  # build psi_1->psi_2
                 lines.append(
                     DeductiveProof.Line(l2, 0, [find_index_by_conclusion(not_p, lines), len(lines) - 1]))  # from I2
                 pass
             elif evaluate(formula.second, model) is True: # psi_2 is True in M
                 l1 = Formula('->', formula.second, Formula('->', formula.first, formula.second)) # build I1
-                lines.append(DeductiveProof.Line(l1, 1, None)) # from I1
+                lines.append(DeductiveProof.Line(l1, 1, [])) # from I1
                 l2 = Formula('->', formula.first, formula.second) #build psi_1->psi_2
                 lines.append(DeductiveProof.Line(l2, 0, [find_index_by_conclusion(formula.second, lines) ,len(lines)-1])) # from I2
             else:
                 print('OOOMMMMGGGGGGGG , wrong input or somthing went wrong with recurtion')
 
-        # ~(psi -> psi)
-        if is_unary(formula.root ) and not is_variable(formula.first):
-            p = formula.first.first
-            q = formula.first.second
+        # ~(p -> q)
+        elif is_unary(formula.root) and is_unary(formula.first.root):
+            p = prove_in_model_implies_not_helper(formula.first.root)
+            line_1_to_add = Formula(NEGATE_OPERATOR,Formula(NEGATE_OPERATOR,p))
+            lines.append(DeductiveProof.Line(line_1_to_add,5,[]))
+            return line_1_to_add
+        elif is_unary(formula.root ) and not is_variable(formula.first):
+
+            p = prove_in_model_implies_not_helper(formula.first.first, model)
+            q = prove_in_model_implies_not_helper(formula.first.second,model)
             init_map = {'p' : p, 'q' : q}
             line_1_to_add = instantiate(NI.conclusion,init_map)
 
@@ -92,11 +99,8 @@ def prove_in_model_implies_not(formula, model):
 
             mp_part_2 = ni_part_2.second
             lines.append(DeductiveProof.Line(mp_part_2,0,[q_index,len(lines)-1]))
+            return mp_part_2
         # ~~psi
-        if is_unary(formula.root) and is_unary(formula.first.root):
-            p = formula.first.root
-            line_1_to_add = Formula(NEGATE_OPERATOR,Formula(NEGATE_OPERATOR,p))
-            lines.append(DeductiveProof.Line(line_1_to_add,5,[]))
 
     def find_index(p, p_index, q, q_index):
         for line_index, line in enumerate(lines):
@@ -116,7 +120,7 @@ def prove_in_model_implies_not(formula, model):
     for var in variables:
         if model[var] == 'T':
             assumptions.append(Formula(var))
-        else: assumptions.append(Formula('~', var))
+        else: assumptions.append(Formula('~', Formula(var)))
 
     statement = InferenceRule(assumptions, formula)
     lines = [DeductiveProof.Line(ass, None, None) for ass in assumptions]
