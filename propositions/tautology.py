@@ -76,7 +76,7 @@ def prove_in_model_implies_not(formula, model):
             #
             # f1 = Formula(IMPLICATION_OPERATOR, p, implie_2)
 
-            lines.append(DeductiveProof.Line(line_1_to_add)) # add the first line for the specific proof. I add NI here
+            lines.append(DeductiveProof.Line(line_1_to_add,4,[])) # add the first line for the specific proof. I add NI here
             # I run on all the lines and search for 'p' to proof the line with MP
             # I know that p and ~q must appear as an assumption in the lines of the proof
             p_index = -1
@@ -88,9 +88,11 @@ def prove_in_model_implies_not(formula, model):
 
             mp_part_2 = ni_part_2.second
             lines.append(DeductiveProof.Line(mp_part_2,0,[q_index,len(lines)-1]))
-            print("hey bar")
         # ~~psi
-        pass
+        if is_unary(formula.root) and is_unary(formula.first.root):
+            p = formula.first.root
+            line_1_to_add = Formula(NEGATE_OPERATOR,Formula(NEGATE_OPERATOR,p))
+            lines.append(DeductiveProof.Line(line_1_to_add,5,[]))
 
     def find_index(p, p_index, q, q_index):
         for line_index, line in enumerate(lines):
