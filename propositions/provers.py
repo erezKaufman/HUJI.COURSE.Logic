@@ -77,7 +77,6 @@ def inverse_mp(proof: DeductiveProof, assumption: Formula):
         # line will be proven by 'assumption -> conclusion'
         else:
             cheack_assumptions(assumption, line, new_proof_lines)
-    new_proof_lines = put_assumtion_ontop(new_proof_lines)
     return DeductiveProof(new_statement, proof.rules, new_proof_lines)
 
 
@@ -159,31 +158,6 @@ def cheack_assumptions(assumption, line, new_proof_lines):
         DeductiveProof.Line(line_3_formula, 0, [len(new_proof_lines) - 2, len(new_proof_lines) - 1]))
 
 
-def put_assumtion_ontop(lines):
-    start_index = 0
-    for index in range(len(lines)):
-        if lines[index].rule is None:
-            start_index = index
-        else:
-            break
-
-    for index in range(start_index,len(lines)):
-        if lines[index].rule is None:
-            line = lines[index]
-            lines.remove(line)
-            lines.insert(start_index,line)
-            start_index += 1
-            for inner_loop_index in range(start_index,len(lines)):
-                justification = lines[inner_loop_index].justification
-                if justification is not None:
-                    for justifi_index in range(len(justification)):
-                        if justification[justifi_index] == index:
-                            lines[inner_loop_index].justification[justifi_index] = start_index - 1
-                        elif justification[justifi_index] <= index and justification[justifi_index] >= start_index - 1:
-                            lines[inner_loop_index].justification[justifi_index] += 1
-    return lines
-
-
 @lru_cache(maxsize=1)  # Cache the return value of prove_hypothetical_syllogism
 def prove_hypothetical_syllogism():
     """ Return a valid deductive proof for '(p->r)' from the assumptions
@@ -202,7 +176,6 @@ def prove_hypothetical_syllogism():
     lines.append(DeductiveProof.Line(Formula('r'), 0, [3, 2]))
     proof = DeductiveProof(statement, rules, lines)
     return_proof = inverse_mp(proof, Formula('p'))
-    return_proof.lines = put_assumtion_ontop(return_proof.lines)
     print(return_proof)
 
     return return_proof
