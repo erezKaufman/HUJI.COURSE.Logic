@@ -46,21 +46,27 @@ def prove_in_model_implies_not(formula, model):
 
         # (psi -> psi)
         if is_binary(formula.root): # root is ->
+            p = prove_in_model_implies_not(formula.first, model)
+            q = prove_in_model_implies_not(formula.second, model)
+
             if evaluate(formula.first, model) is False: #psi_1 is not true in M
-                not_p = Formula('~', formula.first)
-                l3 = Formula('->' , not_p, Formula('->', formula.first, formula.second))
-                lines.append(DeductiveProof.Line(l3, 3, None)) # from I3
-                l2 = Formula('->', formula.first, formula.second)  # build psi_1->psi_2
-                lines.append(
-                    DeductiveProof.Line(l2, 0, [find_index_by_conclusion(not_p, lines), len(lines) - 1]))  # from I2
-                pass
+                not_p = Formula('~', p)
+                l3 = Formula('->' , not_p, Formula('->', not_p, q))
+                lines.append(DeductiveProof.Line(l3, 3, [])) # from I3
+                l2 = Formula('->', not_p, q)  # build psi_1->psi_2
+                lines.append(DeductiveProof.Line(l2, 0, [find_index_by_conclusion(not_p, lines), len(lines) - 1]))  # from I2
+                return l2
+
             elif evaluate(formula.second, model) is True: # psi_2 is True in M
-                l1 = Formula('->', formula.second, Formula('->', formula.first, formula.second)) # build I1
-                lines.append(DeductiveProof.Line(l1, 1, None)) # from I1
-                l2 = Formula('->', formula.first, formula.second) #build psi_1->psi_2
-                lines.append(DeductiveProof.Line(l2, 0, [find_index_by_conclusion(formula.second, lines) ,len(lines)-1])) # from I2
+                l1 = Formula('->', q, Formula('->', p, q)) # build I1
+                lines.append(DeductiveProof.Line(l1, 1, [])) # from I1
+                l2 = Formula('->', p, q) #build psi_1->psi_2
+                lines.append(DeductiveProof.Line(l2, 0, [find_index_by_conclusion(q, lines) ,len(lines)-1])) # from I2
+                return
+
             else:
                 print('OOOMMMMGGGGGGGG , wrong input or somthing went wrong with recurtion')
+                return
 
         # ~(psi -> psi)
         if is_unary(formula.root ) and not is_variable(formula.first):
