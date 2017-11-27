@@ -33,6 +33,11 @@ NF  = InferenceRule([], Formula.from_infix('~F'))
 
 AXIOMATIC_SYSTEM = [MP, I1, I2, I3, NI, NN, A, NA1, NA2, O1, O2, NO, T, NF, R]
 
+def find_index_by_conclusion(conclusion, lines):
+    for index, line in enumerate(lines):
+        if line.conclusion == conclusion:
+            return index
+
 def prove_in_model_implies_not(formula, model):
     def prove_in_model_implies_not_helper(formula:formula, model:dict):
         # just var
@@ -48,7 +53,7 @@ def prove_in_model_implies_not(formula, model):
                 l1 = Formula('->', formula.second, Formula('->', formula.first, formula.second)) # build I1
                 lines.append(DeductiveProof.Line(l1, 1, None)) # from I1
                 l2 = Formula('->', formula.first, formula.second) #build psi_1->psi_2
-                lines.append(DeductiveProof.Line(l2, 0, [ ,len(lines)-1])) # from I2
+                lines.append(DeductiveProof.Line(l2, 0, [find_index_by_conclusion(l1, lines) ,len(lines)-1])) # from I2
             else:
                 print('OOOMMMMGGGGGGGG , wrong input or somthing went wrong with recurtion')
 
