@@ -6,6 +6,7 @@
 from propositions.syntax import *
 from propositions.proofs import *
 from propositions.provers import MP,I1,I2,inverse_mp
+from propositions.semantics import *
 
 # Axiomatic Inference Rules (MP, I1, and I2 are imported from provers.py)
 I3 = InferenceRule([], Formula.from_infix('(~p->(p->q))'))
@@ -32,16 +33,62 @@ NF  = InferenceRule([], Formula.from_infix('~F'))
 
 AXIOMATIC_SYSTEM = [MP, I1, I2, I3, NI, NN, A, NA1, NA2, O1, O2, NO, T, NF, R]
 
-def prove_in_model_implies_not(formula, model):
-    def prove_in_model_implies_not_helper(formula, model):
+def prove_in_model_implies_not(formula: Formula, model: dict):
+    def prove_in_model_implies_not_helper(formula: Formula, model: dict):
+        """
+
+        :param formula:
+        :param model:
+        :return:
+        """
+
         # just var
 
         # (psi -> psi)
 
         # ~(psi -> psi)
+        if is_unary(formula.root ) and not is_variable(formula.first):
+            p = formula.first.first
+            q = formula.first.second
+            init_map = {'p' : p, 'q' : q}
+            line_1_to_add = instantiate(NI.conclusion,init_map)
+            '(p->(~q->~(p->q)))'
+
+
+            # p_implie_q = Formula(IMPLICATION_OPERATOR, p, q)
+            #
+            # implie1 = Formula(NEGATE_OPERATOR, p_implie_q)
+            #
+            # n_q = Formula(NEGATE_OPERATOR, q)
+            #
+            # implie_2 = Formula(IMPLICATION_OPERATOR, n_q, implie1)
+            #
+            # f1 = Formula(IMPLICATION_OPERATOR, p, implie_2)
+
+            lines.append(DeductiveProof.Line(line_1_to_add)) # add the first line for the specific proof. I add NI here
+            # I run on all the lines and search for 'p' to proof the line with MP
+            # I know that p and ~q must appear as an assumption in the lines of the proof
+            p_index = -1
+            q_index = -2
+            p_index, q_index = find_index(p, p_index, q, q_index)
+            ni_part_2 = line_1_to_add.second
+            # add line 2 as an MP conclusion for
+            lines.append(DeductiveProof.Line(ni_part_2,0,[p_index,len(lines)-1]))
+
+            mp_part_2 = ni_part_2.second
+            lines.append(DeductiveProof.Line(mp_part_2,0,[q_index,len(lines)-1]))
 
         # ~~psi
         pass
+
+    def find_index(p, p_index, q, q_index):
+        for line_index, line in enumerate(lines):
+            if line.conclusion == p:
+                p_index = line_index
+            elif line.conclusion == q:
+                q_index = line_index
+        return p_index, q_index
+
     """ Return a proof of formula via AXIOMATIC_SYSTEM_IMPLIES_NOT from the
         assumptions that all variables are valued as in model, with the
         assumptions being ordered alphabetically by the names of the variables.
