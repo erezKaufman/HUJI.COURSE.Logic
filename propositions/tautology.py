@@ -77,7 +77,7 @@ def prove_in_model_implies_not(formula: Formula, model: dict):
 
             mp_part_2 = ni_part_2.second
             lines.append(DeductiveProof.Line(mp_part_2,0,[q_index,len(lines)-1]))
-
+            print("hey bar")
         # ~~psi
         pass
 
