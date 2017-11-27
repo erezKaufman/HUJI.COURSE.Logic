@@ -63,7 +63,6 @@ def prove_in_model_implies_not(formula, model):
             q = formula.first.second
             init_map = {'p' : p, 'q' : q}
             line_1_to_add = instantiate(NI.conclusion,init_map)
-            '(p->(~q->~(p->q)))'
 
 
             # p_implie_q = Formula(IMPLICATION_OPERATOR, p, q)
