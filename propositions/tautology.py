@@ -102,15 +102,14 @@ def prove_in_model_implies_not(formula, model):
                 p = prove_in_model_implies_not_helper(formula.first.first, model)
 
                 q = prove_in_model_implies_not_helper(formula.first.second,model)
-                q = Formula(NEGATE_OPERATOR,q)
+                not_q = Formula(NEGATE_OPERATOR,q)
 
                 p_implie_q = Formula(IMPLICATION_OPERATOR, p, q)
 
                 implie1 = Formula(NEGATE_OPERATOR, p_implie_q)
 
-                n_q = Formula(NEGATE_OPERATOR, q)
 
-                implie_2 = Formula(IMPLICATION_OPERATOR, n_q, implie1)
+                implie_2 = Formula(IMPLICATION_OPERATOR, not_q, implie1)
 
                 f1 = Formula(IMPLICATION_OPERATOR, p, implie_2)
 
@@ -121,7 +120,7 @@ def prove_in_model_implies_not(formula, model):
                 # I know that p and ~q must appear as an assumption in the lines of the proof
                 p_index = -1
                 q_index = -2
-                p_index, q_index = find_index(p, p_index, q, q_index)
+                p_index, q_index = find_index(p, p_index, not_q, q_index)
                 if p_index ==-1 or q_index == -2:
                     print("bad index, p is: {}, q is: {}".format(p,q))
                     exit(-1)
