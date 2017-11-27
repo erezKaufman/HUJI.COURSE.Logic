@@ -68,10 +68,16 @@ def prove_in_model_implies_not(formula, model):
                 print('OOOMMMMGGGGGGGG , wrong input or somthing went wrong with recurtion')
                 return
 
-        # ~(psi -> psi)
-        if is_unary(formula.root ) and not is_variable(formula.first):
-            p = formula.first.first
-            q = formula.first.second
+        # ~(p -> q)
+        elif is_unary(formula.root) and is_unary(formula.first.root):
+            p = prove_in_model_implies_not_helper(formula.first.root)
+            line_1_to_add = Formula(NEGATE_OPERATOR,Formula(NEGATE_OPERATOR,p))
+            lines.append(DeductiveProof.Line(line_1_to_add,5,[]))
+            return line_1_to_add
+        elif is_unary(formula.root ) and not is_variable(formula.first):
+
+            p = prove_in_model_implies_not_helper(formula.first.first, model)
+            q = prove_in_model_implies_not_helper(formula.first.second,model)
             init_map = {'p' : p, 'q' : q}
             line_1_to_add = instantiate(NI.conclusion,init_map)
 
@@ -98,11 +104,9 @@ def prove_in_model_implies_not(formula, model):
 
             mp_part_2 = ni_part_2.second
             lines.append(DeductiveProof.Line(mp_part_2,0,[q_index,len(lines)-1]))
+            print("heetyyyyy")
+            return mp_part_2
         # ~~psi
-        if is_unary(formula.root) and is_unary(formula.first.root):
-            p = formula.first.root
-            line_1_to_add = Formula(NEGATE_OPERATOR,Formula(NEGATE_OPERATOR,p))
-            lines.append(DeductiveProof.Line(line_1_to_add,5,[]))
 
     def find_index(p, p_index, q, q_index):
         for line_index, line in enumerate(lines):
@@ -122,7 +126,7 @@ def prove_in_model_implies_not(formula, model):
     for var in variables:
         if model[var] == 'T':
             assumptions.append(Formula(var))
-        else: assumptions.append(Formula('~', var))
+        else: assumptions.append(Formula('~', Formula(var)))
 
     statement = InferenceRule(assumptions, formula)
     lines = [DeductiveProof.Line(ass, None, None) for ass in assumptions]
