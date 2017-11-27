@@ -41,11 +41,11 @@ def find_index_by_conclusion(conclusion, lines):
 def prove_in_model_implies_not(formula, model):
     def prove_in_model_implies_not_helper(formula:formula, model:dict):
         # just var
-        if formula.root in formula.variables:
+        if is_variable(formula.root):
             return formula
 
         # (psi -> psi)
-        if is_binary(formula.root): # root is ->
+        elif is_binary(formula.root): # root is ->
             p = prove_in_model_implies_not(formula.first, model)
             q = prove_in_model_implies_not(formula.second, model)
 
@@ -62,51 +62,50 @@ def prove_in_model_implies_not(formula, model):
                 lines.append(DeductiveProof.Line(l1, 1, [])) # from I1
                 l2 = Formula('->', p, q) #build psi_1->psi_2
                 lines.append(DeductiveProof.Line(l2, 0, [find_index_by_conclusion(q, lines) ,len(lines)-1])) # from I2
-                return
+                return l2
 
             else:
                 print('OOOMMMMGGGGGGGG , wrong input or somthing went wrong with recurtion')
+                exit(-1)
                 return
 
+        # ~~p
+
+
         # ~(p -> q)
-        elif is_unary(formula.root) and is_unary(formula.first.root):
-            p = prove_in_model_implies_not_helper(formula.first.root)
-            line_1_to_add = Formula(NEGATE_OPERATOR,Formula(NEGATE_OPERATOR,p))
-            lines.append(DeductiveProof.Line(line_1_to_add,5,[]))
-            return line_1_to_add
-        elif is_unary(formula.root ) and not is_variable(formula.first):
+        # elif is_unary(formula.root) and not is_variable(formula.first.root): # TODO why do we check here if formula.first.root is var?
+        elif is_unary(formula.root): # TODO why do we check here if formula.first.root is var?
+            if is_unary(formula.first.root):  # the next root is ~
+                p = prove_in_model_implies_not_helper(formula.first.first, model)
+                line_1_to_add = Formula(NEGATE_OPERATOR, Formula(NEGATE_OPERATOR, p))
+                lines.append(DeductiveProof.Line(line_1_to_add, 5, []))
+                return line_1_to_add
 
-            p = prove_in_model_implies_not_helper(formula.first.first, model)
-            q = prove_in_model_implies_not_helper(formula.first.second,model)
-            init_map = {'p' : p, 'q' : q}
-            line_1_to_add = instantiate(NI.conclusion,init_map)
+            elif is_variable(formula.first.root):
+                return Formula('~', prove_in_model_implies_not_helper(formula.first.root, model))
+
+            else: # we have ~ and psi, deal with NI
+                p = prove_in_model_implies_not_helper(formula.first.first, model)
+                q = prove_in_model_implies_not_helper(formula.first.second,model)
+                init_map = {'p' : p, 'q' : q}
+                line_1_to_add = instantiate(NI.conclusion,init_map)
+                # add the first line for the specific proof. I add NI here
+                lines.append(DeductiveProof.Line(line_1_to_add, 4,[]))
+                # I run on all the lines and search for 'p' to proof the line with MP
+                # I know that p and ~q must appear as an assumption in the lines of the proof
+                p_index = -1
+                q_index = -2
+                p_index, q_index = find_index(p, p_index, q, q_index)
+                ni_part_2 = line_1_to_add.second
+                # add line 2 as an MP conclusion for
+                lines.append(DeductiveProof.Line(ni_part_2, 0, [p_index, len(lines) - 1]))
+                mp_part_2 = ni_part_2.second
+                lines.append(DeductiveProof.Line(mp_part_2, 0, [q_index, len(lines) - 1]))
+                return mp_part_2
 
 
-            # p_implie_q = Formula(IMPLICATION_OPERATOR, p, q)
-            #
-            # implie1 = Formula(NEGATE_OPERATOR, p_implie_q)
-            #
-            # n_q = Formula(NEGATE_OPERATOR, q)
-            #
-            # implie_2 = Formula(IMPLICATION_OPERATOR, n_q, implie1)
-            #
-            # f1 = Formula(IMPLICATION_OPERATOR, p, implie_2)
 
-            lines.append(DeductiveProof.Line(line_1_to_add,4,[])) # add the first line for the specific proof. I add NI here
-            # I run on all the lines and search for 'p' to proof the line with MP
-            # I know that p and ~q must appear as an assumption in the lines of the proof
-            p_index = -1
-            q_index = -2
-            p_index, q_index = find_index(p, p_index, q, q_index)
-            ni_part_2 = line_1_to_add.second
-            # add line 2 as an MP conclusion for
-            lines.append(DeductiveProof.Line(ni_part_2,0,[p_index,len(lines)-1]))
 
-            mp_part_2 = ni_part_2.second
-            lines.append(DeductiveProof.Line(mp_part_2,0,[q_index,len(lines)-1]))
-            print("heetyyyyy")
-            return mp_part_2
-        # ~~psi
 
     def find_index(p, p_index, q, q_index):
         for line_index, line in enumerate(lines):
@@ -124,14 +123,14 @@ def prove_in_model_implies_not(formula, model):
     variables = list(formula.variables())
     assumptions = []
     for var in variables:
-        if model[var] == 'T':
+        if model[var] is True:
             assumptions.append(Formula(var))
         else: assumptions.append(Formula('~', Formula(var)))
 
     statement = InferenceRule(assumptions, formula)
     lines = [DeductiveProof.Line(ass, None, None) for ass in assumptions]
     prove_in_model_implies_not_helper(formula,model)
-    return DeductiveProof(statement, AXIOMATIC_SYSTEM, lines)
+    return DeductiveProof(statement, AXIOMATIC_SYSTEM_IMPLIES_NOT, lines)
 
 
 
@@ -181,9 +180,15 @@ def model_or_inconsistent(formulae):
     # Task 6.7
 
 if __name__ == '__main__':
+    pass
 
-    a = Formula.from_infix('(~p->~p)')
-    b = InferenceRule([], a)
-    for axiom in AXIOMATIC_SYSTEM:
-        print(b.is_instance_of(axiom))
 
+    # p_implie_q = Formula(IMPLICATION_OPERATOR, p, q)
+    #
+    # implie1 = Formula(NEGATE_OPERATOR, p_implie_q)
+    #
+    # n_q = Formula(NEGATE_OPERATOR, q)
+    #
+    # implie_2 = Formula(IMPLICATION_OPERATOR, n_q, implie1)
+    #
+    # f1 = Formula(IMPLICATION_OPERATOR, p, implie_2)
