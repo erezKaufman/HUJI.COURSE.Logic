@@ -161,7 +161,7 @@ def prove_in_model_implies_not(formula, model):
 
 
 
-def reduce_assumption(proof_true, proof_false):
+def reduce_assumption(proof_true: DeductiveProof, proof_false: DeductiveProof):
     """ Return a proof of the same formula that is proved in both proof_true
         and proof_false, via the same inference rules used in both proof_true
         and proof_false, from the assumptions common to proof_true and
@@ -171,7 +171,28 @@ def reduce_assumption(proof_true, proof_false):
         assumed to contain R, and the assumptions of both proofs are assumed to
         coincide, except for the last assumption, where that of proof_false is
         the negation of that of proof_true """
-    # Task 6.2
+    # do inverse_mp the true proof
+    new_lines = []
+    last_true_assumption = proof_true.statement.assumptions[len(proof_true.statement.assumptions) - 1]
+    inverse_proof_true = inverse_mp(proof_true, last_true_assumption)
+
+    new_lines += inverse_proof_true.lines
+    # do inverse_mp the false proof
+    last_false_assumption = proof_false.statement.assumptions[len(proof_false.statement.assumptions) - 1]
+    inverse_proof_false = inverse_mp(proof_false, last_false_assumption)
+    current_new_line_index = len(new_lines)
+    for line_index, line in enumerate(inverse_proof_false.lines):
+        new_justification = None
+        if line.justification is not None:
+            new_justification = [a + current_new_line_index for a in line.justification]
+
+        new_lines.append(DeductiveProof.Line(line.conclusion,line.rule,new_justification))
+
+    for line_index, line in enumerate(inverse_proof_false.lines):
+        pass # TODO need to search for the conclusion of proof 1 and 2 , and use them with MP
+    # we want to assume R, and with those two results above us we want to prove MP twice and get p (final conclusion)
+
+    # ((q->p)->((~q->p)->p))
 
 def proof_or_counterexample_implies_not(formula):
     """ Return either a proof of formula via AXIOMATIC_SYSTEM_IMPLIES_NOT, or a
