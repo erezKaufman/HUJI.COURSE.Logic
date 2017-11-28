@@ -32,11 +32,16 @@ T  = InferenceRule([], Formula.from_infix('T'))
 NF  = InferenceRule([], Formula.from_infix('~F'))
 
 AXIOMATIC_SYSTEM = [MP, I1, I2, I3, NI, NN, A, NA1, NA2, O1, O2, NO, T, NF, R]
+AXIOMATIC_DICT = {'MP': 0 , 'I1': 1 , 'I2':2, 'I3':3 , 'NI':4 , 'NN':5, 'A':6, 'NA1':7, 'NA2': 8 , 'O1':9 , 'O2': 10,
+                  'T': 11 , 'NF': 12, 'R': 13}
 
 def find_index_by_conclusion(conclusion, lines):
     for index, line in enumerate(lines):
         if line.conclusion == conclusion:
             return index
+    return None
+
+
 
 def prove_in_model_implies_not(formula, model):
     def prove_in_model_implies_not_helper(formula:formula, model:dict):
@@ -46,19 +51,21 @@ def prove_in_model_implies_not(formula, model):
 
         # (psi -> psi)
         elif is_binary(formula.root): # root is ->
-            p = prove_in_model_implies_not_helper(formula.first, model)
-            q = prove_in_model_implies_not_helper(formula.second, model)
-
             if evaluate(formula.first, model) is False: #psi_1 is not true in M
-                not_p = Formula('~', p)
-                l3 = Formula('->' , not_p, Formula('->', p, q))
+                not_p = prove_in_model_implies_not_helper(Formula('~', formula.first), model)
+                l3 = Formula('->' , not_p, formula)
                 lines.append(DeductiveProof.Line(l3, 3, [])) # from I3
-                l2 = Formula('->', p, q)  # build psi_1->psi_2
+                # l2 = Formula('->', p, q)  # build psi_1->psi_2
                 not_p_index = find_index_by_conclusion(not_p, lines)
-                lines.append(DeductiveProof.Line(l2, 0, [not_p_index, len(lines) - 1]))  # from I2
-                return l2
+                # if not_p_index is None:
+                    # print('we got a not found conclusion:' , not_p_index, 'for conclusion:', not_p)
+                    # exit(-1)
+                lines.append(DeductiveProof.Line(formula, 0, [not_p_index, len(lines) - 1]))  # from I2
+                return formula
 
             elif evaluate(formula.second, model) is True: # psi_2 is True in M
+                p = prove_in_model_implies_not_helper(formula.first, model)
+                q = prove_in_model_implies_not_helper(formula.second, model)
                 l1 = Formula('->', q, Formula('->', p, q)) # build I1
                 lines.append(DeductiveProof.Line(l1, 1, [])) # from I1
                 l2 = Formula('->', p, q) #build psi_1->psi_2
@@ -72,69 +79,39 @@ def prove_in_model_implies_not(formula, model):
                 return
 
 
-        # elif is_unary(formula.root) and not is_variable(formula.first.root): # TODO why do we check here if formula.first.root is var?
-        elif is_unary(formula.root): # TODO why do we check here if formula.first.root is var?
+        # elif is_unary(formula.root) and not is_variable(formula.first.root): #
+        elif is_unary(formula.root):
             if is_unary(formula.first.root):  # the next root is ~
                 p = prove_in_model_implies_not_helper(formula.first.first, model)
                 line_1_to_add = Formula(NEGATE_OPERATOR, Formula(NEGATE_OPERATOR, p))
-                p_index = -1
                 p_index = find_index_by_conclusion(p,lines)
                 NN_line = Formula(IMPLICATION_OPERATOR,p,line_1_to_add)
-
                 lines.append(DeductiveProof.Line(NN_line, 5, []))
-
                 MP_line = NN_line.second
-
                 lines.append(DeductiveProof.Line(MP_line,0,[p_index,len(lines)-1]))
-
                 return MP_line
 
             elif is_variable(formula.first.root):
                 return Formula('~', prove_in_model_implies_not_helper(formula.first, model))
 
             else: # we have ~ and psi, deal with NI
-                # if is_variable(formula.first.first) and is_variable(formula.first.second):
-                #     pass
-                # elif is_variable(formula.first.first) and not is_variable(formula.first.second):
-                #     pass
-                # elif not is_variable(formula.first.first) and is_variable(formula.first.second):
-                #     pass
-                #
-
-                p = prove_in_model_implies_not_helper(formula.first.first, model)
-
-                q = prove_in_model_implies_not_helper(formula.first.second,model)
-                not_q = Formula(NEGATE_OPERATOR,q)
-
-                p_implie_q = Formula(IMPLICATION_OPERATOR, p, q)
-
-                implie1 = Formula(NEGATE_OPERATOR, p_implie_q)
-
-
-                implie_2 = Formula(IMPLICATION_OPERATOR, not_q, implie1)
-
-                f1 = Formula(IMPLICATION_OPERATOR, p, implie_2)
-
-
-                # add the first line for the specific proof. I add NI here
-                lines.append(DeductiveProof.Line(f1, 4,[]))
+                p = prove_in_model_implies_not_helper(formula.first.first, model) # ps1_1
+                not_q = prove_in_model_implies_not_helper(Formula('~',formula.first.second), model) #not_psi_2
+                part_2 = Formula('->', not_q, formula) # (~psi2 -> ~(psi_1 -> psi_2))
+                ni = Formula('->', p, part_2) # (psi_1 -> (~psi2 -> ~(psi_1 -> psi_2)))
+                lines.append(DeductiveProof.Line(ni, 4, []))
                 # I run on all the lines and search for 'p' to proof the line with MP
                 # I know that p and ~q must appear as an assumption in the lines of the proof
                 p_index = -1
                 q_index = -2
                 p_index, q_index = find_index(p, p_index, not_q, q_index)
-                if p_index ==-1 or q_index == -2:
-                    print("bad index, p is: {}, q is: {}".format(p,q))
-                    exit(-1)
-                ni_part_2 = implie_2
+                # if p_index == -1 or q_index == -2:
+                #     print("bad index, p is: {}, q is: {}".format(p, not_q))
+                #     exit(-1)
                 # add line 2 as an MP conclusion for
-                lines.append(DeductiveProof.Line(ni_part_2, 0, [p_index, len(lines) - 1]))
-                mp_part_2 = ni_part_2.second
-                lines.append(DeductiveProof.Line(mp_part_2, 0, [q_index, len(lines) - 1]))
-                return mp_part_2
-
-
-
+                lines.append(DeductiveProof.Line(part_2, 0, [p_index, len(lines) - 1]))
+                lines.append(DeductiveProof.Line(formula, 0, [q_index, len(lines) - 1]))
+                return formula
 
 
     def find_index(p, p_index, q, q_index):
@@ -162,32 +139,24 @@ def prove_in_model_implies_not(formula, model):
 
     statement = InferenceRule(assumptions, formula)
     lines = [DeductiveProof.Line(ass, None, None) for ass in assumptions]
-    lines = create_not_not_asses(lines)
     prove_in_model_implies_not_helper(formula,model)
     return DeductiveProof(statement, AXIOMATIC_SYSTEM_IMPLIES_NOT, lines)
-
-
-
 
 
     # Task 6.1
 
 
-def create_not_not_asses(lines):
-    temp_lines = lines.copy()
-    for line in temp_lines:
-
-        line_1_to_add = Formula(NEGATE_OPERATOR, Formula(NEGATE_OPERATOR, line.conclusion))
-
-        p_index = find_index_by_conclusion(line.conclusion, lines)
-        NN_line = Formula(IMPLICATION_OPERATOR, line.conclusion, line_1_to_add)
-
-        temp_lines.append(DeductiveProof.Line(NN_line, 5, []))
-
-        MP_line = NN_line.second
-
-        temp_lines.append(DeductiveProof.Line(MP_line, 0, [p_index, len(lines) - 1]))
-    return temp_lines
+# def create_not_not_asses(lines):
+#     ret = []
+#     for line in lines:
+#         line_1_to_add = Formula(NEGATE_OPERATOR, Formula(NEGATE_OPERATOR, line.conclusion))
+#         p_index = find_index_by_conclusion(line.conclusion, lines)
+#         NN_line = Formula(IMPLICATION_OPERATOR, line.conclusion, line_1_to_add)
+#         ret.append(DeductiveProof.Line(NN_line, 5, []))
+#         MP_line = NN_line.second
+#         ret.append(DeductiveProof.Line(MP_line, 0, [p_index, len(ret) + len(lines) - 1]))
+#
+#     return ret
 
 
 
@@ -211,10 +180,99 @@ def proof_or_counterexample_implies_not(formula):
     # Task 6.3
 
 def prove_in_model(formula, model):
+    def prove_in_model_helper(formula :formula , model:dict):
+
+        if is_constant(formula.root):
+            if formula.root == 'T':
+                lines.append(DeductiveProof.Line(formula, AXIOMATIC_DICT['T'], [])) # add T, derived for free from T rule
+            else: #it is F
+                #TODO ain't so simple
+                lines.append(DeductiveProof.Line(formula, AXIOMATIC_DICT['NF'], [])) # add ~F derived for free from NF rule
+
+        if is_variable(formula.root):
+            return formula
+
+        elif only_implies_not(formula):
+            return prove_in_model_implies_not(formula,model)
+
+        elif is_unary(formula.root):
+            # TODO okay, here we assume that both & and | will take care of ~ themselves , meaning will return the right fomrula
+            return prove_in_model_helper(formula.first, model)
+
+        elif formula.root == '&':
+            # A = InferenceRule([], Formula.from_infix('(p->(q->(p&q)))'))
+            if evaluate(formula, model): #(p->(q->(p&q)))
+                pass
+            # NA1 = InferenceRule([], Formula.from_infix('(~p->~(p&q))'))
+            # NA2 = InferenceRule([], Formula.from_infix('(~q->~(p&q))'))
+
+        # (p|q)
+        elif formula.root == '|':
+            # index = None  # either p or q index to reference in justification
+            if evaluate(formula.first, model):  # p is true
+                p = prove_in_model_helper(formula.first ,model) # we assume p is within our lines
+                p_index = find_index_by_conclusion(p, lines)
+                lines.append(DeductiveProof.Line(Formula('->', p, formula), AXIOMATIC_DICT['O1'], None)) # p->(p|q)
+                lines.append(DeductiveProof.Line(formula, 0, [p_index, len(lines) - 1]))  # we just proved formula
+                return formula
+
+            elif evaluate(formula.second, model): # q is true
+                q = prove_in_model_helper(formula.second, model) # we assume q is within our lines
+                q_index = find_index_by_conclusion(q, lines)
+                lines.append(DeductiveProof.Line(Formula('->', q, formula), AXIOMATIC_DICT['O2'], None))  # p->(p|q)
+                lines.append(DeductiveProof.Line(formula, 0, [q_index, len(lines) - 1]))  # we just proved formula
+                return formula
+
+            else: # q and p are false
+                # NO = InferenceRule([], Formula.from_infix('(~p->(~q->~(p|q)))'))
+                # TODO we can derive from double MP ~(p|q) but how can we get (p|q) from that ????
+                not_p = prove_in_model_helper(Formula('~', formula.first),model)
+                not_q = prove_in_model_helper(Formula('~', formula.second),model)
+                not_p_index = find_index_by_conclusion(not_p, lines) #~p
+                not_q_index = find_index_by_conclusion(not_q, lines) #~q
+                core = Formula('~', formula) #~(p|q)
+                part_2 = Formula(not_q, core) # (~q->~(p|q)
+                no = Formula('->', not_p, part_2) #(~p->(~q->~(p|q)))
+                lines.append(DeductiveProof.Line(no, AXIOMATIC_DICT['NO'], None)) #here we entered (~p->(~q->~(p|q)))
+                lines.append(DeductiveProof.Line(part_2, 0, [not_q_index, len(lines) - 1])) # entered (~q->~(p|q))
+                lines.append(DeductiveProof.Line(formula, 0, [not_p_index, len(lines) - 1])) # entered ~(p|q)
+                return core
+
+                # TODO 2.0 i Think i get it! if we entered here, it means that (p|q) is actually false in this model, meaning we got called from ~(p|q)
+
+
+
+
+    def only_implies_not(formula):
+        """
+        :param formula: The formula to be checked
+        :return: if formula only contains the signs implies , not.
+        """
+        prefix = formula.prefix()
+        prefix = prefix.replace('->', 'א')
+        for char in prefix:
+            if char != 'א' and not is_unary(char): # char is not -> or ~:
+                if not is_variable(char): # char is one of |&TF
+                    return False
+        return True
+
     """ Return a proof of formula via AXIOMATIC_SYSTEM from the assumptions
         that all variables are valued as in model, with the assumptions being
         ordered alphabetically by the names of the variables. It is assumed
         that formula is true in model """
+    variables = sorted(list(formula.variables()))
+    assumptions = []
+    for var in variables:
+        if model[var] is True:
+            assumptions.append(Formula(var))
+        else:
+            assumptions.append(Formula('~', Formula(var)))
+
+    statement = InferenceRule(assumptions, formula)
+    lines = [DeductiveProof.Line(ass, None, None) for ass in assumptions]
+    prove_in_model_helper(formula, model)
+    return DeductiveProof(statement, AXIOMATIC_SYSTEM, lines)
+
     # Task 6.4
 
 def proof_or_counterexample(formula):
@@ -237,3 +295,4 @@ if __name__ == '__main__':
     pass
 
 
+# prove_in_model(Formula.from_infix('(p|q)'), {'p':True})
