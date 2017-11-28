@@ -32,11 +32,14 @@ T  = InferenceRule([], Formula.from_infix('T'))
 NF  = InferenceRule([], Formula.from_infix('~F'))
 
 AXIOMATIC_SYSTEM = [MP, I1, I2, I3, NI, NN, A, NA1, NA2, O1, O2, NO, T, NF, R]
+AXIOMATIC_DICT = {'MP': 0 , 'I1': 1 , 'I2':2, 'I3':3 , 'NI':4 , 'NN':5, 'A':6, 'NA1':7, 'NA2': 8 , 'O1':9 , 'O2': 10,
+                  'T': 11 , 'NF': 12, 'R': 13}
 
 def find_index_by_conclusion(conclusion, lines):
     for index, line in enumerate(lines):
         if line.conclusion == conclusion:
             return index
+    return None
 
 
 
@@ -180,10 +183,101 @@ def proof_or_counterexample_implies_not(formula):
     # Task 6.3
 
 def prove_in_model(formula, model):
+    def prove_in_model_helper(formula :formula , model:dict):
+
+        if is_constant(formula.root):
+            if formula.root == 'T':
+                lines.append(DeductiveProof.Line(formula, AXIOMATIC_DICT['T'], [])) # add T, derived for free from T rule
+            else: #it is F
+                #TODO ain't so simple
+                lines.append(DeductiveProof.Line(formula, AXIOMATIC_DICT['NF'], [])) # add ~F derived for free from NF rule
+
+        if is_variable(formula.root):
+            return formula
+
+        elif only_implies_not(formula):
+            return prove_in_model_implies_not(formula,model)
+
+        elif is_unary(formula.root):
+            # TODO okay, here we assume that both & and | will take care of ~ themselves , meaning will return the right fomrula
+            return prove_in_model_helper(formula.first, model)
+
+        elif formula.root == '&':
+            pass
+
+        # (p|q)
+        elif formula.root == '|':
+            # index = None  # either p or q index to reference in justification
+            if evaluate(formula.first, model):  # p is true
+                p = prove_in_model_helper(formula.first ,model) # we assume p is within our lines
+                p_index = find_index_by_conclusion(p, lines)
+                lines.append(DeductiveProof.Line(Formula('->', p, formula), AXIOMATIC_DICT['O1'], None)) # p->(p|q)
+                lines.append(DeductiveProof.Line(formula, 0, [p_index, len(lines) - 1]))  # we just proved formula
+                return formula
+
+            elif evaluate(formula.second, model): # q is true
+                q = prove_in_model_helper(formula.second, model) # we assume q is within our lines
+                q_index = find_index_by_conclusion(q, lines)
+                lines.append(DeductiveProof.Line(Formula('->', q, formula), AXIOMATIC_DICT['O2'], None))  # p->(p|q)
+                lines.append(DeductiveProof.Line(formula, 0, [q_index, len(lines) - 1]))  # we just proved formula
+                return formula
+
+            else: # q and p are false
+                # NO = InferenceRule([], Formula.from_infix('(~p->(~q->~(p|q)))'))
+                # TODO we can derive from double MP ~(p|q) but how can we get (p|q) from that ????
+                not_p = prove_in_model_helper(Formula('~', formula.first),model)
+                not_q = prove_in_model_helper(Formula('~', formula.second),model)
+                not_p_index = find_index_by_conclusion(not_p, lines) #~p
+                not_q_index = find_index_by_conclusion(not_q, lines) #~q
+                core = Formula('~', formula) #~(p|q)
+                part_2 = Formula(not_q, core) # (~q->~(p|q)
+                no = Formula('->', not_p, part_2) #(~p->(~q->~(p|q)))
+                lines.append(DeductiveProof.Line(no, AXIOMATIC_DICT['NO'], None)) #here we entered (~p->(~q->~(p|q)))
+                lines.append(DeductiveProof.Line(part_2, 0, [not_q_index, len(lines) - 1])) # entered (~q->~(p|q))
+                lines.append(DeductiveProof.Line(formula, 0, [not_p_index, len(lines) - 1])) # entered ~(p|q)
+                return core
+
+
+
+
+
+
+                # TODO 2.0 i Think i get it! if we entered here, it means that (p|q) is actually false in this model, meaning we got called from ~(p|q)
+
+                not_p = Formula('~', formula.first)
+
+
+
+    def only_implies_not(formula):
+        """
+        :param formula: The formula to be checked
+        :return: if formula only contains the signs implies , not.
+        """
+        prefix = formula.prefix()
+        prefix = prefix.replace('->', 'א')
+        for char in prefix:
+            if char != 'א' and not is_unary(char): # char is not -> or ~:
+                if not is_variable(char): # char is one of |&TF
+                    return False
+        return True
+
     """ Return a proof of formula via AXIOMATIC_SYSTEM from the assumptions
         that all variables are valued as in model, with the assumptions being
         ordered alphabetically by the names of the variables. It is assumed
         that formula is true in model """
+    variables = sorted(list(formula.variables()))
+    assumptions = []
+    for var in variables:
+        if model[var] is True:
+            assumptions.append(Formula(var))
+        else:
+            assumptions.append(Formula('~', Formula(var)))
+
+    statement = InferenceRule(assumptions, formula)
+    lines = [DeductiveProof.Line(ass, None, None) for ass in assumptions]
+    prove_in_model_helper(formula, model)
+    return DeductiveProof(statement, AXIOMATIC_SYSTEM, lines)
+
     # Task 6.4
 
 def proof_or_counterexample(formula):
@@ -206,3 +300,4 @@ if __name__ == '__main__':
     pass
 
 
+# prove_in_model(Formula.from_infix('(p|q)'), {'p':True})
