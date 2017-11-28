@@ -97,6 +97,7 @@ def test_reduce_assumption(debug=False):
     assert proof.statement.assumptions == proof_true.statement.assumptions[:-1]
     assert proof.rules == rules
     # Will be tested with the course staff's implementation of is_valid
+
     assert proof.is_valid()
 
 # Tests for proof_or_counterexample*** methods
@@ -106,7 +107,7 @@ def test_proof_or_counterexample_implies_not(debug=False):
                                    ['((~p->~q)->((~p->q)->p))',
                                     '((q->~p)->((~~~p->r)->(q->r)))',
                                     '((q->p)->((~q->p)->p))',
-                                    '((p->~q)->(q->~p))',
+                                       '((p->~q)->(q->~p))',
                                     '((p->q)->(~p->~q))'],
                                    AXIOMATIC_SYSTEM_IMPLIES_NOT, debug)
 
