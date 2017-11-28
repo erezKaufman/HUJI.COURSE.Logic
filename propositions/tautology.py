@@ -237,14 +237,8 @@ def prove_in_model(formula, model):
                 lines.append(DeductiveProof.Line(formula, 0, [not_p_index, len(lines) - 1])) # entered ~(p|q)
                 return core
 
-
-
-
-
-
                 # TODO 2.0 i Think i get it! if we entered here, it means that (p|q) is actually false in this model, meaning we got called from ~(p|q)
 
-                not_p = Formula('~', formula.first)
 
 
 
