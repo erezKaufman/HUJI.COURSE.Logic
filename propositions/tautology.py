@@ -170,18 +170,31 @@ def reduce_assumption(proof_true: DeductiveProof, proof_false: DeductiveProof):
         assumed to contain R, and the assumptions of both proofs are assumed to
         coincide, except for the last assumption, where that of proof_false is
         the negation of that of proof_true """
-    # do inverse_mp the true proof
-    new_lines = []
+
+    new_lines = [] # init the list of new lines for the proof
+    part_1_mp_index = -1
+    part_2_mp_index = -2
+    ######### do inverse_mp to the true proof ############
     last_true_assumption = proof_true.statement.assumptions[len(proof_true.statement.assumptions) - 1]
     inverse_proof_true = inverse_mp(proof_true, last_true_assumption)
+    ######### finished inverse_mp ############
 
+
+
+    ######### initiated statement for the new proof ############
     new_assumption = inverse_proof_true.statement.assumptions
     new_conclusion = proof_true.statement.conclusion
     new_statement = InferenceRule(new_assumption, new_conclusion)
-    new_lines += inverse_proof_true.lines
-    # do inverse_mp the false proof
+    ######### finish init statement ############
+
+    new_lines += inverse_proof_true.lines #  added lines of the first true proof
+    part_1_mp_index = len(new_lines)-1 # get the line index for the true proof's conclusion
+    ######### do inverse_mp to the false proof ############
     last_false_assumption = proof_false.statement.assumptions[len(proof_false.statement.assumptions) - 1]
     inverse_proof_false = inverse_mp(proof_false, last_false_assumption)
+    ######### finished inverse_mp ############
+
+    ######### adding line of the false proof, while changing the line numbers according to the new proof############
     current_new_line_index = len(new_lines)
     for line_index, line in enumerate(inverse_proof_false.lines):
         new_justification = None
@@ -189,14 +202,17 @@ def reduce_assumption(proof_true: DeductiveProof, proof_false: DeductiveProof):
             new_justification = [a + current_new_line_index for a in line.justification]
 
         new_lines.append(DeductiveProof.Line(line.conclusion, line.rule, new_justification))
+    ######### finish adding line of false proof ############
 
-    part_1_mp = -1
-    part_2_mp = -2
-    for line_index, line in enumerate(new_lines):
-        if line.conclusion == inverse_proof_true.statement.conclusion:
-            part_1_mp = line_index
-        elif line.conclusion == inverse_proof_false.statement.conclusion:
-            part_2_mp = line_index
+    part_2_mp_index = len(new_lines)-1 # get the line index for the false proof's conclusion
+
+    # search for the lines in the proof where we get the conclusion
+
+    # for line_index, line in enumerate(new_lines):
+    #     if line.conclusion == inverse_proof_true.statement.conclusion:
+    #         part_1_mp_index = line_index
+    #     elif line.conclusion == inverse_proof_false.statement.conclusion:
+    #         part_2_mp_index = line_index
 
             # TODO need to search for the conclusion of proof 1 and 2 , and use them with MP
             # we want to assume R, and with those two results above us we want to prove MP twice and get p (final conclusion)
@@ -218,9 +234,9 @@ def reduce_assumption(proof_true: DeductiveProof, proof_false: DeductiveProof):
     new_lines.append(DeductiveProof.Line(R_line,R_rule_index,[])) # added R line
 
     first_mp_conclusion = R_line.second
-    new_lines.append(DeductiveProof.Line(first_mp_conclusion, 0, [part_1_mp, len(new_lines) - 1]))
+    new_lines.append(DeductiveProof.Line(first_mp_conclusion, 0, [part_1_mp_index, len(new_lines) - 1]))
     second_MP_conclusion = first_mp_conclusion.second
-    new_lines.append(DeductiveProof.Line(second_MP_conclusion, 0, [part_2_mp, len(new_lines) - 1]))
+    new_lines.append(DeductiveProof.Line(second_MP_conclusion, 0, [part_2_mp_index, len(new_lines) - 1]))
     return DeductiveProof(new_statement, proof_true.rules, new_lines)
 
 
