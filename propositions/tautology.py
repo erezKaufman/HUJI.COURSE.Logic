@@ -214,7 +214,7 @@ def reduce_assumption(proof_true: DeductiveProof, proof_false: DeductiveProof):
     #     elif line.conclusion == inverse_proof_false.statement.conclusion:
     #         part_2_mp_index = line_index
 
-            # TODO need to search for the conclusion of proof 1 and 2 , and use them with MP
+
             # we want to assume R, and with those two results above us we want to prove MP twice and get p (final conclusion)
     # first MP to isolate ((~q->p)->p) from R
     # ((q->p)->((~q->p)->p))
