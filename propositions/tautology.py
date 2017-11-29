@@ -5,7 +5,7 @@
 
 from propositions.syntax import *
 from propositions.proofs import *
-from propositions.provers import MP,I1,I2,inverse_mp
+from propositions.provers import MP, I1, I2, inverse_mp
 from propositions.semantics import *
 
 # Axiomatic Inference Rules (MP, I1, and I2 are imported from provers.py)
@@ -27,9 +27,9 @@ O2 = InferenceRule([], Formula.from_infix('(q->(p|q))'))
 
 NO = InferenceRule([], Formula.from_infix('(~p->(~q->~(p|q)))'))
 
-T  = InferenceRule([], Formula.from_infix('T'))
+T = InferenceRule([], Formula.from_infix('T'))
 
-NF  = InferenceRule([], Formula.from_infix('~F'))
+NF = InferenceRule([], Formula.from_infix('~F'))
 
 AXIOMATIC_SYSTEM = [MP, I1, I2, I3, NI, NN, A, NA1, NA2, O1, O2, NO, T, NF, R]
 AXIOMATIC_DICT = {'MP': 0 , 'I1': 1 , 'I2':2, 'I3':3 , 'NI':4 , 'NN':5, 'A':6, 'NA1':7, 'NA2': 8 , 'O1':9 , 'O2': 10,
@@ -134,8 +134,8 @@ def prove_in_model_implies_not(formula, model):
     for var in variables:
         if model[var] is True:
             assumptions.append(Formula(var))
-        else: assumptions.append(Formula('~', Formula(var)))
-
+        else:
+            assumptions.append(Formula('~', Formula(var)))
 
     statement = InferenceRule(assumptions, formula)
     lines = [DeductiveProof.Line(ass, None, None) for ass in assumptions]
@@ -149,17 +149,21 @@ def prove_in_model_implies_not(formula, model):
     # Task 6.1
 
 
-# def create_not_not_asses(lines):
-#     ret = []
-#     for line in lines:
-#         line_1_to_add = Formula(NEGATE_OPERATOR, Formula(NEGATE_OPERATOR, line.conclusion))
-#         p_index = find_index_by_conclusion(line.conclusion, lines)
-#         NN_line = Formula(IMPLICATION_OPERATOR, line.conclusion, line_1_to_add)
-#         ret.append(DeductiveProof.Line(NN_line, 5, []))
-#         MP_line = NN_line.second
-#         ret.append(DeductiveProof.Line(MP_line, 0, [p_index, len(ret) + len(lines) - 1]))
-#
-#     return ret
+def create_not_not_asses(lines):
+    temp_lines = lines.copy()
+    for line in temp_lines:
+
+        line_1_to_add = Formula(NEGATE_OPERATOR, Formula(NEGATE_OPERATOR, line.conclusion))
+
+        p_index = find_index_by_conclusion(line.conclusion, lines)
+        NN_line = Formula(IMPLICATION_OPERATOR, line.conclusion, line_1_to_add)
+
+        temp_lines.append(DeductiveProof.Line(NN_line, 5, []))
+
+        MP_line = NN_line.second
+
+        temp_lines.append(DeductiveProof.Line(MP_line, 0, [p_index, len(lines) - 1]))
+    return temp_lines
 
 
 
@@ -174,13 +178,83 @@ def reduce_assumption(proof_true, proof_false):
         assumed to contain R, and the assumptions of both proofs are assumed to
         coincide, except for the last assumption, where that of proof_false is
         the negation of that of proof_true """
-    # Task 6.2
+
+    new_lines = []  # init the list of new lines for the proof
+
+    last_true_assumption, new_lines, new_statement, part_1_mp_index, part_2_mp_index = create_inverse_mp_proofs(
+        new_lines, proof_false,
+        proof_true)
+
+    # first MP to isolate ((~q->p)->p) from R
+    p = proof_true.statement.conclusion
+    q = last_true_assumption
+    R_line = Formula(IMPLICATION_OPERATOR, Formula(IMPLICATION_OPERATOR, q, p), Formula(IMPLICATION_OPERATOR,
+                                                                                        Formula(IMPLICATION_OPERATOR,
+                                                                                                Formula(NEGATE_OPERATOR,
+                                                                                                        q), p), p))
+    # need to search for the rule number for R ...
+    rule_index_R = -3
+    for rule_index, rule in enumerate(proof_true.rules):
+        if rule == R:
+            rule_index_R = rule_index
+            break
+
+    new_lines.append(DeductiveProof.Line(R_line, rule_index_R, []))  # added R line
+
+    first_mp_conclusion = R_line.second
+    # added first MP conclusion
+    new_lines.append(DeductiveProof.Line(first_mp_conclusion, 0, [part_1_mp_index, len(new_lines) - 1]))
+    second_MP_conclusion = first_mp_conclusion.second
+
+    # added second MP conclusion
+    new_lines.append(DeductiveProof.Line(second_MP_conclusion, 0, [part_2_mp_index, len(new_lines) - 1]))
+    return DeductiveProof(new_statement, proof_true.rules, new_lines)
+
+
+def create_inverse_mp_proofs(new_lines, proof_false, proof_true):
+    """
+    help method for reduce_assumption function. it calculates the inverse_mp of the two proofs, and add their lines
+    to the new_lines list
+    :param new_lines:
+    :param proof_false:
+    :param proof_true:
+    :return:
+    """
+    ######### do inverse_mp to the true proof ############
+    last_true_assumption = proof_true.statement.assumptions[len(proof_true.statement.assumptions) - 1]
+    inverse_proof_true = inverse_mp(proof_true, last_true_assumption)
+    ######### finished inverse_mp ############
+    ######### initiated statement for the new proof ############
+    new_assumption = inverse_proof_true.statement.assumptions
+    new_conclusion = proof_true.statement.conclusion
+    new_statement = InferenceRule(new_assumption, new_conclusion)
+    ######### finish init statement ############
+    new_lines += inverse_proof_true.lines  # added lines of the first true proof
+    part_1_mp_index = len(new_lines) - 1  # get the line index for the true proof's conclusion
+    ######### do inverse_mp to the false proof ############
+    last_false_assumption = proof_false.statement.assumptions[len(proof_false.statement.assumptions) - 1]
+    inverse_proof_false = inverse_mp(proof_false, last_false_assumption)
+    ######### finished inverse_mp ############
+    ######### adding line of the false proof, while changing the line numbers according to the new proof ############
+    current_new_line_index = len(new_lines)
+    for line_index, line in enumerate(inverse_proof_false.lines):
+        new_justification = None
+        if line.justification is not None:
+            new_justification = [a + current_new_line_index for a in line.justification]
+
+        new_lines.append(DeductiveProof.Line(line.conclusion, line.rule, new_justification))
+    ######### finish adding line of false proof ############
+
+    part_2_mp_index = len(new_lines) - 1  # get the line index for the false proof's conclusion
+    return last_true_assumption, new_lines, new_statement, part_1_mp_index, part_2_mp_index
+
 
 def proof_or_counterexample_implies_not(formula):
     """ Return either a proof of formula via AXIOMATIC_SYSTEM_IMPLIES_NOT, or a
         model where formula does not hold. It is assumed that formula may only
         have the operators implies and not in it """
     # Task 6.3
+
 
 def prove_in_model(formula, model):
     def prove_in_model_helper(formula :formula , model:dict):
@@ -294,4 +368,3 @@ if __name__ == '__main__':
     pass
 
 
-# prove_in_model(Formula.from_infix('(p|q)'), {'p':True})
