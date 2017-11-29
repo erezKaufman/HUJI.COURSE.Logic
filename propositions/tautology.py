@@ -33,7 +33,7 @@ NF = InferenceRule([], Formula.from_infix('~F'))
 
 AXIOMATIC_SYSTEM = [MP, I1, I2, I3, NI, NN, A, NA1, NA2, O1, O2, NO, T, NF, R]
 AXIOMATIC_DICT = {'MP': 0, 'I1': 1, 'I2': 2, 'I3': 3, 'NI': 4, 'NN': 5, 'A': 6, 'NA1': 7, 'NA2': 8, 'O1': 9, 'O2': 10,
-                  'T': 11, 'NF': 12, 'R': 13}
+                  'NP': 11, 'T': 12, 'NF': 13, 'R': 14}
 
 
 def find_index_by_conclusion(conclusion, lines):
@@ -171,30 +171,63 @@ def reduce_assumption(proof_true: DeductiveProof, proof_false: DeductiveProof):
         coincide, except for the last assumption, where that of proof_false is
         the negation of that of proof_true """
 
-    new_lines = [] # init the list of new lines for the proof
-    part_1_mp_index = -1
-    part_2_mp_index = -2
+    new_lines = []  # init the list of new lines for the proof
+
+    last_true_assumption, new_lines, new_statement, part_1_mp_index, part_2_mp_index = create_inverse_mp_proofs(
+        new_lines, proof_false,
+        proof_true)
+
+    # first MP to isolate ((~q->p)->p) from R
+    p = proof_true.statement.conclusion
+    q = last_true_assumption
+    R_line = Formula(IMPLICATION_OPERATOR, Formula(IMPLICATION_OPERATOR, q, p), Formula(IMPLICATION_OPERATOR,
+                                                                                        Formula(IMPLICATION_OPERATOR,
+                                                                                                Formula(NEGATE_OPERATOR,
+                                                                                                        q), p), p))
+    # need to search for the rule number for R ...
+    rule_index_R = -3
+    for rule_index, rule in enumerate(proof_true.rules):
+        if rule == R:
+            rule_index_R = rule_index
+            break
+
+    new_lines.append(DeductiveProof.Line(R_line, rule_index_R, []))  # added R line
+
+    first_mp_conclusion = R_line.second
+    # added first MP conclusion
+    new_lines.append(DeductiveProof.Line(first_mp_conclusion, 0, [part_1_mp_index, len(new_lines) - 1]))
+    second_MP_conclusion = first_mp_conclusion.second
+
+    # added second MP conclusion
+    new_lines.append(DeductiveProof.Line(second_MP_conclusion, 0, [part_2_mp_index, len(new_lines) - 1]))
+    return DeductiveProof(new_statement, proof_true.rules, new_lines)
+
+
+def create_inverse_mp_proofs(new_lines, proof_false, proof_true):
+    """
+    help method for reduce_assumption function. it calculates the inverse_mp of the two proofs, and add their lines
+    to the new_lines list
+    :param new_lines:
+    :param proof_false:
+    :param proof_true:
+    :return:
+    """
     ######### do inverse_mp to the true proof ############
     last_true_assumption = proof_true.statement.assumptions[len(proof_true.statement.assumptions) - 1]
     inverse_proof_true = inverse_mp(proof_true, last_true_assumption)
     ######### finished inverse_mp ############
-
-
-
     ######### initiated statement for the new proof ############
     new_assumption = inverse_proof_true.statement.assumptions
     new_conclusion = proof_true.statement.conclusion
     new_statement = InferenceRule(new_assumption, new_conclusion)
     ######### finish init statement ############
-
-    new_lines += inverse_proof_true.lines #  added lines of the first true proof
-    part_1_mp_index = len(new_lines)-1 # get the line index for the true proof's conclusion
+    new_lines += inverse_proof_true.lines  # added lines of the first true proof
+    part_1_mp_index = len(new_lines) - 1  # get the line index for the true proof's conclusion
     ######### do inverse_mp to the false proof ############
     last_false_assumption = proof_false.statement.assumptions[len(proof_false.statement.assumptions) - 1]
     inverse_proof_false = inverse_mp(proof_false, last_false_assumption)
     ######### finished inverse_mp ############
-
-    ######### adding line of the false proof, while changing the line numbers according to the new proof############
+    ######### adding line of the false proof, while changing the line numbers according to the new proof ############
     current_new_line_index = len(new_lines)
     for line_index, line in enumerate(inverse_proof_false.lines):
         new_justification = None
@@ -204,40 +237,8 @@ def reduce_assumption(proof_true: DeductiveProof, proof_false: DeductiveProof):
         new_lines.append(DeductiveProof.Line(line.conclusion, line.rule, new_justification))
     ######### finish adding line of false proof ############
 
-    part_2_mp_index = len(new_lines)-1 # get the line index for the false proof's conclusion
-
-    # search for the lines in the proof where we get the conclusion
-
-    # for line_index, line in enumerate(new_lines):
-    #     if line.conclusion == inverse_proof_true.statement.conclusion:
-    #         part_1_mp_index = line_index
-    #     elif line.conclusion == inverse_proof_false.statement.conclusion:
-    #         part_2_mp_index = line_index
-
-
-            # we want to assume R, and with those two results above us we want to prove MP twice and get p (final conclusion)
-    # first MP to isolate ((~q->p)->p) from R
-    # ((q->p)->((~q->p)->p))
-    p = proof_true.statement.conclusion
-    q = last_true_assumption
-    R_line = Formula(IMPLICATION_OPERATOR,Formula(IMPLICATION_OPERATOR,q,p),Formula(IMPLICATION_OPERATOR,
-                                                                                    Formula(IMPLICATION_OPERATOR,
-                                                                                            Formula(NEGATE_OPERATOR,
-                                                                                                    q),p),p))
-    # need to search for the rule number for R ...
-    R_rule_index = -3
-    for rule_index, rule in enumerate(proof_true.rules):
-        if rule == R:
-            R_rule_index = rule_index
-            break
-
-    new_lines.append(DeductiveProof.Line(R_line,R_rule_index,[])) # added R line
-
-    first_mp_conclusion = R_line.second
-    new_lines.append(DeductiveProof.Line(first_mp_conclusion, 0, [part_1_mp_index, len(new_lines) - 1]))
-    second_MP_conclusion = first_mp_conclusion.second
-    new_lines.append(DeductiveProof.Line(second_MP_conclusion, 0, [part_2_mp_index, len(new_lines) - 1]))
-    return DeductiveProof(new_statement, proof_true.rules, new_lines)
+    part_2_mp_index = len(new_lines) - 1  # get the line index for the false proof's conclusion
+    return last_true_assumption, new_lines, new_statement, part_1_mp_index, part_2_mp_index
 
 
 def proof_or_counterexample_implies_not(formula):
