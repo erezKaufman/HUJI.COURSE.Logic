@@ -331,7 +331,7 @@ def prove_in_model(formula, model):
                 exit(-1)
             lines.append(DeductiveProof.Line(formula, 0, [not_p_index, len(lines) - 1]))  # from I2
             return formula
-        # test
+        # test a
 
         elif evaluate(formula.second, model) is True:  # psi_2 is True in M
             p = prove_in_model_helper(formula.first, model)
