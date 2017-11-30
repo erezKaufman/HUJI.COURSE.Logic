@@ -145,7 +145,6 @@ def __test_proof_or_counterexample(prover, infixes, rules, debug):
                 print('Verifying returned proof (' +
                       '{:,}'.format(len(result.lines)), 'lines)')
             # Will be tested with the course staff's implementation of is_valid
-            print(result)
             assert result.is_valid()
         else:
             if debug:

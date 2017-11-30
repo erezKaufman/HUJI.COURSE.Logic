@@ -162,12 +162,14 @@ class DeductiveProof:
                 if len(line.justification) > 0:  # if there are justifications
                     for i in line.justification:
                         if i > lineNum:
+                            print("1",lineNum) #TODO DELETE ME
                             return False
                 else:  # else, the list is empty, so we might have a
                     if line.rule is None:
                         if line.conclusion in self.statement.assumptions:
                             continue
                         else:  # if the conclusion of the line is not in the assumptions of the statement
+                            print("2",lineNum) #TODO DELETE ME
                             return False
 
             else:  # if the justification is None, we will check if rule is none. if so than
@@ -175,11 +177,13 @@ class DeductiveProof:
                     if line.conclusion in self.statement.assumptions:
                         continue
                     else:  # if the conclusion of the line is not in the assumptions of the statement
+                        print("3", lineNum) #TODO DELETE ME
                         return False
             # if self.lines[lineNum].just
             instance = self.instance_for_line(lineNum)
             rule = self.rules[line.rule]
             if not instance.is_instance_of(rule):
+                print("4", lineNum) #TODO DELETE ME
                 return False
         return self.lines[len(self.lines) - 1].conclusion == self.statement.conclusion
 

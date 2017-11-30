@@ -116,9 +116,7 @@ def prove_in_model_implies_not_helper(formula, model: dict, lines: list):
             p_index = -4
             q_index = -5
             p_index, q_index = find_index(p, p_index, not_q, q_index, lines)
-            # if p_index == -1 or q_index == -2:
-            #     print("bad index, p is: {}, q is: {}".format(p, not_q))
-            #     exit(-1)
+
             # add line 2 as an MP conclusion for
             lines.append(DeductiveProof.Line(part_2, 0, [p_index, len(lines) - 1]))
             lines.append(DeductiveProof.Line(formula, 0, [q_index, len(lines) - 1]))
@@ -142,7 +140,8 @@ def prove_in_model_implies_not(formula, model):
     statement = InferenceRule(assumptions, formula)
     lines = [DeductiveProof.Line(ass, None, None) for ass in assumptions]
     prove_in_model_implies_not_helper(formula, model, lines)
-    return DeductiveProof(statement, AXIOMATIC_SYSTEM_IMPLIES_NOT, lines)
+    return_proof = DeductiveProof(statement, AXIOMATIC_SYSTEM_IMPLIES_NOT, lines)
+    return return_proof
 
 
     # Task 6.1
@@ -195,7 +194,8 @@ def reduce_assumption(proof_true, proof_false):
             rule_index_R = rule_index
             break
 
-    new_lines.append(DeductiveProof.Line(R_line, rule_index_R, []))  # added R line
+    new_r_line = DeductiveProof.Line(R_line, rule_index_R, [])
+    new_lines.append(new_r_line)  # added R line
 
     first_mp_conclusion = R_line.second
     # added first MP conclusion
@@ -204,7 +204,8 @@ def reduce_assumption(proof_true, proof_false):
 
     # added second MP conclusion
     new_lines.append(DeductiveProof.Line(second_MP_conclusion, 0, [part_2_mp_index, len(new_lines) - 1]))
-    return DeductiveProof(new_statement, proof_true.rules, new_lines)
+    return_proof = DeductiveProof(new_statement, proof_true.rules, new_lines)
+    return return_proof
 
 
 def create_inverse_mp_proofs(new_lines, proof_false, proof_true):
@@ -219,6 +220,7 @@ def create_inverse_mp_proofs(new_lines, proof_false, proof_true):
     ######### do inverse_mp to the true proof ############
     last_true_assumption = proof_true.statement.assumptions[len(proof_true.statement.assumptions) - 1]
     inverse_proof_true = inverse_mp(proof_true, last_true_assumption)
+
     ######### finished inverse_mp ############
     ######### initiated statement for the new proof ############
     new_assumption = inverse_proof_true.statement.assumptions
@@ -249,11 +251,11 @@ def proof_or_counterexample_implies_not(formula):
     """ Return either a proof of formula via AXIOMATIC_SYSTEM_IMPLIES_NOT, or a
         model where formula does not hold. It is assumed that formula may only
         have the operators implies and not in it """
-    # Task 6.3
     proof_list = []
     # create list of proofs by model
-    all_models_list = (list(all_models(list(formula.variables()))))
+    all_models_list = list(all_models(sorted(list(formula.variables()))))
     for model in all_models_list:
+
         if not evaluate(formula, model):
             return model
         else:
@@ -264,13 +266,13 @@ def proof_or_counterexample_implies_not(formula):
     for tree_level in range(0, tree_level_size):
         # run on each
         for proof_index in range(0, len(proof_list), 2):
-            temp_proof_list.append(reduce_assumption(proof_list[proof_index], proof_list[proof_index + 1]))
+            temp_proof_list.append(reduce_assumption(proof_list[proof_index+1], proof_list[proof_index]))
 
         proof_list = temp_proof_list
         temp_proof_list = []
     assert len(proof_list) == 1
     return proof_list[0]
-
+    # Task 6.3
 # <<<<<<< Updated upstream
 #
 # def prove_in_model(formula, model):
