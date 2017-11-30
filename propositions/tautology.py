@@ -7,7 +7,7 @@ from propositions.syntax import *
 from propositions.proofs import *
 from propositions.provers import MP, I1, I2, inverse_mp
 from propositions.semantics import *
-
+import math
 # Axiomatic Inference Rules (MP, I1, and I2 are imported from provers.py)
 I3 = InferenceRule([], Formula.from_infix('(~p->(p->q))'))
 NI = InferenceRule([], Formula.from_infix('(p->(~q->~(p->q)))'))
@@ -238,7 +238,28 @@ def proof_or_counterexample_implies_not(formula):
         model where formula does not hold. It is assumed that formula may only
         have the operators implies and not in it """
     # Task 6.3
+    proof_list = []
+    # create list of proofs by model
+    all_models_list = list(all_models(sorted(list(formula.variables()))))
+    for model in all_models_list:
 
+        if not evaluate(formula, model):
+            return model
+        else:
+            proof_list.append(prove_in_model_implies_not(formula, model))
+    # run on each level of the tree
+    tree_level_size = int(math.log(len(proof_list),2))
+    temp_proof_list = []
+    for tree_level in range(0, tree_level_size):
+        # run on each
+        for proof_index in range(0, len(proof_list), 2):
+            temp_proof_list.append(reduce_assumption(proof_list[proof_index+1], proof_list[proof_index]))
+
+        proof_list = temp_proof_list
+        temp_proof_list = []
+    assert len(proof_list) == 1
+    return proof_list[0]
+    # Task 6.3
 
 
 def prove_in_model(formula, model):
@@ -466,6 +487,27 @@ def prove_in_model(formula, model):
 def proof_or_counterexample(formula):
     """ Return either a proof of formula via AXIOMATIC_SYSTEM, or a model where
         formula does not hold """
+    proof_list = []
+    # create list of proofs by model
+    all_models_list = list(all_models(sorted(list(formula.variables()))))
+    for model in all_models_list:
+
+        if not evaluate(formula, model):
+            return model
+        else:
+            proof_list.append(prove_in_model_implies_not(formula, model))
+    # run on each level of the tree
+    tree_level_size = int(math.log(len(proof_list), 2))
+    temp_proof_list = []
+    for tree_level in range(0, tree_level_size):
+        # run on each
+        for proof_index in range(0, len(proof_list), 2):
+            temp_proof_list.append(reduce_assumption(proof_list[proof_index + 1], proof_list[proof_index]))
+
+        proof_list = temp_proof_list
+        temp_proof_list = []
+    assert len(proof_list) == 1
+    return proof_list[0]
     # Task 6.5
 
 def proof_or_counterexample_for_inference(rule):
