@@ -173,14 +173,11 @@ def synthesize(models, values):
 
 def evaluate_inference(rule, model):
     """ Return whether the given inference rule holds in the given model """
-    for assuumption in rule.assumptions:
-
-        if not evaluate(assuumption, model) :
-            # if the assumption returns False for the model, we want to keep check the other assumptions.
-            # if all are False, then we will return automatic True.
-            continue
-        # else (if check was True, we would like to tell that all of the other assumptions were True also
-    return  evaluate(rule.conclusion,model)
+    for ass in rule.assumptions:
+        if not evaluate(ass,model): #if the model is false then the rule holds
+            return True
+    # if Arrived here then all assumptions are True, check if conclusion is true
+    return evaluate(rule.conclusion, model)
 
 
 def is_tautological_inference(rule):

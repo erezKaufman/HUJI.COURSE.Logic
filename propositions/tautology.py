@@ -146,7 +146,7 @@ def prove_in_model_implies_not(formula, model):
             assumptions.append(Formula('~', Formula(var)))
 
     statement = InferenceRule(assumptions, formula)
-    lines = [DeductiveProof.Line(ass, None, None) for ass in assumptions]
+    lines = [DeductiveProof.Line(ass, None, []) for ass in assumptions]
     prove_in_model_implies_not_helper(formula,model ,lines)
     return DeductiveProof(statement, AXIOMATIC_SYSTEM_IMPLIES_NOT, lines)
 
@@ -479,7 +479,7 @@ def prove_in_model(formula, model):
             assumptions.append(Formula('~', Formula(var)))
 
     statement = InferenceRule(assumptions, formula)
-    lines = [DeductiveProof.Line(ass, None, None) for ass in assumptions]
+    lines = [DeductiveProof.Line(ass, None, []) for ass in assumptions]
     prove_in_model_helper(formula, model)
     return DeductiveProof(statement, AXIOMATIC_SYSTEM, lines)
 
@@ -514,7 +514,29 @@ def proof_or_counterexample(formula):
 def proof_or_counterexample_for_inference(rule):
     """ Return either a proof of rule via AXIOMATIC_SYSTEM, or a model where
         rule does not hold """
-    return proof_or_counterexample(rule.conclusion)
+
+    if rule.assumptions == []: return proof_or_counterexample(rule.conclusion)
+    else:
+        lines = []
+        for ass in rule.assumptions:
+            lines.append(DeductiveProof.Line(ass, None, []))
+        formula = rule.conclusion
+        for index in range((len(rule.assumptions)-1), -1, -1):
+            formula = Formula('->' , rule.assumptions[index], formula)
+        cur_proof_or_counter = proof_or_counterexample(formula)
+        if type(cur_proof_or_counter) == dict:
+            return cur_proof_or_counter # this is a modle with a counter example for rule
+        else: # we have a proof
+            cur_line_counter = len(lines)
+            for line in cur_proof_or_counter.lines:
+                justifications = []
+                for just in line.justification:
+                    justifications.append(just + cur_line_counter)
+                lines.append(DeductiveProof.Line(line.conclusion, line.rule , justifications))
+            for run in range(len(rule.assumptions)):
+                formula = formula.second
+                lines.append(DeductiveProof.Line(formula, 0, [run ,len(lines)-1]))
+        return DeductiveProof(rule, AXIOMATIC_SYSTEM ,lines)
 
 
 def model_or_inconsistent(formulae):
@@ -527,5 +549,5 @@ if __name__ == '__main__':
     a = Formula('~',Formula('|', Formula('p'),Formula('F')))
     model = {'p':False}
     print(prove_in_model(a, model))
-
+    # t
 
