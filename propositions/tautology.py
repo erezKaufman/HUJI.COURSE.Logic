@@ -549,5 +549,5 @@ if __name__ == '__main__':
     a = Formula('~',Formula('|', Formula('p'),Formula('F')))
     model = {'p':False}
     print(prove_in_model(a, model))
-    # t
+    # taslk
 
