@@ -8,6 +8,7 @@ from propositions.proofs import *
 from propositions.provers import MP, I1, I2, inverse_mp
 from propositions.semantics import *
 import math
+
 # Axiomatic Inference Rules (MP, I1, and I2 are imported from provers.py)
 I3 = InferenceRule([], Formula.from_infix('(~p->(p->q))'))
 NI = InferenceRule([], Formula.from_infix('(p->(~q->~(p->q)))'))
@@ -495,7 +496,7 @@ def proof_or_counterexample(formula):
         if not evaluate(formula, model):
             return model
         else:
-            proof_list.append(prove_in_model_implies_not(formula, model))
+            proof_list.append(prove_in_model(formula, model))
     # run on each level of the tree
     tree_level_size = int(math.log(len(proof_list), 2))
     temp_proof_list = []
