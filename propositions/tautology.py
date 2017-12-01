@@ -514,7 +514,8 @@ def proof_or_counterexample(formula):
 def proof_or_counterexample_for_inference(rule):
     """ Return either a proof of rule via AXIOMATIC_SYSTEM, or a model where
         rule does not hold """
-    # Task 6.6
+    return proof_or_counterexample(rule.conclusion)
+
 
 def model_or_inconsistent(formulae):
     """ Return either a model where all of formulae hold, or a list of two

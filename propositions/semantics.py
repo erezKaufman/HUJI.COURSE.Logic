@@ -174,11 +174,11 @@ def synthesize(models, values):
 def evaluate_inference(rule, model):
     """ Return whether the given inference rule holds in the given model """
     for assuumption in rule.assumptions:
-        # assumptions_truth_list.append(truth_values(assuumption,truth_list))
+
         if not evaluate(assuumption, model) :
             # if the assumption returns False for the model, we want to keep check the other assumptions.
             # if all are False, then we will return automatic True.
-            return True
+            continue
         # else (if check was True, we would like to tell that all of the other assumptions were True also
     return  evaluate(rule.conclusion,model)
 
