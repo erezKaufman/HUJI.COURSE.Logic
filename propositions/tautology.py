@@ -48,8 +48,6 @@ def find_index(p, p_index, q, q_index, lines):
     for line_index, line in enumerate(lines):
         if line.conclusion == p:
             p_index = line_index
-            if p == q:
-                break
         elif line.conclusion == q:
             q_index = line_index
     return p_index, q_index
@@ -92,8 +90,11 @@ def prove_for_is_unary_implies_not(formula, model, lines):
         # I run on all the lines and search for 'p' to proof the line with MP
         # I know that p and ~q must appear as an assumption in the lines of the proof
         p_index = -1
+        p_index = find_index_by_conclusion(p, lines)
         q_index = -2
-        p_index, q_index = find_index(p, p_index, not_q, q_index, lines)
+        q_index = find_index_by_conclusion(not_q, lines)
+
+        # p_index, q_index = find_index(p, p_index, not_q, q_index, lines)
         # if p_index == -1 or q_index == -2:
         #     print("bad index, p is: {}, q is: {}".format(p, not_q))
         #     exit(-1)
@@ -511,7 +512,7 @@ def proof_or_counterexample(formula):
         proof_list = temp_proof_list
         temp_proof_list = []
     assert len(proof_list) == 1
-    assert proof_list[0].is_valid()
+
     return proof_list[0]
     # Task 6.5
 
@@ -533,7 +534,6 @@ def proof_or_counterexample_for_inference(rule):
         if type(cur_proof_or_counter) == dict:
             return cur_proof_or_counter  # this is a modle with a counter example for rule
         else:  # we have a proof
-            print("before changes", cur_proof_or_counter)
             cur_line_counter = len(lines)
             for line in cur_proof_or_counter.lines:
                 justifications = []
@@ -544,8 +544,6 @@ def proof_or_counterexample_for_inference(rule):
                 formula = formula.second
                 lines.append(DeductiveProof.Line(formula, 0, [run, len(lines) - 1]))
         returned_proof = DeductiveProof(rule, AXIOMATIC_SYSTEM, lines)
-        print("after changes", returned_proof)
-        assert returned_proof.is_valid() # TODO DELETE ME
         return returned_proof
 
 
@@ -556,7 +554,7 @@ def model_or_inconsistent(formulae):
     variable_set = set
     for formula in formulae:
         variable_set = variable_set.union((formula.variables()))
-    # print(variable_set)
+    # check if there exists a model on which all formulas in formulae are True
     all_models_list = list(all_models(sorted(list(variable_set))))
     for model in all_models_list:
         eval_result_list = []
@@ -573,18 +571,17 @@ def model_or_inconsistent(formulae):
 
     # proof_1_assumptions = [InferenceRule([],formula) for formula in formulae]
     proof_1_statement = InferenceRule(formulae, proof_1_formula)
-    print(proof_1_statement)
     #### INSERT HERE TASK 6 SOLUTION FOR PROOF 1 ############
     proof_1 = proof_or_counterexample_for_inference(proof_1_statement)
-    print (proof_1)
     assert proof_1.is_valid()
 
     #### FINISHED TASK 6 IMPLEMENTATION ############
 
     # proof 2 is a tautology. then proof it!
-    proof_2 = proof_or_counterexample(proof_2_formula)
-    print(proof_2)
-    assert proof_2.is_valid()
+    proof_2_statement = InferenceRule(formulae, proof_2_formula)
+    proof_2 = proof_or_counterexample_for_inference(proof_2_statement)
+
+    return [proof_1, proof_2]
 
 
 def create_new_formula(formulae):
