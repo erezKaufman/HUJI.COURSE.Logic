@@ -33,8 +33,9 @@ T = InferenceRule([], Formula.from_infix('T'))
 NF = InferenceRule([], Formula.from_infix('~F'))
 
 AXIOMATIC_SYSTEM = [MP, I1, I2, I3, NI, NN, A, NA1, NA2, O1, O2, NO, T, NF, R]
-AXIOMATIC_DICT = {'MP': 0 , 'I1': 1 , 'I2':2, 'I3':3 , 'NI':4 , 'NN':5, 'A':6, 'NA1':7, 'NA2': 8 , 'O1':9 , 'O2': 10,
-                  'NO':11, 'T': 12 , 'NF': 13, 'R': 14}
+AXIOMATIC_DICT = {'MP': 0, 'I1': 1, 'I2': 2, 'I3': 3, 'NI': 4, 'NN': 5, 'A': 6, 'NA1': 7, 'NA2': 8, 'O1': 9, 'O2': 10,
+                  'NO': 11, 'T': 12, 'NF': 13, 'R': 14}
+
 
 def find_index_by_conclusion(conclusion, lines):
     for index, line in enumerate(lines):
@@ -42,7 +43,8 @@ def find_index_by_conclusion(conclusion, lines):
             return index
     return None
 
-def find_index(p, p_index, q, q_index , lines):
+
+def find_index(p, p_index, q, q_index, lines):
     for line_index, line in enumerate(lines):
         if line.conclusion == p:
             p_index = line_index
@@ -52,13 +54,14 @@ def find_index(p, p_index, q, q_index , lines):
             q_index = line_index
     return p_index, q_index
 
-def prove_in_model_implies_not_helper(formula, model:dict, lines:list):
+
+def prove_in_model_implies_not_helper(formula, model: dict, lines: list):
     # just var
     if is_variable(formula.root):
         return formula
 
     # (psi -> psi)
-    elif is_binary(formula.root): # root is ->
+    elif is_binary(formula.root):  # root is ->
         return prove_for_is_implication_for_implies_not(formula, model, lines)
 
     # elif is_unary(formula.root) and not is_variable(formula.first.root): #
@@ -100,8 +103,7 @@ def prove_for_is_unary_implies_not(formula, model, lines):
         return formula
 
 
-
-def prove_for_is_implication_for_implies_not(formula,model, lines):
+def prove_for_is_implication_for_implies_not(formula, model, lines):
     if evaluate(formula.first, model) is False:  # psi_1 is not true in M
         not_p = prove_in_model_implies_not_helper(Formula('~', formula.first), model, lines)
         l3 = Formula('->', not_p, formula)
@@ -131,7 +133,6 @@ def prove_for_is_implication_for_implies_not(formula,model, lines):
 
 
 def prove_in_model_implies_not(formula, model):
-
     """ Return a proof of formula via AXIOMATIC_SYSTEM_IMPLIES_NOT from the
         assumptions that all variables are valued as in model, with the
         assumptions being ordered alphabetically by the names of the variables.
@@ -146,8 +147,8 @@ def prove_in_model_implies_not(formula, model):
             assumptions.append(Formula('~', Formula(var)))
 
     statement = InferenceRule(assumptions, formula)
-    lines = [DeductiveProof.Line(ass, None, []) for ass in assumptions]
-    prove_in_model_implies_not_helper(formula,model ,lines)
+    lines = [DeductiveProof.Line(ass, None, None) for ass in assumptions]
+    prove_in_model_implies_not_helper(formula, model, lines)
     return DeductiveProof(statement, AXIOMATIC_SYSTEM_IMPLIES_NOT, lines)
 
     # Task 6.1
@@ -249,12 +250,12 @@ def proof_or_counterexample_implies_not(formula):
         else:
             proof_list.append(prove_in_model_implies_not(formula, model))
     # run on each level of the tree
-    tree_level_size = int(math.log(len(proof_list),2))
+    tree_level_size = int(math.log(len(proof_list), 2))
     temp_proof_list = []
     for tree_level in range(0, tree_level_size):
         # run on each
         for proof_index in range(0, len(proof_list), 2):
-            temp_proof_list.append(reduce_assumption(proof_list[proof_index+1], proof_list[proof_index]))
+            temp_proof_list.append(reduce_assumption(proof_list[proof_index + 1], proof_list[proof_index]))
 
         proof_list = temp_proof_list
         temp_proof_list = []
@@ -264,15 +265,15 @@ def proof_or_counterexample_implies_not(formula):
 
 
 def prove_in_model(formula, model):
-    def prove_in_model_helper(formula :formula , model:dict):
+    def prove_in_model_helper(formula: formula, model: dict):
         if is_variable(formula.root):
             return formula
 
         elif only_implies_not(formula):
-                return prove_in_model_implies_not_helper(formula, model, lines)
+            return prove_in_model_implies_not_helper(formula, model, lines)
 
         elif is_unary(formula.root):
-                return prove_for_is_unary(formula, model, lines)
+            return prove_for_is_unary(formula, model, lines)
 
         elif formula.root == '&':
             # (p->(q->(p&q)))
@@ -283,14 +284,14 @@ def prove_in_model(formula, model):
             if evaluate(formula.first, model):  # p is true
                 return prove_or_p_is_true(formula, model)
 
-            elif evaluate(formula.second, model): # q is true
+            elif evaluate(formula.second, model):  # q is true
                 return prove_or_q_is_true(formula, model)
 
         elif formula.root == '->':
             return prove_for_is_implication(formula, model, lines)
 
         elif is_constant(formula.root) and formula.root == 'T':
-            lines.append(DeductiveProof.Line(formula, AXIOMATIC_DICT['T'], [])) # add T, derived for free from T rule
+            lines.append(DeductiveProof.Line(formula, AXIOMATIC_DICT['T'], []))  # add T, derived for free from T rule
             return formula
 
     def prove_for_is_unary(formula, model, lines):
@@ -318,8 +319,9 @@ def prove_in_model(formula, model):
                 # if both false , just pick ~p
                 return prove_and_false_true_and_false_false(formula.first, model)
 
-        # check if q is false and use (~q->~(p&q))
-            elif evaluate(formula.first.first, model):  # p is true, q is false (because overall formula and model is false)
+                # check if q is false and use (~q->~(p&q))
+            elif evaluate(formula.first.first,
+                          model):  # p is true, q is false (because overall formula and model is false)
                 return prove_and_true_false(formula.first, model)
 
         elif formula.first.root == '|':
@@ -461,8 +463,8 @@ def prove_in_model(formula, model):
         prefix = formula.prefix()
         prefix = prefix.replace('->', 'א')
         for char in prefix:
-            if char != 'א' and not is_unary(char): # char is not -> or ~:
-                if not is_variable(char): # char is one of |&TF
+            if char != 'א' and not is_unary(char):  # char is not -> or ~:
+                if not is_variable(char):  # char is one of |&TF
                     return False
         return True
 
@@ -479,11 +481,12 @@ def prove_in_model(formula, model):
             assumptions.append(Formula('~', Formula(var)))
 
     statement = InferenceRule(assumptions, formula)
-    lines = [DeductiveProof.Line(ass, None, []) for ass in assumptions]
+    lines = [DeductiveProof.Line(ass, None, None) for ass in assumptions]
     prove_in_model_helper(formula, model)
     return DeductiveProof(statement, AXIOMATIC_SYSTEM, lines)
 
     # Task 6.4
+
 
 def proof_or_counterexample(formula):
     """ Return either a proof of formula via AXIOMATIC_SYSTEM, or a model where
@@ -508,46 +511,94 @@ def proof_or_counterexample(formula):
         proof_list = temp_proof_list
         temp_proof_list = []
     assert len(proof_list) == 1
+    assert proof_list[0].is_valid()
     return proof_list[0]
     # Task 6.5
+
 
 def proof_or_counterexample_for_inference(rule):
     """ Return either a proof of rule via AXIOMATIC_SYSTEM, or a model where
         rule does not hold """
 
-    if rule.assumptions == []: return proof_or_counterexample(rule.conclusion)
+    if rule.assumptions == []:
+        return proof_or_counterexample(rule.conclusion)
     else:
         lines = []
         for ass in rule.assumptions:
             lines.append(DeductiveProof.Line(ass, None, []))
         formula = rule.conclusion
-        for index in range((len(rule.assumptions)-1), -1, -1):
-            formula = Formula('->' , rule.assumptions[index], formula)
+        for index in range((len(rule.assumptions) - 1), -1, -1):
+            formula = Formula('->', rule.assumptions[index], formula)
         cur_proof_or_counter = proof_or_counterexample(formula)
         if type(cur_proof_or_counter) == dict:
-            return cur_proof_or_counter # this is a modle with a counter example for rule
-        else: # we have a proof
+            return cur_proof_or_counter  # this is a modle with a counter example for rule
+        else:  # we have a proof
+            print("before changes", cur_proof_or_counter)
             cur_line_counter = len(lines)
             for line in cur_proof_or_counter.lines:
                 justifications = []
                 for just in line.justification:
                     justifications.append(just + cur_line_counter)
-                lines.append(DeductiveProof.Line(line.conclusion, line.rule , justifications))
+                lines.append(DeductiveProof.Line(line.conclusion, line.rule, justifications))
             for run in range(len(rule.assumptions)):
                 formula = formula.second
-                lines.append(DeductiveProof.Line(formula, 0, [run ,len(lines)-1]))
-        return DeductiveProof(rule, AXIOMATIC_SYSTEM ,lines)
+                lines.append(DeductiveProof.Line(formula, 0, [run, len(lines) - 1]))
+        returned_proof = DeductiveProof(rule, AXIOMATIC_SYSTEM, lines)
+        print("after changes", returned_proof)
+        assert returned_proof.is_valid() # TODO DELETE ME
+        return returned_proof
 
 
 def model_or_inconsistent(formulae):
     """ Return either a model where all of formulae hold, or a list of two
         proofs, both from formulae via AXIOMATIC_SYSTEM, the first of some
         formula and the second of the negation of the same formula """
-    # Task 6.7
+    variable_set = set
+    for formula in formulae:
+        variable_set = variable_set.union((formula.variables()))
+    # print(variable_set)
+    all_models_list = list(all_models(sorted(list(variable_set))))
+    for model in all_models_list:
+        eval_result_list = []
+        for formula in formulae:
+            if evaluate(formula, model):
+                eval_result_list.append(True)
+            else:
+                eval_result_list.append(False)
+        if False not in eval_result_list:
+            return model
+
+    proof_1_formula = create_new_formula(formulae)
+    proof_2_formula = Formula(NEGATE_OPERATOR, proof_1_formula)
+
+    # proof_1_assumptions = [InferenceRule([],formula) for formula in formulae]
+    proof_1_statement = InferenceRule(formulae, proof_1_formula)
+    print(proof_1_statement)
+    #### INSERT HERE TASK 6 SOLUTION FOR PROOF 1 ############
+    proof_1 = proof_or_counterexample_for_inference(proof_1_statement)
+    print (proof_1)
+    assert proof_1.is_valid()
+
+    #### FINISHED TASK 6 IMPLEMENTATION ############
+
+    # proof 2 is a tautology. then proof it!
+    proof_2 = proof_or_counterexample(proof_2_formula)
+    print(proof_2)
+    assert proof_2.is_valid()
+
+
+def create_new_formula(formulae):
+    """
+    help method for model_or_inconsistent, to create an 'and' formula with all the original formulas together
+    :param formulae:
+    :return:
+    """
+    if len(formulae) == 1:
+        return formulae[0]
+    return Formula(AND_OPERATOR, formulae[0], create_new_formula(formulae[1:]))
+
 
 if __name__ == '__main__':
-    a = Formula('~',Formula('|', Formula('p'),Formula('F')))
-    model = {'p':False}
+    a = Formula('~', Formula('|', Formula('p'), Formula('F')))
+    model = {'p': False}
     print(prove_in_model(a, model))
-    # taslk
-
