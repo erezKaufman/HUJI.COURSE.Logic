@@ -10,16 +10,10 @@ if __name__ == '__main__':
     listV = list(gV)
     # test = sorted(listV, key=lambda k: k['p'])
     print(listV)
-    # for model in listV:
-    #     a = [1,2,3,4]
-    #     b = [2,3,4,5]
-        # print(sorted(model.items(), key = lambda k: k[0]))
-        # for key, value in sorted(model.items(), key=lambda k,v: (v, k)):
-        #     print( "%s: %s" % (key, value))
-        #     model1 = {key: value for key, value in sorted(model.iteritems())}
-        # print (sorted(model, key=model.__getitem__))
-        # test = {key :value for (key, value) in sorted(model.__getitem__)}
-        # print(test)
+    assumption = [Formula.from_infix('(p&q)')]
+    rule = InferenceRule(assumption, Formula.from_infix('(p|q)'))
+    result = {'q': False, 'p': False}
+    assert not evaluate_inference(rule, result)
     # newlist = sorted(listV,key=listV)
     # print(sorted(listV),)
 

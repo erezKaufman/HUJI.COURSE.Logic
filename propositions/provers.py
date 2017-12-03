@@ -125,17 +125,20 @@ def check_if_MP(assumption, line, new_proof_lines, proof):
     # create l2 where I prove MP with previous lines
     mp_p_justification = -1
     # search for the  'p' part of the proof - that will be line_1_first.
-    for temp_line_index, temp_line in enumerate(new_proof_lines):
-        if temp_line.conclusion == line_1_first:
+    for temp_line_index in range(len(new_proof_lines)-1,0,-1):
+        if new_proof_lines[temp_line_index].conclusion == line_1_first:
             mp_p_justification = temp_line_index
+            break
+
     # add l2 as an MP proof
     new_proof_lines.append(
         DeductiveProof.Line(line_1_second, 0, [mp_p_justification, len(new_proof_lines) - 1]))
     mp_p_justification = -2
     # search for the 'p' part of the proof - that will be line_1_second.first
-    for temp_line_index, temp_line in enumerate(new_proof_lines):
-        if temp_line.conclusion == line_1_second.first:
+    for  temp_line_index in range(len(new_proof_lines)-1,0,-1):
+        if new_proof_lines[temp_line_index].conclusion == line_1_second.first:
             mp_p_justification = temp_line_index
+            break
     new_proof_lines.append(DeductiveProof.Line(line_1_second.second, 0, [mp_p_justification,
                                                                          len(new_proof_lines) - 1]))
 
