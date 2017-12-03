@@ -6,14 +6,18 @@ import itertools
 if __name__ == '__main__':
     # assert prove_implies_self().is_valid()
     f = Formula.from_infix('((~p->~q)->((~p->q)->p))')
-    gV = all_models(sorted(list(f.variables())))
-    listV = list(gV)
-    # test = sorted(listV, key=lambda k: k['p'])
-    print(listV)
-    assumption = [Formula.from_infix('(p&q)')]
-    rule = InferenceRule(assumption, Formula.from_infix('(p|q)'))
-    result = {'q': False, 'p': False}
-    assert not evaluate_inference(rule, result)
+    if IMPLICATION_OPERATOR in f.prefix():
+        print("good!")
+    else:
+        print("BAD")
+    # gV = all_models(sorted(list(f.variables())))
+    # listV = list(gV)
+    # # test = sorted(listV, key=lambda k: k['p'])
+    # print(listV)
+    # assumption = [Formula.from_infix('(p&q)')]
+    # rule = InferenceRule(assumption, Formula.from_infix('(p|q)'))
+    # result = {'q': False, 'p': False}
+    # assert not evaluate_inference(rule, result)
     # newlist = sorted(listV,key=listV)
     # print(sorted(listV),)
 

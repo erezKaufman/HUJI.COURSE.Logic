@@ -56,7 +56,16 @@ class Term:
 
     def __repr__(self):
         """ Return the usual (functional) representation of self """
-        # Task 7.1
+        if is_constant(self.root) or is_variable(self.root):
+            return (self.root)
+        else:
+            return_string = self.root +"("
+            for arg in self.arguments:
+                return_string+= str(arg)
+                if arg != self.arguments[-1]:
+                    return_string += ","
+            return_string += ")"
+            return return_string
 
     def __eq__(self, other):
         return str(self) == str(other)

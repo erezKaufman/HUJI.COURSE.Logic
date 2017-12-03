@@ -84,8 +84,8 @@ def prove_for_is_unary_implies_not(formula, model, lines):
     else:  # we have ~ and psi, deal with NI
         p = prove_in_model_implies_not_helper(formula.first.first, model, lines)  # ps1_1
         not_q = prove_in_model_implies_not_helper(Formula('~', formula.first.second), model, lines)  # not_psi_2
-        part_2 = Formula('->', not_q, formula)  # (~psi2 -> ~(psi_1 -> psi_2))
-        ni = Formula('->', p, part_2)  # (psi_1 -> (~psi2 -> ~(psi_1 -> psi_2)))
+        part_2 = Formula(IMPLICATION_OPERATOR, not_q, formula)  # (~psi2 -> ~(psi_1 -> psi_2))
+        ni = Formula(IMPLICATION_OPERATOR, p, part_2)  # (psi_1 -> (~psi2 -> ~(psi_1 -> psi_2)))
         lines.append(DeductiveProof.Line(ni, 4, []))
         # I run on all the lines and search for 'p' to proof the line with MP
         # I know that p and ~q must appear as an assumption in the lines of the proof
@@ -107,9 +107,9 @@ def prove_for_is_unary_implies_not(formula, model, lines):
 def prove_for_is_implication_for_implies_not(formula, model, lines):
     if evaluate(formula.first, model) is False:  # psi_1 is not true in M
         not_p = prove_in_model_implies_not_helper(Formula('~', formula.first), model, lines)
-        l3 = Formula('->', not_p, formula)
+        l3 = Formula(IMPLICATION_OPERATOR, not_p, formula)
         lines.append(DeductiveProof.Line(l3, 3, []))  # from I3
-        # l2 = Formula('->', p, q)  # build psi_1->psi_2
+        # l2 = Formula(IMPLICATION_OPERATOR, p, q)  # build psi_1->psi_2
         not_p_index = find_index_by_conclusion(not_p, lines)
         if not_p_index is None:
             print('we got a not found conclusion:', not_p_index, 'for conclusion:', not_p)
@@ -120,9 +120,9 @@ def prove_for_is_implication_for_implies_not(formula, model, lines):
     elif evaluate(formula.second, model) is True:  # psi_2 is True in M
         p = prove_in_model_implies_not_helper(formula.first, model, lines)
         q = prove_in_model_implies_not_helper(formula.second, model, lines)
-        l1 = Formula('->', q, Formula('->', p, q))  # build I1
+        l1 = Formula(IMPLICATION_OPERATOR, q, Formula(IMPLICATION_OPERATOR, p, q))  # build I1
         lines.append(DeductiveProof.Line(l1, 1, []))  # from I1
-        l2 = Formula('->', p, q)  # build psi_1->psi_2
+        l2 = Formula(IMPLICATION_OPERATOR, p, q)  # build psi_1->psi_2
         find_q_index = find_index_by_conclusion(q, lines)
         lines.append(DeductiveProof.Line(l2, 0, [find_q_index, len(lines) - 1]))  # from I2
         return l2
@@ -288,7 +288,7 @@ def prove_in_model(formula, model):
             elif evaluate(formula.second, model):  # q is true
                 return prove_or_q_is_true(formula, model)
 
-        elif formula.root == '->':
+        elif formula.root == IMPLICATION_OPERATOR:
             return prove_for_is_implication(formula, model, lines)
 
         elif is_constant(formula.root) and formula.root == 'T':
@@ -331,8 +331,8 @@ def prove_in_model(formula, model):
         else:  # we have ~ and psi, deal with NI
             p = prove_in_model_helper(formula.first.first, model)  # ps1_1
             not_q = prove_in_model_helper(Formula('~', formula.first.second), model)  # not_psi_2
-            part_2 = Formula('->', not_q, formula)  # (~psi2 -> ~(psi_1 -> psi_2))
-            ni = Formula('->', p, part_2)  # (psi_1 -> (~psi2 -> ~(psi_1 -> psi_2)))
+            part_2 = Formula(IMPLICATION_OPERATOR, not_q, formula)  # (~psi2 -> ~(psi_1 -> psi_2))
+            ni = Formula(IMPLICATION_OPERATOR, p, part_2)  # (psi_1 -> (~psi2 -> ~(psi_1 -> psi_2)))
             lines.append(DeductiveProof.Line(ni, 4, []))
             # I run on all the lines and search for 'p' to proof the line with MP
             # I know that p and ~q must appear as an assumption in the lines of the proof
@@ -347,9 +347,9 @@ def prove_in_model(formula, model):
     def prove_for_is_implication(formula, model, lines):
         if evaluate(formula.first, model) is False:  # psi_1 is not true in M
             not_p = prove_in_model_helper(Formula('~', formula.first), model)
-            l3 = Formula('->', not_p, formula)
+            l3 = Formula(IMPLICATION_OPERATOR, not_p, formula)
             lines.append(DeductiveProof.Line(l3, 3, []))  # from I3
-            # l2 = Formula('->', p, q)  # build psi_1->psi_2
+            # l2 = Formula(IMPLICATION_OPERATOR, p, q)  # build psi_1->psi_2
             not_p_index = find_index_by_conclusion(not_p, lines)
             if not_p_index is None:
                 print('we got a not found conclusion:', not_p_index, 'for conclusion:', not_p)
@@ -361,9 +361,9 @@ def prove_in_model(formula, model):
         elif evaluate(formula.second, model) is True:  # psi_2 is True in M
             p = prove_in_model_helper(formula.first, model)
             q = prove_in_model_helper(formula.second, model)
-            l1 = Formula('->', q, Formula('->', p, q))  # build I1
+            l1 = Formula(IMPLICATION_OPERATOR, q, Formula(IMPLICATION_OPERATOR, p, q))  # build I1
             lines.append(DeductiveProof.Line(l1, 1, []))  # from I1
-            l2 = Formula('->', p, q)  # build psi_1->psi_2
+            l2 = Formula(IMPLICATION_OPERATOR, p, q)  # build psi_1->psi_2
             find_q_index = find_index_by_conclusion(q, lines)
             lines.append(DeductiveProof.Line(l2, 0, [find_q_index, len(lines) - 1]))  # from I2
             return l2
@@ -379,8 +379,8 @@ def prove_in_model(formula, model):
         not_p_index = find_index_by_conclusion(not_p, lines)  # ~p
         not_q_index = find_index_by_conclusion(not_q, lines)  # ~q
         core = Formula('~', formula)  # ~(p|q)
-        part_2 = Formula('->', not_q, core)  # (~q->~(p|q)
-        no = Formula('->', not_p, part_2)  # (~p->(~q->~(p|q)))
+        part_2 = Formula(IMPLICATION_OPERATOR, not_q, core)  # (~q->~(p|q)
+        no = Formula(IMPLICATION_OPERATOR, not_p, part_2)  # (~p->(~q->~(p|q)))
         lines.append(DeductiveProof.Line(no, AXIOMATIC_DICT['NO'], []))  # here we entered (~p->(~q->~(p|q)))
         lines.append(DeductiveProof.Line(part_2, 0, [not_p_index, len(lines) - 1]))  # entered (~q->~(p|q))
         lines.append(DeductiveProof.Line(core, 0, [not_q_index, len(lines) - 1]))  # entered ~(p|q)
@@ -394,7 +394,7 @@ def prove_in_model(formula, model):
         """
         q = prove_in_model_helper(formula.second, model)  # we assume q is within our lines
         q_index = find_index_by_conclusion(q, lines)
-        lines.append(DeductiveProof.Line(Formula('->', q, formula), AXIOMATIC_DICT['O2'], []))  # p->(p|q)
+        lines.append(DeductiveProof.Line(Formula(IMPLICATION_OPERATOR, q, formula), AXIOMATIC_DICT['O2'], []))  # p->(p|q)
         lines.append(DeductiveProof.Line(formula, 0, [q_index, len(lines) - 1]))  # we just proved formula
         return formula
 
@@ -406,7 +406,7 @@ def prove_in_model(formula, model):
         """
         p = prove_in_model_helper(formula.first, model)  # we assume p is within our lines
         p_index = find_index_by_conclusion(p, lines)
-        lines.append(DeductiveProof.Line(Formula('->', p, formula), AXIOMATIC_DICT['O1'], []))  # p->(p|q)
+        lines.append(DeductiveProof.Line(Formula(IMPLICATION_OPERATOR, p, formula), AXIOMATIC_DICT['O1'], []))  # p->(p|q)
         lines.append(DeductiveProof.Line(formula, 0, [p_index, len(lines) - 1]))  # we just proved formula
         return formula
 
@@ -419,7 +419,7 @@ def prove_in_model(formula, model):
         """
         not_q = prove_in_model_helper(Formula('~', formula.second), model)  # ~q
         not_q_index = find_index_by_conclusion(not_q, lines)
-        no = Formula('->', not_q, Formula('~', formula))  # (~q->~(p&q))
+        no = Formula(IMPLICATION_OPERATOR, not_q, Formula('~', formula))  # (~q->~(p&q))
         lines.append(DeductiveProof.Line(no, AXIOMATIC_DICT['NA2'], []))  # here we entered (~p->(~(p&q)))
         lines.append(DeductiveProof.Line(Formula('~', formula), 0, [not_q_index, len(lines) - 1]))  # entered ~(p&q)
         return Formula('~', formula)
@@ -433,7 +433,7 @@ def prove_in_model(formula, model):
         """
         not_p = prove_in_model_helper(Formula('~', formula.first), model)  # ~p
         not_p_index = find_index_by_conclusion(not_p, lines)
-        no = Formula('->', not_p, Formula('~', formula))  # (~p->~(p&q))
+        no = Formula(IMPLICATION_OPERATOR, not_p, Formula('~', formula))  # (~p->~(p&q))
         lines.append(DeductiveProof.Line(no, AXIOMATIC_DICT['NA1'], []))  # here we entered (~p->(~(p|q)))
         lines.append(DeductiveProof.Line(Formula('~', formula), 0, [not_p_index, len(lines) - 1]))  # entered (p|q)
         return Formula('~', formula)
@@ -449,8 +449,8 @@ def prove_in_model(formula, model):
         q = prove_in_model_helper(formula.second, model)  # q
         p_index = find_index_by_conclusion(p, lines)
         q_index = find_index_by_conclusion(q, lines)
-        part_2 = Formula('->', q, formula)  # (q->(p&q)
-        no = Formula('->', p, part_2)  # (p->(q->(p&q)))
+        part_2 = Formula(IMPLICATION_OPERATOR, q, formula)  # (q->(p&q)
+        no = Formula(IMPLICATION_OPERATOR, p, part_2)  # (p->(q->(p&q)))
         lines.append(DeductiveProof.Line(no, AXIOMATIC_DICT['A'], []))  # here we entered (p->(q->(p&q)))
         lines.append(DeductiveProof.Line(part_2, 0, [p_index, len(lines) - 1]))  # entered (q->(p&q))
         lines.append(DeductiveProof.Line(formula, 0, [q_index, len(lines) - 1]))  # entered (p&q)
@@ -462,7 +462,7 @@ def prove_in_model(formula, model):
         :return: if formula only contains the signs implies , not.
         """
         prefix = formula.prefix()
-        prefix = prefix.replace('->', 'א')
+        prefix = prefix.replace(IMPLICATION_OPERATOR, 'א')
         for char in prefix:
             if char != 'א' and not is_unary(char):  # char is not -> or ~:
                 if not is_variable(char):  # char is one of |&TF
@@ -529,7 +529,7 @@ def proof_or_counterexample_for_inference(rule):
             lines.append(DeductiveProof.Line(ass, None, []))
         formula = rule.conclusion
         for index in range((len(rule.assumptions) - 1), -1, -1):
-            formula = Formula('->', rule.assumptions[index], formula)
+            formula = Formula(IMPLICATION_OPERATOR, rule.assumptions[index], formula)
         cur_proof_or_counter = proof_or_counterexample(formula)
         if type(cur_proof_or_counter) == dict:
             return cur_proof_or_counter  # this is a modle with a counter example for rule
@@ -577,7 +577,7 @@ def model_or_inconsistent(formulae):
 
     #### FINISHED TASK 6 IMPLEMENTATION ############
 
-    # proof 2 is a tautology. then proof it!
+    # proof 2 is a tautology. then prove it!
     proof_2_statement = InferenceRule(formulae, proof_2_formula)
     proof_2 = proof_or_counterexample_for_inference(proof_2_statement)
 
@@ -595,7 +595,3 @@ def create_new_formula(formulae):
     return Formula(AND_OPERATOR, formulae[0], create_new_formula(formulae[1:]))
 
 
-if __name__ == '__main__':
-    a = Formula('~', Formula('|', Formula('p'), Formula('F')))
-    model = {'p': False}
-    print(prove_in_model(a, model))
