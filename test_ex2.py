@@ -3,7 +3,7 @@
     by Gonczarowski and Nisan.
     File name: code/test_ex2.py """
 
-from ex1.code.propositions.semantics_test import *
+from propositions.semantics_test import *
 
 def test_task1(debug=False):
     test_evaluate(debug)
