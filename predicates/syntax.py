@@ -6,46 +6,37 @@
 from propositions.syntax import Formula as PropositionalFormula
 from predicates.util import *
 
-
 def is_unary(s):
     """ Is s a unary operator? """
     return s == '~'
-
 
 def is_binary(s):
     """ Is s a binary boolean operator? """
     return s == '&' or s == '|' or s == '->'
 
-
 def is_equality(s):
     """ Is s the equality relation? """
     return s == "="
-
 
 def is_quantifier(s):
     """ Is s a quantifier? """
     return s == "A" or s == "E"
 
-
 def is_relation(s):
     """ Is s a relation name? """
     return s[0] >= 'F' and s[0] <= 'T' and s.isalnum()
 
-
 def is_constant(s):
     """ Is s a constant name? """
-    return ((s[0] >= '0' and s[0] <= '9') or (s[0] >= 'a' and s[0] <= 'd')) and s.isalnum()
-
+    return  ((s[0] >= '0' and s[0] <= '9') or (s[0] >= 'a' and s[0] <= 'd')) and s.isalnum()
 
 def is_function(s):
     """ Is s a function name? """
     return s[0] >= 'f' and s[0] <= 't' and s.isalnum()
 
-
 def is_variable(s):
     """ Is s a variable name? """
     return s[0] >= 'u' and s[0] <= 'z' and s.isalnum()
-
 
 def replace_string(s):
     """ this func is in charge of setting the rep string for Formula into opt's with length of 1,
@@ -57,7 +48,6 @@ def replace_string(s):
     ret = ret.replace('-|', 'ד')
     ret = ret.replace('?:', 'ה')
     return ret
-
 
 def switch_root_to_str(s):
     """ this func is called when creating a formula with a locally changed root """
@@ -85,7 +75,6 @@ def switch_root_to_ternary_prefix(s):  # special case for prefix
 
 def is_left_parenthese(s):
     return s == '('
-
 
 def is_right_parenthese(s):
     return s == ')'
@@ -164,7 +153,9 @@ class Term:
                 term_obj, Term.str = Term.parse_prefix(Term.str)
                 arguments.append(term_obj)
             Term.eat()  # eat the right parentheses
-
+        # elif is_comma(s[0]):
+        #     while is_comma(s[0]):
+        #         Term.eat()
         returned_term = Term(term_name, arguments)
         return returned_term, Term.str
 
@@ -208,7 +199,7 @@ class Term:
         # return self.formula_set
 
     def variables(self):
-        def variables_helper(vars: set):
+        def variables_helper(vars:set):
             if is_variable(self.root):
                 vars.add(self.root)
             elif is_constant(self.root):
@@ -260,15 +251,15 @@ class Formula:
         elif is_equality(root):  # Populate self.first and self.second
             assert type(first) is Term and type(second) is Term
             self.root, self.first, self.second = root, first, second
-        elif is_quantifier(root):  # Populate self.variable and self.predicate
+        elif is_quantifier(root): # Populate self.variable and self.predicate
             assert is_variable(first) and type(second) is Formula
             self.root, self.variable, self.predicate = root, first, second
-        elif is_unary(root):  # Populate self.first
+        elif is_unary(root): # Populate self.first
             assert type(first) is Formula and second is None
             self.root, self.first = root, first
-        else:  # Populate self.first and self.second
+        else: # Populate self.first and self.second
             assert is_binary(root) and type(first) is Formula and type(second) is Formula
-            self.root, self.first, self.second = root, first, second
+            self.root, self.first, self.second = root, first, second           
 
     def __repr__(self):
         """ Return the usual (infix for operators and equality, functional for
@@ -294,7 +285,7 @@ class Formula:
 
     def __eq__(self, other):
         return str(self) == str(other)
-
+        
     def __ne__(self, other):
         return not self == other
 
@@ -366,7 +357,7 @@ class Formula:
         return new_Formula
         # Task 7.4.2
 
-    def free_variables_helper(self, free: set, non_free=set()):
+    def free_variables_helper(self ,free:set, non_free=set()):
         if is_variable(self.root):
             if self.root not in non_free:
                 free.add(self.root)
@@ -378,18 +369,12 @@ class Formula:
             self.first.free_variables_helper(free, non_free)
 
         elif is_equality(self.root):
-            if self.first not in non_free:
-                free.add(self.first)
-            if self.second not in non_free:
-                free.add(self.second)
+            self.get_Term_frees(self.first, free, non_free)
+            self.get_Term_frees(self.second, free, non_free)
 
         elif is_relation(self.root):
             for arg in self.arguments:
-                args_vars = arg.variables()
-                if args_vars != set():
-                    for var in args_vars:
-                        if var not in non_free and is_variable(arg.root):
-                            free.add(var)
+                self.get_Term_frees(arg, free, non_free)
 
         elif is_quantifier(self.root):
             non_free.add(self.variable)
@@ -399,6 +384,13 @@ class Formula:
         elif is_binary(self.root):
             self.first.free_variables_helper(free, non_free)
             self.second.free_variables_helper(free, non_free)
+
+    def get_Term_frees(self, arg, free, non_free):
+        args_vars = arg.variables()
+        if args_vars != set():
+            for var in args_vars:
+                if var not in non_free and is_variable(var):
+                    free.add(Term(var))
 
     def free_variables(self):
         """ Return the set of variables that are free in this formula """
@@ -426,7 +418,7 @@ class Formula:
         for variable in substitution_map:
             assert is_variable(variable) and \
                    type(substitution_map[variable]) is Term
-            # Task 9.2
+        # Task 9.2
 
     def substitute_constants(self, substitution_map):
         """ Return a first-order formula obtained from this formula where all
@@ -435,7 +427,7 @@ class Formula:
         for constant in substitution_map:
             assert is_constant(constant) and \
                    type(substitution_map[constant]) is Term
-            # Ex12
+        # Ex12
 
     def propositional_skeleton(self):
         """ Return a PropositionalFormula that is the skeleton of this one.
@@ -446,12 +438,18 @@ class Formula:
 
 
 if __name__ == '__main__':
-    args = Term('plus', [Term('s', [Term('x')]), Term('3')])
-    print(args)
-    eq = Formula('=', Term('x'), Term('x'))
-    print(eq)
-    q = Formula('A', 'x', eq)
-    print(q)
-    # e
+    # args = Term('plus' , [Term('s', [Term('x')]), Term('y')])
+    # hey = Term.parse('s(plus(times(zz,x),y,times(x,s(s(0)))))')
+    # print(hey)
+    # a = hey.variables()
+    # print(a)
+    # eq = Formula('=', Term('x'), Term('x'))
+    # print(eq)
+    # q = Formula('A', 'x', eq)
+    # print(q)
+    #e
     # f = Formula('F', [args])
     # print(f) 333
+    f = Formula('A', 'x', Formula('R',[Term('y'), Term('z')]))
+    ret = Formula.parse_prefix('(Ex[Q(x,y)]&x=0)')
+    print(ret)
