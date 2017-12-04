@@ -171,8 +171,42 @@ class Term:
             new_term, Term.str = Term.parse_prefix(Term.str)
         return new_term
 
+
+
+
+        # def variables_helper():
+        #     cur = ''
+        #     for index in range(len(Formula.str)):  # iterate on all char's of str
+        #         if is_variable(Formula.str[index]):
+        #             cur += Formula.str[index]  # we reached a var
+        #             for dig in range(index + 1, len(Formula.str)):
+        #                 if Formula.str[dig].isdigit():  # add all possible digits
+        #                     cur += Formula.str[dig]
+        #                     continue
+        #                 index = dig - 1  # updates the index to last digits point
+        #                 break
+        #             self.formula_set.add(cur)  # adding the found var
+        #             cur = ''  # resetting cur
+        # """ Return the set of atomic propositions (variables) used in self """
+        # self.formula_set = set() #holds the var set for the Formula
+        # Term.str = self.prefix() # update Formula's str to be self's str rep
+        # self.variables_helper() # updates formula's set
+        # return self.formula_set
+
     def variables(self):
+        def variables_helper(vars:set):
+            if is_variable(self.root):
+                vars.add(self.root)
+            elif is_constant(self.root):
+                return
+            elif is_function(self.root):
+                for arg in self.arguments:
+                    vars.update(arg.variables())
+            return
         """ Return the set of variables in this term """
+        vars = set()  # holds the var set for the Formula
+        variables_helper(vars) # updates formula's set
+        return vars
         # Task 7.5
 
     def functions(self):
@@ -306,12 +340,14 @@ class Formula:
         # Task 9.5
 
 if __name__ == '__main__':
-    args = Term('plus' , [Term('s', [Term('x')]), Term('3')])
+    args = Term('plus' , [Term('s', [Term('x')]), Term('y')])
     print(args)
-    eq = Formula('=', Term('x'), Term('x'))
-    print(eq)
-    q = Formula('A', 'x', eq)
-    print(q)
+    a = args.variables()
+    print(a)
+    # eq = Formula('=', Term('x'), Term('x'))
+    # print(eq)
+    # q = Formula('A', 'x', eq)
+    # print(q)
     #e
     # f = Formula('F', [args])
     # print(f)
