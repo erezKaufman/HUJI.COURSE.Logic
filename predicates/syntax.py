@@ -179,24 +179,6 @@ class Term:
 
 
 
-        # def variables_helper():
-        #     cur = ''
-        #     for index in range(len(Formula.str)):  # iterate on all char's of str
-        #         if is_variable(Formula.str[index]):
-        #             cur += Formula.str[index]  # we reached a var
-        #             for dig in range(index + 1, len(Formula.str)):
-        #                 if Formula.str[dig].isdigit():  # add all possible digits
-        #                     cur += Formula.str[dig]
-        #                     continue
-        #                 index = dig - 1  # updates the index to last digits point
-        #                 break
-        #             self.formula_set.add(cur)  # adding the found var
-        #             cur = ''  # resetting cur
-        # """ Return the set of atomic propositions (variables) used in self """
-        # self.formula_set = set() #holds the var set for the Formula
-        # Term.str = self.prefix() # update Formula's str to be self's str rep
-        # self.variables_helper() # updates formula's set
-        # return self.formula_set
 
     def variables(self):
         def variables_helper(vars:set):
@@ -297,54 +279,68 @@ class Formula:
         """ Parse a first-order formula from the prefix of a given string.
             Return a pair: the parsed formula, and unparsed remainder of the
             string """
-        Term.str = replace_string(s)
+
+        Term.str = replace_string(s) # replace operators with more than one letter to be one letter
         root = ''
         first = None
         second = None
+
+        # if there is a left parentheses it means that we are having an operator that is enclosed by parenthesis
         if is_left_parenthese(Term.str[0]):
             Term.eat()  # eat left parentheses
-            first, Term.str = Formula.parse_prefix(Term.str)
-            root = switch_root_to_str(Term.str[0])
-            Term.eat()
-            second, Term.str = Formula.parse_prefix(Term.str)
+            first, Term.str = Formula.parse_prefix(Term.str) # take first formula of the operator
+            root = switch_root_to_str(Term.str[0]) # take the root
+            Term.eat() # eat the root
+            second, Term.str = Formula.parse_prefix(Term.str) # take second formula of the operator
             Term.eat()  # eat right parentheses
+
+        # if first letter is a quantifier ('A' or 'E')
         elif is_quantifier(Term.str[0]):
-            root = Term.str[0]
+            root = Term.str[0] # take the quantifier as root
             Term.eat()  # eat the root ( quantifier)
-            first = Term.get_whole_name()
+            first = Term.get_whole_name()  # take the name of the variable
             Term.eat()  # eat the left bracket
-            second, Term.str = Formula.parse_prefix(Term.str)
+            second, Term.str = Formula.parse_prefix(Term.str) # take the formula
             Term.eat()  # eat the right bracket
+
+        # if first letter is a relation (starts with capital letter)
         elif is_relation(Term.str[0]):
-            root = Term.get_whole_name()
+            root = Term.get_whole_name() # take the name of the relation
             first = []
             Term.eat()  # eat left parentheses
+            # if we didn't find closing parenthesis - than take the first Term
             if not is_right_parenthese(Term.str[0]):
                 term_obj, Term.str = Term.parse_prefix(Term.str)
                 first.append(term_obj)
+            # while there is a comma, take the next term
             while is_comma(Term.str[0]):
                 Term.eat()  # eat left parentheses
                 term_obj, Term.str = Term.parse_prefix(Term.str)
                 first.append(term_obj)
 
             Term.eat()  # eat right parentheses
+        # else , it is an operator
         else:
+            # if it's an unary operator
             if is_unary(Term.str[0]):
                 root = Term.str[0]
                 Term.eat()
                 first, Term.str = Formula.parse_prefix(Term.str)
+            # else , the operator is binary or equaluty
             else:
                 first, Term.str = Term.parse_prefix(Term.str)
+                # if it's a binary operator
                 if is_binary(Term.str[0]):
                     root = Term.str[0:2]
                     Term.eat()
+                # if it's an equal operator
                 else:
                     root = Term.str[0]
                 Term.eat()
                 second, Term.str = Term.parse_prefix(Term.str)
 
         returned_formula = Formula(root, first, second)
-        return returned_formula, Term.str  # name = '' don't know
+        return returned_formula, Term.str
 
     @staticmethod
     def parse(s):

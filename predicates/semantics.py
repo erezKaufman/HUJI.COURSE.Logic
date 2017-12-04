@@ -40,7 +40,7 @@ class Model:
             variables that are free in the formula get their values from the
             given assignment """
         assert formula.free_variables().issubset(assignment.keys())
-        # Task 7.8
+        # if
 
     def is_model_of(self, formulae_repr):
         """ Return whether self a model of the formulae represented by the
