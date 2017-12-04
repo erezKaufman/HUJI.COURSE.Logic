@@ -173,7 +173,7 @@ class Term:
     def get_whole_name():
         retruned_name = ''
         while Term.str != '' and Term.str[0].isalnum():
-            retruned_name+= Term.str[0]
+            retruned_name += Term.str[0]
             Term.eat()
         return retruned_name
 
@@ -290,17 +290,17 @@ class Formula:
         first = None
         second = None
         if is_left_parenthese(Term.str[0]):
-            Term.eat() # eat left parentheses
-            first , Term.str = Formula.parse_prefix(Term.str)
+            Term.eat()  # eat left parentheses
+            first, Term.str = Formula.parse_prefix(Term.str)
             root = switch_root_to_str(Term.str[0])
             Term.eat()
             second, Term.str = Formula.parse_prefix(Term.str)
             Term.eat()  # eat right parentheses
         elif is_quantifier(Term.str[0]):
             root = Term.str[0]
-            Term.eat() # eat the root ( quantifier)
+            Term.eat()  # eat the root ( quantifier)
             first = Term.get_whole_name()
-            Term.eat() # eat the left bracket
+            Term.eat()  # eat the left bracket
             second, Term.str = Formula.parse_prefix(Term.str)
             Term.eat()  # eat the right bracket
         elif is_relation(Term.str[0]):
@@ -331,49 +331,18 @@ class Formula:
                 Term.eat()
                 second, Term.str = Term.parse_prefix(Term.str)
 
-
         returned_formula = Formula(root, first, second)
-        return returned_formula, Term.str        # name = '' don't know
-        # while Term.str != '' and Term.str[0].isalnum():
-        #     name += Term.str[0]
-        #     Term.eat()
-        #     if is_in_quant:
-        #         first = name
-        #     else:
-        #         root = name
-
-
-        # if is_relation(root):  # Populate self.root and self.arguments
-        #     first = []
-        #     Term.eat()  # eat left parentheses
-        #     term_obj, Term.str = Term.parse_prefix(Term.str)
-        #     first.append(term_obj)
-        #     while is_comma(Term.str[0]):
-        #         Term.eat()  # eat left parentheses
-        #         term_obj, Term.str = Term.parse_prefix(Term.str)
-        #         first.append(term_obj)
-        #
-        # elif is_quantifier(root):  # Populate self.variable and self.predicate
-        #     Term.eat()  # remove left bracket
-        #     second = Formula.parse_prefix(Term.str)
-        #     Term.eat()  # remove right bracket
-        # elif is_equality(Term.str[0]):  # Populate self.first and self.second
-        #     first = root
-        #     root = Term.str[0]
-        #     Term.eat()
-        #     second
-        # elif is_unary(Term.str[0]):  # Populate self.first
-        #     pass
-        # else:  # Populate self.first and self.second
-        #     pass
-
+        return returned_formula, Term.str  # name = '' don't know
 
     @staticmethod
     def parse(s):
         """ Return a first-order formula parsed from its given string
             representation """
-        # Task 7.4.2
-
+        Term.str = s
+        new_Formula = None
+        while Term.str != '':
+            new_Formula, Term.str = Formula.parse_prefix(Term.str)
+        return new_Formula
     def free_variables(self):
         """ Return the set of variables that are free in this formula """
         # Task 7.6
