@@ -308,24 +308,29 @@ class Formula:
             root = Term.get_whole_name() # take the name of the relation
             first = []
             Term.eat()  # eat left parentheses
-            # if we didn't find closing parenthesis - than take the first Term
+
+            # if we didn't find closing parenthesis - than there must be at least one Term inside the parenthesis.
+            # take it.
             if not is_right_parenthese(Term.str[0]):
                 term_obj, Term.str = Term.parse_prefix(Term.str)
                 first.append(term_obj)
+
             # while there is a comma, take the next term
             while is_comma(Term.str[0]):
                 Term.eat()  # eat left parentheses
                 term_obj, Term.str = Term.parse_prefix(Term.str)
                 first.append(term_obj)
-
             Term.eat()  # eat right parentheses
+
         # else , it is an operator
         else:
+
             # if it's an unary operator
             if is_unary(Term.str[0]):
                 root = Term.str[0]
                 Term.eat()
                 first, Term.str = Formula.parse_prefix(Term.str)
+
             # else , the operator is binary or equaluty
             else:
                 first, Term.str = Term.parse_prefix(Term.str)
@@ -333,12 +338,12 @@ class Formula:
                 if is_binary(Term.str[0]):
                     root = Term.str[0:2]
                     Term.eat()
+
                 # if it's an equal operator
                 else:
                     root = Term.str[0]
                 Term.eat()
                 second, Term.str = Term.parse_prefix(Term.str)
-
         returned_formula = Formula(root, first, second)
         return returned_formula, Term.str
 
