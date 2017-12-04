@@ -312,6 +312,6 @@ if __name__ == '__main__':
     print(eq)
     q = Formula('A', 'x', eq)
     print(q)
-
+    #e
     # f = Formula('F', [args])
     # print(f)
