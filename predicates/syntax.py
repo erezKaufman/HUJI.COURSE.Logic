@@ -350,4 +350,4 @@ if __name__ == '__main__':
     # print(q)
     #e
     # f = Formula('F', [args])
-    # print(f)
+    # print(f) 333
