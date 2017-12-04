@@ -38,11 +38,53 @@ def is_variable(s):
     """ Is s a variable name? """
     return s[0] >= 'u' and s[0] <= 'z' and s.isalnum()
 
+def replace_string(s):
+    """ this func is in charge of setting the rep string for Formula into opt's with length of 1,
+    in order to stay within LL0 borders """
+    ret = s
+    ret = ret.replace('<->', 'ב')
+    ret = ret.replace('->', 'א')
+    ret = ret.replace('-&', 'ג')
+    ret = ret.replace('-|', 'ד')
+    ret = ret.replace('?:', 'ה')
+    return ret
+
+def switch_root_to_str(s):
+    """ this func is called when creating a formula with a locally changed root """
+    if s == 'א':
+        return '->'
+    elif s == 'ב':
+        return '<->'
+    elif s == 'ג':
+        return '-&'
+    elif s == 'ד':
+        return '-|'
+    elif s == 'ה':
+        return '?'
+    else:
+        return s
+
+def switch_root_to_ternary_prefix(s): #special case for prefix
+    """ special replace case for prefix"""
+    if s == 'ה':
+        return '?:'
+    else:
+        return s
+
+def is_left_parenthese(s):
+    return s == '('
+
+def is_right_parenthese(s):
+    return s == ')'
+
+
+
 
 class Term:
     """ A term in a first order logical formula, composed from constant names
         and variable names, and function names applied to them """
 
+    str = ''
     def __init__(self, root, arguments=None):
         if is_constant(root) or is_variable(root):
             assert arguments is None
@@ -77,9 +119,21 @@ class Term:
         return hash(str(self))
 
     @staticmethod
+    def peek():
+        if len(Term.str) == 1: return None
+        return Term.str[1]
+
+    @staticmethod
+    def eat():
+        if Term.peek():
+            Term.str = Term.str[1:]
+
+    @staticmethod
     def parse_prefix(s):
         """ Parse a term from the prefix of a given string. Return a pair: the
             parsed term, and the unparsed remainder of the string """
+
+
         # Task 7.3.1
 
     @staticmethod

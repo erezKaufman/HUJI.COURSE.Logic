@@ -394,7 +394,7 @@ def prove_in_model(formula, model):
         """
         q = prove_in_model_helper(formula.second, model)  # we assume q is within our lines
         q_index = find_index_by_conclusion(q, lines)
-        lines.append(DeductiveProof.Line(Formula(IMPLICATION_OPERATOR, q, formula), AXIOMATIC_DICT['O2'], []))  # p->(p|q)
+        lines.append(DeductiveProof.Line(Formula('->', q, formula), AXIOMATIC_DICT['O2'], []))  # p->(p|q)
         lines.append(DeductiveProof.Line(formula, 0, [q_index, len(lines) - 1]))  # we just proved formula
         return formula
 
