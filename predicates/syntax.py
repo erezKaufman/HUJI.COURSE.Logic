@@ -201,11 +201,11 @@ class Term:
     def variables(self):
         def variables_helper(vars:set):
             if is_variable(self.root):
-                vars.add(self.root)
+                vars.add(self.root) # add it
             elif is_constant(self.root):
-                return
+                return # we dont care if it's a constnat
             elif is_function(self.root):
-                for arg in self.arguments:
+                for arg in self.arguments: # for each Term take the term's variables and update over_all var's
                     vars.update(arg.variables())
             return
 
@@ -359,37 +359,37 @@ class Formula:
 
     def free_variables_helper(self ,free:set, non_free=set()):
         if is_variable(self.root):
-            if self.root not in non_free:
-                free.add(self.root)
+            if self.root not in non_free: # this var was not referenced before
+                free.add(self.root) # adds var
 
         if is_constant(self.root):
             return
 
         elif is_unary(self.root):
-            self.first.free_variables_helper(free, non_free)
+            self.first.free_variables_helper(free, non_free) # recursive call on first
 
         elif is_equality(self.root):
-            self.get_Term_frees(self.first, free, non_free)
-            self.get_Term_frees(self.second, free, non_free)
+            self.get_Term_frees(self.first, free, non_free) #uppends all first term's free var's
+            self.get_Term_frees(self.second, free, non_free) #uppends all second term's free var's
 
         elif is_relation(self.root):
             for arg in self.arguments:
-                self.get_Term_frees(arg, free, non_free)
+                self.get_Term_frees(arg, free, non_free) # for each argument (which is var) uppend all term's free's
 
         elif is_quantifier(self.root):
-            non_free.add(self.variable)
-            self.predicate.free_variables_helper(free, non_free)
-            non_free.remove(self.variable)
+            non_free.add(self.variable) # add var to non_free
+            self.predicate.free_variables_helper(free, non_free) #call helper with predicate values
+            non_free.remove(self.variable) # the added var to non_free no longer affects rest of formula
 
         elif is_binary(self.root):
-            self.first.free_variables_helper(free, non_free)
-            self.second.free_variables_helper(free, non_free)
+            self.first.free_variables_helper(free, non_free) # call helper with first
+            self.second.free_variables_helper(free, non_free) # call helper with second
 
     def get_Term_frees(self, arg, free, non_free):
-        args_vars = arg.variables()
-        if args_vars != set():
+        args_vars = arg.variables() # get term's variables
+        if args_vars != set(): # the set is not empty
             for var in args_vars:
-                if var not in non_free and is_variable(var):
+                if var not in non_free and is_variable(var): # if it wasnt refrenced and is a var add it
                     free.add(Term(var))
 
     def free_variables(self):
