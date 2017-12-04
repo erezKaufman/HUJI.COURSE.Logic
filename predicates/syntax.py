@@ -6,46 +6,37 @@
 from propositions.syntax import Formula as PropositionalFormula
 from predicates.util import *
 
-
 def is_unary(s):
     """ Is s a unary operator? """
     return s == '~'
-
 
 def is_binary(s):
     """ Is s a binary boolean operator? """
     return s == '&' or s == '|' or s == '->'
 
-
 def is_equality(s):
     """ Is s the equality relation? """
     return s == "="
-
 
 def is_quantifier(s):
     """ Is s a quantifier? """
     return s == "A" or s == "E"
 
-
 def is_relation(s):
     """ Is s a relation name? """
     return s[0] >= 'F' and s[0] <= 'T' and s.isalnum()
 
-
 def is_constant(s):
     """ Is s a constant name? """
-    return ((s[0] >= '0' and s[0] <= '9') or (s[0] >= 'a' and s[0] <= 'd')) and s.isalnum()
-
+    return  ((s[0] >= '0' and s[0] <= '9') or (s[0] >= 'a' and s[0] <= 'd')) and s.isalnum()
 
 def is_function(s):
     """ Is s a function name? """
     return s[0] >= 'f' and s[0] <= 't' and s.isalnum()
 
-
 def is_variable(s):
     """ Is s a variable name? """
     return s[0] >= 'u' and s[0] <= 'z' and s.isalnum()
-
 
 def replace_string(s):
     """ this func is in charge of setting the rep string for Formula into opt's with length of 1,
@@ -57,7 +48,6 @@ def replace_string(s):
     ret = ret.replace('-|', 'ד')
     ret = ret.replace('?:', 'ה')
     return ret
-
 
 def switch_root_to_str(s):
     """ this func is called when creating a formula with a locally changed root """
@@ -85,7 +75,6 @@ def switch_root_to_ternary_prefix(s):  # special case for prefix
 
 def is_left_parenthese(s):
     return s == '('
-
 
 def is_right_parenthese(s):
     return s == ')'
@@ -127,7 +116,7 @@ class Term:
 
     def __eq__(self, other):
         return str(self) == str(other)
-
+        
     def __ne__(self, other):
         return not self == other
 
@@ -222,24 +211,41 @@ class Formula:
         elif is_equality(root):  # Populate self.first and self.second
             assert type(first) is Term and type(second) is Term
             self.root, self.first, self.second = root, first, second
-        elif is_quantifier(root):  # Populate self.variable and self.predicate
+        elif is_quantifier(root): # Populate self.variable and self.predicate
             assert is_variable(first) and type(second) is Formula
             self.root, self.variable, self.predicate = root, first, second
-        elif is_unary(root):  # Populate self.first
+        elif is_unary(root): # Populate self.first
             assert type(first) is Formula and second is None
             self.root, self.first = root, first
-        else:  # Populate self.first and self.second
+        else: # Populate self.first and self.second
             assert is_binary(root) and type(first) is Formula and type(second) is Formula
-            self.root, self.first, self.second = root, first, second
+            self.root, self.first, self.second = root, first, second           
 
     def __repr__(self):
         """ Return the usual (infix for operators and equality, functional for
             other relations) representation of self """
+        ret = ""
+        if is_relation(self.root):
+            ret += self.root + '('
+            for obj in self.arguments:
+                ret += str(obj)
+                if obj != self.arguments[-1]:
+                    ret += ','
+            ret += ')'
+        elif is_equality(self.root):
+            ret = str(self.first) + self.root + str(self.second)
+        elif is_quantifier(self.root):
+            ret = self.root + str(self.variable) + '[' + str(self.predicate) + ']'
+        elif is_unary(self.root):
+            ret = self.root + str(self.first)
+        elif is_binary(self.root):
+            ret = '(' + str(self.first) + self.root + str(self.second) + ')'
+        return ret
         # Task 7.2
 
     def __eq__(self, other):
         return str(self) == str(other)
-
+        
     def __ne__(self, other):
         return not self == other
 
@@ -281,7 +287,7 @@ class Formula:
         for variable in substitution_map:
             assert is_variable(variable) and \
                    type(substitution_map[variable]) is Term
-            # Task 9.2
+        # Task 9.2
 
     def substitute_constants(self, substitution_map):
         """ Return a first-order formula obtained from this formula where all
@@ -290,7 +296,7 @@ class Formula:
         for constant in substitution_map:
             assert is_constant(constant) and \
                    type(substitution_map[constant]) is Term
-            # Ex12
+        # Ex12
 
     def propositional_skeleton(self):
         """ Return a PropositionalFormula that is the skeleton of this one.
@@ -298,3 +304,14 @@ class Formula:
             z1,z2,... (obtained by calling next(fresh_variable_name_generator)),
             starting from left to right """
         # Task 9.5
+
+if __name__ == '__main__':
+    args = Term('plus' , [Term('s', [Term('x')]), Term('3')])
+    print(args)
+    eq = Formula('=', Term('x'), Term('x'))
+    print(eq)
+    q = Formula('A', 'x', eq)
+    print(q)
+
+    # f = Formula('F', [args])
+    # print(f)
