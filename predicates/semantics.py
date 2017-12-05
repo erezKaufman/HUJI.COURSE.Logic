@@ -116,7 +116,11 @@ class Model:
             return first_term == second_term
 
         elif is_quantifier(formula.root):
-            pass
+            if formula.root == 'A':
+                for arg in assignment[formula.variable]:
+                    pass
+            elif formula.root == 'E':
+                pass
 
         elif is_relation(formula.root):
             eval_args = set()
