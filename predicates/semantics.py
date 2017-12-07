@@ -43,95 +43,33 @@ class Model:
             variables that are free in the formula get their values from the
             given assignment """
         assert formula.free_variables().issubset(assignment.keys())
-        # def eval_formula_helper(str):
 
-        #
-        #     # if there is a left parentheses it means that we are having an operator that is enclosed by parenthesis
-        #     if is_left_parenthese(Term.str[0]):
-        #         Term.eat()  # eat left parentheses
-        #         first, str = Formula.parse_prefix(str)  # take first formula of the operator
-        #         root = switch_root_to_str(str[0])  # take the root
-        #         Term.eat()  # eat the root
-        #         second, str = Formula.parse_prefix(str)  # take second formula of the operator
-        #         Term.eat()  # eat right parentheses
-        #         return
-        #         # if first letter is a quantifier ('A' or 'E')
-        #     elif is_quantifier(str[0]):
-        #         root = str[0]  # take the quantifier as root
-        #         Term.eat()  # eat the root ( quantifier)
-        #         first = Term.get_whole_name()  # take the name of the variable
-        #         Term.eat()  # eat the left bracket
-        #         second, str = Formula.parse_prefix(str)  # take the formula
-        #         Term.eat()  # eat the right bracket
-        #
-        #     # if first letter is a relation (starts with capital letter)
-        #     elif is_relation(str[0]):
-        #         root = Term.get_whole_name()  # take the name of the relation
-        #         first = []
-        #         Term.eat()  # eat left parentheses
-        #
-        #         # if we didn't find closing parenthesis - than there must be at least one Term inside the parenthesis.
-        #         # take it.
-        #         if not is_right_parenthese(str[0]):
-        #             term_obj, str = Term.parse_prefix(str)
-        #             first.append(term_obj)
-        #
-        #         # while there is a comma, take the next term
-        #         while is_comma(str[0]):
-        #             Term.eat()  # eat left parentheses
-        #             term_obj, str = Term.parse_prefix(str)
-        #             first.append(term_obj)
-        #         Term.eat()  # eat right parentheses
-        #
-        #     # else , it is an operator
-        #     else:
-        #
-        #         # if it's an unary operator
-        #         if is_unary(str[0]):
-        #             root = str[0]
-        #             Term.eat()
-        #             first, str = Formula.parse_prefix(str)
-        #
-        #         # else , the operator is binary or equaluty
-        #         else:
-        #             first, str = Term.parse_prefix(str)
-        #             # if it's a binary operator
-        #             if is_binary(str[0]):
-        #                 root = str[0:2]
-        #                 Term.eat()
-        #
-        #             # if it's an equal operator
-        #             else:
-        #                 root = str[0]
-        #             Term.eat()
-        #             second, str = Term.parse_prefix(str)
-        #     returned_formula = Formula(root, first, second)
-        #     return returned_formula, str
-        # # Term.str = replace_string(s)  # replace operators with more than one letter to be one letter
-        # str = replace_string(str(formula))
-        # eval_formula_helper(str)
         if is_equality(formula.root):
             first_term = self.evaluate_term(formula.first,assignment)
             second_term = self.evaluate_term(formula.second,assignment)
             return first_term == second_term
 
         elif is_quantifier(formula.root):
+            frees_vars = formula.free_variables() # TODO how do the free var's go into the picture?
+            results = []
+            for elem in self.universe:
+                assignment[formula.variable] = elem # assigns cur universe element to variable
+                results.append(self.evaluate_formula(formula.predicate, assignment))
             if formula.root == 'A':
-                for arg in assignment[formula.variable]:
-                    pass
+                return False if False in results else True
             elif formula.root == 'E':
-                pass
+                return True if True in results else False
 
         elif is_relation(formula.root):
             eval_args = set()
             for arg in formula.arguments:
                 new_tuple = tuple(self.evaluate_term(arg,assignment))
                 eval_args.add(new_tuple)
-            # eval_args = tuple(eval_args)
             return self.meaning[formula.root] == eval_args
 
         elif is_unary(formula.root):
             return not self.evaluate_formula(formula.first,assignment)
+
         elif is_binary(formula.root):
             first_term = self.evaluate_formula(formula.first,assignment)
             second_term = self.evaluate_formula(formula.second,assignment)
