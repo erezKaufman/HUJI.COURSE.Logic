@@ -5,6 +5,7 @@
 
 from predicates.syntax import *
 
+
 class Model:
     """ A model for first-order formulae: contains a universe - a set of
         elements, and a dictionary that maps every constant name to an element,
@@ -19,24 +20,21 @@ class Model:
 
     def __repr__(self):
         return 'Universe=' + str(self.universe) + '; Meaning=' + str(self.meaning)
-        
+
     def evaluate_term(self, term, assignment={}):
         """ Return the value of the given term in this model, where variables   
             get their value from the given assignment """
         assert term.variables().issubset(assignment.keys())
-        if is_constant(term.root): # if the term is a constant
+        if is_constant(term.root):  # if the term is a constant
             return self.meaning[term.root]
-        elif is_variable(term.root): # if the term is a variable
+        elif is_variable(term.root):  # if the term is a variable
             return assignment[term.root]
-        else: # else the term is a function
+        else:  # else the term is a function
             eval_args = []
             for arg in term.arguments:
-                eval_args.append(self.evaluate_term(arg,assignment))
+                eval_args.append(self.evaluate_term(arg, assignment))
             eval_args = tuple(eval_args)
             return self.meaning[term.root][eval_args]
-
-
-
 
     def evaluate_formula(self, formula, assignment={}):
         """ Return the value of the given formula in this model, where
@@ -45,8 +43,8 @@ class Model:
         assert formula.free_variables().issubset(assignment.keys())
 
         if is_equality(formula.root):
-            first_term = self.evaluate_term(formula.first,assignment)
-            second_term = self.evaluate_term(formula.second,assignment)
+            first_term = self.evaluate_term(formula.first, assignment)
+            second_term = self.evaluate_term(formula.second, assignment)
             return first_term == second_term
 
         elif is_quantifier(formula.root):
@@ -61,18 +59,20 @@ class Model:
                 return True if True in results else False
 
         elif is_relation(formula.root):
-            eval_args = set()
+            # eval_args = set()
+            new_tuple = []
             for arg in formula.arguments:
-                new_tuple = tuple(self.evaluate_term(arg,assignment))
-                eval_args.add(new_tuple)
-            return self.meaning[formula.root] == eval_args
+                new_tuple.append(self.evaluate_term(arg, assignment))
+            # eval_args.add(tuple(new_tuple))
+            eval_args = tuple(new_tuple)
+            return eval_args in self.meaning[formula.root]
 
         elif is_unary(formula.root):
-            return not self.evaluate_formula(formula.first,assignment)
+            return not self.evaluate_formula(formula.first, assignment)
 
         elif is_binary(formula.root):
-            first_term = self.evaluate_formula(formula.first,assignment)
-            second_term = self.evaluate_formula(formula.second,assignment)
+            first_term = self.evaluate_formula(formula.first, assignment)
+            second_term = self.evaluate_formula(formula.second, assignment)
             if formula.root == '->':
                 return not first_term or second_term
             elif formula.root == '|':
@@ -86,4 +86,23 @@ class Model:
             must be satisfied, if the formula has free variables, then it must
             be satisfied for every assignment of elements of the universe to
             the free variables """
-        # Task 7.9
+        truth_list = []
+        for formula in formulae_repr:
+            formula = Formula.parse(formula)
+            free_vars = formula.free_variables()
+            if free_vars != set():
+                possibilities = self.create_all_subsets(free_vars)
+                for ass in possibilities:
+                    truth_list.append(self.evaluate_formula(formula,ass))
+
+        return False if False in truth_list else True
+
+
+    def create_all_subsets(self,vars):
+        returned_set = []
+        for elem in self.universe:
+            assignment = {}
+            for var in vars:
+                assignment[var] = elem
+            returned_set.append(assignment)
+        return returned_set
