@@ -99,38 +99,12 @@ class Model:
         return False if False in truth_list else True
 
     def create_all_subsets(self, vars):
-        returned = product(vars, self.universe, repeat=2)
-        returning_list = []
-        desired_len = 2 ** len(vars)
-        for index, ret in enumerate(returned):
-
+        iter_sets = product(self.universe, repeat=len(vars))
+        list_to_return = []
+        for arg in iter_sets:
             temp_dict = {}
-            for i in range(0, len(ret), 2):
-                temp_dict[ret[i]] = ret[i + 1]
-            if len(list(temp_dict.keys())) > 1:
-                returning_list.append(temp_dict)
-            if len(returning_list) > desired_len - 1:
-                break
+            for i, var in enumerate(vars):
+                temp_dict[var] = arg[i]
+            list_to_return.append(temp_dict)
 
-        return returning_list
-
-
-def create_all_subsets(A, B):
-    returned = product(B, A, repeat=len(B))
-    returning_list = []
-    desired_len = 2 ** len(B)
-    if len(B) == 1:
-        return list(returned)
-    for index, ret in enumerate(returned):
-        if ret[0] in ret[1:]:
-            continue
-        temp_dict = {}
-        for i in range(0, len(ret), 2):
-            temp_dict[ret[i]] = ret[i + 1]
-        if temp_dict in returning_list:
-            continue
-        returning_list.append(temp_dict)
-
-    return returning_list
-
-print((create_all_subsets(['a', 'b'], ['x','y','z'])))
+        return list_to_return
