@@ -4,6 +4,7 @@
     File name: code/predicates/semantics.py """
 
 from predicates.syntax import *
+from itertools import product
 
 
 class Model:
@@ -48,10 +49,10 @@ class Model:
             return first_term == second_term
 
         elif is_quantifier(formula.root):
-            frees_vars = formula.free_variables() # TODO how do the free var's go into the picture?
+            frees_vars = formula.free_variables()  # TODO how do the free var's go into the picture?
             results = []
             for elem in self.universe:
-                assignment[formula.variable] = elem # assigns cur universe element to variable
+                assignment[formula.variable] = elem  # assigns cur universe element to variable
                 results.append(self.evaluate_formula(formula.predicate, assignment))
             if formula.root == 'A':
                 return False if False in results else True
@@ -93,16 +94,43 @@ class Model:
             if free_vars != set():
                 possibilities = self.create_all_subsets(free_vars)
                 for ass in possibilities:
-                    truth_list.append(self.evaluate_formula(formula,ass))
+                    truth_list.append(self.evaluate_formula(formula, ass))
 
         return False if False in truth_list else True
 
+    def create_all_subsets(self, vars):
+        returned = product(vars, self.universe, repeat=2)
+        returning_list = []
+        desired_len = 2 ** len(vars)
+        for index, ret in enumerate(returned):
 
-    def create_all_subsets(self,vars):
-        returned_set = []
-        for elem in self.universe:
-            assignment = {}
-            for var in vars:
-                assignment[var] = elem
-            returned_set.append(assignment)
-        return returned_set
+            temp_dict = {}
+            for i in range(0, len(ret), 2):
+                temp_dict[ret[i]] = ret[i + 1]
+            if len(list(temp_dict.keys())) > 1:
+                returning_list.append(temp_dict)
+            if len(returning_list) > desired_len - 1:
+                break
+
+        return returning_list
+
+
+def create_all_subsets(A, B):
+    returned = product(B, A, repeat=len(B))
+    returning_list = []
+    desired_len = 2 ** len(B)
+    if len(B) == 1:
+        return list(returned)
+    for index, ret in enumerate(returned):
+        if ret[0] in ret[1:]:
+            continue
+        temp_dict = {}
+        for i in range(0, len(ret), 2):
+            temp_dict[ret[i]] = ret[i + 1]
+        if temp_dict in returning_list:
+            continue
+        returning_list.append(temp_dict)
+
+    return returning_list
+
+print((create_all_subsets(['a', 'b'], ['x','y','z'])))

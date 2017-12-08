@@ -6,20 +6,32 @@
 from predicates.syntax import *
 
 def test_term_repr(debug=False):
-    if debug:
-        print('Testing representation of the term f(s(0),x)')
-    term = Term('f', [Term('s', [Term('0')]), Term('x')])
-    assert str(term) == 'f(s(0),x)'
+    terms = [Term('0'), Term('c1'), Term('7x'), Term('a12'), Term('x'), Term('y12'), Term('zLast') ,
+             Term('plus', [Term('x'), Term('s', [Term('y')])]),
+             Term('f', [Term('g',[Term('x')]),Term('h',[Term('7'),Term('y')])]),
+             Term('pp', [Term('0'),
+                         Term('c1'),
+                         Term('zLast'),
+                         Term('minus', [Term('4'), Term('5'), Term('6'), Term('7'), Term('8')]),
+                         Term('plus', [Term('x'), Term('s', [Term('y')])]),
+                         Term('f', [Term('g',[Term('x')]),Term('h',[Term('7'),Term('y')])])])]
+    strs = ['0', 'c1', '7x','a12', 'x','y12' ,'zLast' ,'plus(x,s(y))', 'f(g(x),h(7,y))',
+            'pp(0,c1,zLast,minus(4,5,6,7,8),plus(x,s(y)),f(g(x),h(7,y)))']
+    for index, s in enumerate(strs):
+        if debug:
+            print('Testing representation of the term ', s)
+        assert str(terms[index]) == s
 
 def test_term_parse_prefix(debug=False):
     for s in ['a12', 'a,g(x))', 'g(x))', 'f(a,g(x))', 's(0)))', 's(s(0)))',
-              's(s(s(0)))', 'x,s(y))', 's(y))', 'plus(x,s(y))']:
+              's(s(s(0)))', 'x,s(y))', 's(y))', 'plus(x,s(y))', 'plus(0,c1,zLast,minus(4,5,6,7,8),plus(x,s(y)),f(g(x),h(7,y)))))',
+              'zLast,minus(4,5,6,7,8))']:
         if debug:
             print('Parsing a prefix of', s, 'as a Term...')
         term, remainder = Term.parse_prefix(s)
         if debug:
             print('... and got', term, 'with unparsed remainder', remainder)
-        assert str(term)+remainder == s 
+        assert str(term)+remainder == s
 
 def test_term_parse(debug=False):
     for s in ['a12', 'f(a,g(x))', 's(s(s(0)))', 'plus(x,s(y))']:
@@ -28,13 +40,15 @@ def test_term_parse(debug=False):
         term = Term.parse(s)
         if debug:
             print('... and got', term)
+        # print(str(term), s)
         assert str(term) == s 
 
 def test_variables(debug=False):
     for s,expected_variables in [
             ['0', set()], ['x', {'x'}], ['s(s(x))', {'x'}],
             ['f(x,g(y,x,0),1)', {'x', 'y'}],
-            ['s(plus(times(zz,x),times(x,s(s(0)))))', {'x', 'zz'}]]:
+            ['s(plus(times(zz,x),times(x,s(s(0)))))', {'x', 'zz'}],
+            ['pp(0,c1,zLast,minus(4,5,6,u30,8),plus(x,s(y)),f(g(vT),h(7,y)))', {'zLast', 'x', 'y','u30','vT'}]]:
         variables = Term.parse(s).variables()
         if debug:
             print('The variables in', s, 'are', variables)
@@ -114,15 +128,38 @@ def test_term_substitute_constants(debug=False):
         assert str(result) == expected
 
 def test_formula_repr(debug=False):
-    if debug:
-        print('Testing representation of the formula (Ax[plus(x,y)=0]->~R(v,c7))')
-    formula = Formula('->',
+    terms = [Term('0'),
+             Term('c1'),
+             Term('zLast'),
+             Term('minus', [Term('4'), Term('5'), Term('6'), Term('7'), Term('8')]),
+             Term('plus', [Term('x'), Term('s', [Term('y')])]),
+             Term('f', [Term('g',[Term('x')]),Term('h',[Term('7'),Term('y')])]),
+             Term('pp', [Term('0'),
+                         Term('c1'),
+                         Term('zLast'),
+                         Term('minus', [Term('4'), Term('5'), Term('6'), Term('7'), Term('8')]),
+                         Term('plus', [Term('x'), Term('s', [Term('y')])]),
+                         Term('f', [Term('g',[Term('x')]),Term('h',[Term('7'),Term('y')])]),])]
+    formulea = [Formula('->',
                       Formula('A', 'x',
                               Formula('=',
                                       Term('plus', [Term('x'), Term('y')]),
                                       Term('0'))),
-                      Formula('~', Formula('R', [Term('v'), Term('c7')])))
-    assert str(formula) == '(Ax[plus(x,y)=0]->~R(v,c7))'
+                      Formula('~', Formula('R', [Term('v'), Term('c7')]))),
+                Formula('=', terms[4], terms[5]),
+                Formula('Plus', terms[:-1]),
+                Formula('~', Formula('=', terms[4], terms[5])),
+                Formula('->', Formula('E', 'x', Formula('=', Term('plus', [Term('s', [Term('x')]), Term('3')]), Term('y'))),
+                              Formula('GT', [Term('y'), Term('4')]))]
+    strs = ['(Ax[plus(x,y)=0]->~R(v,c7))',
+              'plus(x,s(y))=f(g(x),h(7,y))',
+              'Plus(0,c1,zLast,minus(4,5,6,7,8),plus(x,s(y)),f(g(x),h(7,y)))',
+              '~plus(x,s(y))=f(g(x),h(7,y))',
+              '(Ex[plus(s(x),3)=y]->GT(y,4))']
+    for index, s in enumerate(strs):
+        if debug:
+            print('Testing representation of the formula ', s)
+        assert str(formulea[index]) == s
 
 def test_formula_parse_prefix(debug=False):
     for s in ['0=0', 'R(x)|Q(y))', 'Q(y))', '(R(x)|Q(y))', '0=0&1=1)', '1=1)',
