@@ -83,7 +83,46 @@ def replace_relations_with_functions_in_model(model: Model, original_functions: 
     return new_model
 
 
+
+
 def compile_term(term):
+    def compile_term_helper(term:Term, z_list:list, map:dict):
+        """
+
+        :param term: the term to process
+        :param z_list:  our list of formula's to update
+        :param map: a mapping between previously created var's to their respective terms
+        """
+        if is_constant(term.root) or is_variable(term.root):
+            return
+
+        for arg in term.arguments:
+            compile_term_helper(arg, z_list, map)
+
+        if is_function(term.root):
+            var = next(fresh_variable_name_generator)
+            new_args = [] #holds the new args for this trem, if one of the args should be z_i append that
+            for arg in term.arguments: # iterate over all term's args
+                if is_function(arg.root):
+                    if arg in map.keys(): # it's possible we already added this var , if so
+                        new_args.append(map[arg])  # just append it!
+                else:
+                    new_args.append(arg) # this is a new arg for a var, append it
+
+            result = Formula('=', Term(var), Term(term.root, new_args))
+            z_list.append(result)
+            map[term] = Term(var)
+
+
+
+
+
+
+
+
+
+
+
     """ Return a list of steps that result from compiling the given term,
         whose root is a function invocation (possibly with nested function
         invocations down the term tree). Each of the returned steps is a
@@ -96,7 +135,12 @@ def compile_term(term):
         value should precede its usage. The left-hand-side variable of the last
         step should evaluate to the value of the given term """
     assert type(term) is Term and is_function(term.root)
+    z_list = []
+    map = {}
+    compile_term_helper(term, z_list, map)
+    return z_list
     # Task 8.4
+
 
 
 def replace_functions_with_relations_in_formula(formula):
