@@ -61,6 +61,7 @@ def test_replace_relations_with_functions_in_model(debug):
 
     # Test faulty models
     model = Model(
+
         {'a', 'b'},
         {'a': 'a',
          'GT': {('b','a')}, 'F' :{('b','a'), ('b','b'), ('a','b')},

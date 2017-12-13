@@ -492,20 +492,3 @@ class Formula:
             starting from left to right """
         # Task 9.5
 
-
-if __name__ == '__main__':
-    # args = Term('plus' , [Term('s', [Term('x')]), Term('y')])
-    # hey = Term.parse('s(plus(times(zz,x),y,times(x,s(s(0)))))')
-    # print(hey)
-    # a = hey.variables()
-    # print(a)
-    # eq = Formula('=', Term('x'), Term('x'))
-    # print(eq)
-    # q = Formula('A', 'x', eq)
-    # print(q)
-    #e
-    # f = Formula('F', [args])
-    # print(f) 333
-    f = Formula('A', 'x', Formula('R',[Term('y'), Term('z')]))
-    ret = Formula.parse_prefix('(Ex[Q(x,y)]&x=0)')
-    print(ret)

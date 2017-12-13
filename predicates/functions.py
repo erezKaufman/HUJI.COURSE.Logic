@@ -7,6 +7,7 @@ from predicates.syntax import *
 from predicates.semantics import *
 from predicates.util import *
 
+
 def replace_functions_with_relations_in_model(model):
     """ Return a new model obtained from the given model by replacing every
         function meaning with the corresponding relation meaning (i.e.,
@@ -17,13 +18,28 @@ def replace_functions_with_relations_in_model(model):
     assert type(model) is Model
     # Task 8.2
 
-def replace_relations_with_functions_in_model(model, original_functions):
+
+def replace_relations_with_functions_in_model(model: Model, original_functions: set()):
     """ Return a new model original_model with function names
         original_functions such that:
         model == replace_functions_with_relations_in_model(original_model)
         or None if no such original_model exists """
     assert type(model) is Model
-    # Task 8.3
+    new_meaning = {}
+    for key , values in model.meaning.items():
+        temp_key = key[0].lower() + key[1:]
+        # temp_key[0] = temp_key[0].lower()
+        if temp_key in original_functions:
+            function_dict = {}
+            for val in values:
+                function_dict[(val[1:])] = val[0]
+            new_meaning[temp_key] = function_dict
+        else:
+            new_meaning[key] = values
+    new_model = Model(model.universe, new_meaning)
+    if replace_functions_with_relations_in_model(new_model) == model:
+        return new_model
+    return None
 
 def compile_term(term):
     """ Return a list of steps that result from compiling the given term,
@@ -40,6 +56,7 @@ def compile_term(term):
     assert type(term) is Term and is_function(term.root)
     # Task 8.4
 
+
 def replace_functions_with_relations_in_formula(formula):
     """ Return a function-free analog of the given formula. Every k-ary
         function that is used in the given formula should be replaced with a
@@ -54,6 +71,7 @@ def replace_functions_with_relations_in_formula(formula):
         k-tuple of the other arguments """
     assert type(formula) is Formula
     # Task 8.5
+
 
 def replace_functions_with_relations_in_formulae(formulae):
     """ Return a list of function-free formulae (as strings) that is equivalent
@@ -74,8 +92,9 @@ def replace_functions_with_relations_in_formulae(formulae):
         every relation that replaces a function name from the given list """
     for formula in formulae:
         assert type(formula) is str
-    # task 8.6
-        
+        # task 8.6
+
+
 def replace_equality_with_SAME(formulae):
     """ Return a list of equality-free formulae (as strings) that is equivalent
         to the given formulae list (also of strings) that may contain the
@@ -88,14 +107,16 @@ def replace_equality_with_SAME(formulae):
         transitive, and respected by all relations in the given formulae """
     for formula in formulae:
         assert type(formula) is str
-    # Task 8.7
-        
+        # Task 8.7
+
+
 def add_SAME_as_equality(model):
     """ Return a new model obtained from the given model by adding the relation
         SAME that behaves like equality """
     assert type(model) is Model
     # Task 8.8
-    
+
+
 def make_equality_as_SAME(model):
     """ Return a new model where equality is made to coincide with the
         reflexive, symmetric, transitive, and respected by all relations,
