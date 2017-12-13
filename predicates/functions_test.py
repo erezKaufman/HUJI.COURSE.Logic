@@ -83,6 +83,26 @@ def test_replace_relations_with_functions_in_model(debug):
     new_model = replace_relations_with_functions_in_model(model, {'f', 'gG'})
     assert new_model == None
 
+    model = Model(
+        {'a', 'b'},
+        {'a': 'a',
+         'GT': {('b', 'a')}, 'F': {('b', 'a'), ('b', 'b')},
+         'GG': {('b', 'a', 'a'),('b', 'a', 'a','b'), ('a', 'a', 'b'), ('b', 'b', 'b')}})  # BAD
+    if debug:
+        print('Replacing relations with functions in model', model, '...')
+    new_model = replace_relations_with_functions_in_model(model, {'f', 'gG'})
+    assert new_model == None
+
+    model = Model(
+        {'a', 'b','c','d'},
+        {'a': 'a',
+         'GT': {('b', 'a')}, 'F': {('b', 'a'), ('b', 'b')},
+         'GG': {('b', 'a', 'a'),('b', 'a', 'a','b'), ('a', 'a', 'b'), ('b', 'b', 'b')}})  # BAD
+    if debug:
+        print('Replacing relations with functions in model', model, '...')
+    new_model = replace_relations_with_functions_in_model(model, {'f', 'gG'})
+    assert new_model == None
+
 def test_compile_term(debug):
     for s,expected in [
             ['f(x,g(0))', ['z1=g(0)', 'z2=f(x,z1)']],

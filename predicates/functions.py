@@ -8,7 +8,7 @@ from predicates.semantics import *
 from predicates.util import *
 
 
-def replace_functions_with_relations_in_model(model):
+def replace_functions_with_relations_in_model(model: Model):
     """ Return a new model obtained from the given model by replacing every
         function meaning with the corresponding relation meaning (i.e.,
         (x1,...,xn) is in the meaning if and only if x1 is the output of the
@@ -39,6 +39,7 @@ def replace_relations_with_functions_in_model(model: Model, original_functions: 
     def check_for_valid_number_of_vals():
         len_of_vals = len(val) - 1
         return len(values) == 2 ** len_of_vals
+
     """ Return a new model original_model with function names
         original_functions such that:
         model == replace_functions_with_relations_in_model(original_model)
@@ -59,27 +60,6 @@ def replace_relations_with_functions_in_model(model: Model, original_functions: 
         else:
             new_meaning[key] = values
     new_model = Model(model.universe, new_meaning)
-    temp_original_model = replace_functions_with_relations_in_model(new_model)
-
-    # for key, values in new_model.meaning.items():
-    #     if is_function(key):
-    #         for val in values:
-    #             len_of_vals = len(val)
-    #             break
-    #
-    #         if len(values) != 2 ** len_of_vals:
-    #             return None
-
-    #     if len(values) == 2**len(model.universe):
-    #         for val in values:
-    #             if len(val) == len(model.universe) and val not in model.meaning[key]:
-    #                 return None
-    # for key, values in model.meaning.items():
-    #     if len(values) == 2 ** len(model.universe):
-    #         for val in values:
-    #             if len(val) == len(model.universe) and val not in temp_original_model.meaning[key]:
-    #                 return None
-
     return new_model
 
 
@@ -112,17 +92,6 @@ def compile_term(term):
             result = Formula('=', Term(var), Term(term.root, new_args))
             z_list.append(result)
             map[term] = Term(var)
-
-
-
-
-
-
-
-
-
-
-
     """ Return a list of steps that result from compiling the given term,
         whose root is a function invocation (possibly with nested function
         invocations down the term tree). Each of the returned steps is a
@@ -143,20 +112,53 @@ def compile_term(term):
 
 
 
-def replace_functions_with_relations_in_formula(formula):
+def replace_functions_with_relations_in_formula(formula: Formula):
+    def rfwrif_helper(formula: Formula):
+        if is_relation(formula.root):
+            new_relation_args = []
+            for arg in formula.arguments:
+                term = compile_term(arg)
+                list_of_sequences.append(term)
+                zs_dict.update(term)
+                new_relation_args.append(zs_dict[arg]) # TODO check this for validity
+            list_of_sequences.append(Formula(formula.root,new_relation_args))
+
+        elif is_equality(formula.root):  # Populate self.first and self.second
+            term_first = compile_term(formula.first)
+            term_second = compile_term(formula.second)
+            list_of_sequences.append(term_first)
+            list_of_sequences.append(term_second)
+            zs_dict.update(term_first)
+            zs_dict.update(term_second)
+            list_of_sequences.append(Formula(formula.root,term_first[-1],term_second[-1]))
+
+        elif is_quantifier(formula.root):  # Populate self.variable and self.predicate
+
+            assert is_variable(first) and type(second) is Formula
+            self.root, self.variable, self.predicate = root, first, second
+        elif is_unary(formula.root):  # Populate self.first
+            assert type(first) is Formula and second is None
+            self.root, self.first = root, first
+        else:  # Populate self.first and self.second
+            assert is_binary(root) and type(first) is Formula and type(second) is Formula
+            self.root, self.first, self.second = root, first, second
+
     """ Return a function-free analog of the given formula. Every k-ary
-        function that is used in the given formula should be replaced with a
-        k+1-ary relation with the same name except that the first letter is
-        capitalized (e.g., the function plus(x,y) should be replaced with the
-        relation Plus(z,x,y) that stands for z=plus(x,y)). (You may assume
-        that such relation names do not occur in the given formula, which
-        furthermore does not contain any variables names starting with z.) The
-        returned formula need only be equivalent to the given formula for
-        models where each new relations encodes a function, i.e., is guaranteed
-        to have single possible value for the first relation argument for every
-        k-tuple of the other arguments """
+    function that is used in the given formula should be replaced with a
+    k+1-ary relation with the same name except that the first letter is
+    capitalized (e.g., the function plus(x,y) should be replaced with the
+    relation Plus(z,x,y) that stands for z=plus(x,y)). (You may assume
+    that such relation names do not occur in the given formula, which
+    furthermore does not contain any variables names starting with z.) The
+    returned formula need only be equivalent to the given formula for
+    models where each new relations encodes a function, i.e., is guaranteed
+    to have single possible value for the first relation argument for every
+    k-tuple of the other arguments """
     assert type(formula) is Formula
-    # Task 8.5
+    list_of_sequences = []
+    zs_dict = {}
+    rfwrif_helper(formula)
+
 
 
 def replace_functions_with_relations_in_formulae(formulae):
