@@ -8,8 +8,8 @@ from predicates.functions_test import *
 
 def test_task1(debug=False):
     test_term_functions(debug)
-    test_formula_functions(debug)
-    test_relations(debug)
+    # test_formula_functions(debug)
+    # test_relations(debug)
 
 def test_task2(debug=False):
     test_replace_functions_with_relations_in_model(debug)
@@ -36,11 +36,11 @@ def test_task9(debug=False):
     test_make_equality_as_SAME(debug)
 
 test_task1(True)
-test_task2(True)
-test_task3(True)
-test_task4(True)
-test_task5(True)
-test_task6(True)
-test_task7(True)
-test_task8(True)
-test_task9(True)
+# test_task2(True)
+# test_task3(True)
+# test_task4(True)
+# test_task5(True)
+# test_task6(True)
+# test_task7(True)
+# test_task8(True)
+# test_task9(True)

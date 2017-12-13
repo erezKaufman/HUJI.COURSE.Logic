@@ -153,9 +153,6 @@ class Term:
                 term_obj, Term.str = Term.parse_prefix(Term.str)
                 arguments.append(term_obj)
             Term.eat()  # eat the right parentheses
-        # elif is_comma(s[0]):
-        #     while is_comma(s[0]):
-        #         Term.eat()
         returned_term = Term(term_name, arguments)
         return returned_term, Term.str
 
@@ -185,7 +182,7 @@ class Term:
             if is_variable(self.root):
                 vars.add(self.root) # add it
             elif is_constant(self.root):
-                return # we dont care if it's a constnat
+                return # we don't care if it's a constant
             elif is_function(self.root):
                 for arg in self.arguments: # for each Term take the term's variables and update over_all var's
                     vars.update(arg.variables())
@@ -198,9 +195,23 @@ class Term:
         # Task 7.5
 
     def functions(self):
+        def functions_helper(returned_set: set):
+            if is_variable(self.root) or is_constant(self.root):
+                return  # we don't care if it's a constant or a variable
+            elif is_function(self.root):
+                returned_set.add((self.root,len(self.arguments)))
+                for arg in self.arguments:  # for each Term take the term's variables and update over_all var's
+                    returned_set.update(arg.functions())
+            return
+
         """ Return a set of pairs (function_name, arity) for all function names
             that appear in this term """
-        # Task 8.1.1
+        # Task 8.1
+        returned_set = set()
+        functions_helper(returned_set)
+        return returned_set
+
+
 
     def substitute_variables(self, substitution_map):
         """ Return a term obtained from this term where all the occurrences of
@@ -281,8 +292,7 @@ class Formula:
             string """
 
         Term.str = replace_string(s) # replace operators with more than one letter to be one letter
-        root = ''
-        first = None
+
         second = None
 
         # if there is a left parentheses it means that we are having an operator that is enclosed by parenthesis
