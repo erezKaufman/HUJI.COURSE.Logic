@@ -412,14 +412,59 @@ class Formula:
         # Task 7.6
 
     def functions(self):
+        def functions_helper(returned_set : set()):
+            if is_relation(self.root):  # Populate self.root and self.arguments
+                for arg in self.arguments:
+                    returned_set.update(arg.functions())
+
+            elif is_equality(self.root):  # Populate self.first and self.second
+                returned_set.update(self.first.functions())
+                returned_set.update(self.second.functions())
+
+            elif is_quantifier(self.root): # Populate self.variable and self.predicate
+                returned_set.update(self.predicate.functions())
+
+            elif is_unary(self.root): # Populate self.first
+                returned_set.update(self.first.functions())
+
+            else: # Populate self.first and self.second
+                returned_set.update(self.first.functions())
+                returned_set.update(self.second.functions())
+
+            return
+
         """ Return a set of pairs (function_name, arity) for all function names
-            that appear in this formula """
+                    that appear in this formula """
+        returned_set = set()
+        functions_helper(returned_set)
+        return  returned_set
         # Task 8.1.2
 
     def relations(self):
         """ Return a set of pairs (relation_name, arity) for all relation names
             that appear in this formula """
-        # Task 8.1.3
+        def functions_helper(returned_set : set()):
+            if is_relation(self.root):  # Populate self.root and self.arguments
+                returned_set.add((self.root,len(self.arguments)))
+
+            elif is_equality(self.root):  # Populate self.first and self.second
+                return
+            elif is_quantifier(self.root): # Populate self.variable and self.predicate
+                returned_set.update(self.predicate.relations())
+
+            elif is_unary(self.root): # Populate self.first
+                returned_set.update(self.first.relations())
+
+            else: # Populate self.first and self.second
+                returned_set.update(self.first.relations())
+                returned_set.update(self.second.relations())
+            return
+
+        """ Return a set of pairs (function_name, arity) for all function names
+                    that appear in this formula """
+        returned_set = set()
+        functions_helper(returned_set)
+        return returned_set
 
     def substitute_variables(self, substitution_map):
         """ Return a first-order formula obtained from this formula where all

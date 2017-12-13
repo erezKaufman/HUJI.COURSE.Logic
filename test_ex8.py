@@ -8,8 +8,8 @@ from predicates.functions_test import *
 
 def test_task1(debug=False):
     test_term_functions(debug)
-    # test_formula_functions(debug)
-    # test_relations(debug)
+    test_formula_functions(debug)
+    test_relations(debug)
 
 def test_task2(debug=False):
     test_replace_functions_with_relations_in_model(debug)
