@@ -16,7 +16,23 @@ def replace_functions_with_relations_in_model(model):
         with the same name as the function, except that the first letter is
         capitalized """
     assert type(model) is Model
-    # Task 8.2
+    new_meaning = {}
+    for func in model.meaning:
+        if is_function(func):
+            # new_func = func # makes the first letter capital
+            new_func = "".join(c.upper() if i == 0  else c for i,c in enumerate(func))
+            realtions = set()
+            for key in model.meaning[func]:
+                new_pair = []
+                new_pair.append(model.meaning[func][key])
+                for value in key:
+                    new_pair.append(value)
+                realtions.add(tuple(new_pair))
+            new_meaning[new_func] = realtions
+        else:
+            new_meaning[func] = model.meaning[func]
+    return Model(model.universe, new_meaning)
+        # Task 8.2
 
 
 def replace_relations_with_functions_in_model(model: Model, original_functions: set()):
