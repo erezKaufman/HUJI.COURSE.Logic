@@ -20,7 +20,7 @@ def replace_functions_with_relations_in_model(model):
     for func in model.meaning:
         if is_function(func):
             # new_func = func # makes the first letter capital
-            new_func = "".join(c.upper() if i == 0  else c for i,c in enumerate(func))
+            new_func = "".join(c.upper() if i == 0  else c for i, c in enumerate(func))
             realtions = set()
             for key in model.meaning[func]:
                 new_pair = []
@@ -32,30 +32,56 @@ def replace_functions_with_relations_in_model(model):
         else:
             new_meaning[func] = model.meaning[func]
     return Model(model.universe, new_meaning)
-        # Task 8.2
+    # Task 8.2
 
 
 def replace_relations_with_functions_in_model(model: Model, original_functions: set()):
+    def check_for_valid_number_of_vals():
+        len_of_vals = len(val) - 1
+        return len(values) == 2 ** len_of_vals
     """ Return a new model original_model with function names
         original_functions such that:
         model == replace_functions_with_relations_in_model(original_model)
         or None if no such original_model exists """
     assert type(model) is Model
     new_meaning = {}
-    for key , values in model.meaning.items():
+    for key, values in model.meaning.items():
+
         temp_key = key[0].lower() + key[1:]
-        # temp_key[0] = temp_key[0].lower()
         if temp_key in original_functions:
             function_dict = {}
             for val in values:
+
+                if not check_for_valid_number_of_vals():
+                    return None
                 function_dict[(val[1:])] = val[0]
             new_meaning[temp_key] = function_dict
         else:
             new_meaning[key] = values
     new_model = Model(model.universe, new_meaning)
-    if replace_functions_with_relations_in_model(new_model) == model:
-        return new_model
-    return None
+    temp_original_model = replace_functions_with_relations_in_model(new_model)
+
+    # for key, values in new_model.meaning.items():
+    #     if is_function(key):
+    #         for val in values:
+    #             len_of_vals = len(val)
+    #             break
+    #
+    #         if len(values) != 2 ** len_of_vals:
+    #             return None
+
+    #     if len(values) == 2**len(model.universe):
+    #         for val in values:
+    #             if len(val) == len(model.universe) and val not in model.meaning[key]:
+    #                 return None
+    # for key, values in model.meaning.items():
+    #     if len(values) == 2 ** len(model.universe):
+    #         for val in values:
+    #             if len(val) == len(model.universe) and val not in temp_original_model.meaning[key]:
+    #                 return None
+
+    return new_model
+
 
 def compile_term(term):
     """ Return a list of steps that result from compiling the given term,
