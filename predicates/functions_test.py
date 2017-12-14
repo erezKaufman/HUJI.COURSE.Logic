@@ -136,21 +136,22 @@ def test_replace_functions_with_relations_in_formula(debug):
                 'F': {('a', 'a'), ('b', 'b')}, 'G': {('b', 'a'), ('a', 'b')}}),
          Model({'a', 'b'},
                {'a': 'a', 'b': 'b', 'GT': {('b', 'a')},
-                'F': {('b', 'a'), ('b', 'b')}, 'G': {('b', 'a'), ('a', 'b')}})],
-        ['Ax[(Ey[f(y)=x]->GT(x,a))]',
-         Model({'a', 'b'},
-               {'a': 'a', 'b': 'b', 'GT': {('b','a')},
-                'F': {('b','a'), ('b','b')}, 'G': {('b','a'), ('a','b')}}),
-         Model({'a', 'b'},
-               {'a': 'a', 'b': 'b', 'GT': {('b','a')},
-                'F': {('a','a'), ('b','b')}, 'G': {('b','a'), ('a','b')}})]]:
+                'F': {('b', 'a'), ('b', 'b')}, 'G': {('b', 'a'), ('a', 'b')}})]
+        # ['Ax[(Ey[f(y)=x]->GT(x,a))]',
+        #  Model({'a', 'b'},
+        #        {'a': 'a', 'b': 'b', 'GT': {('b','a')},
+        #         'F': {('b','a'), ('b','b')}, 'G': {('b','a'), ('a','b')}}),
+        #  Model({'a', 'b'},
+        #        {'a': 'a', 'b': 'b', 'GT': {('b','a')},
+        #         'F': {('a','a'), ('b','b')}, 'G': {('b','a'), ('a','b')}})]
+    ]:
         formula=Formula.parse(s)
         if debug:
             print('Replacing functions with relations in formula', formula,
                   '...')
         new_formula = replace_functions_with_relations_in_formula(formula)
         if debug:
-            print('... got', formula)
+            print('... got', new_formula)
         for model,validity in [[valid_model,True], [invalid_model,False]]:
             # Will be tested with the course staff's implementation of
             # is_model_of
