@@ -95,7 +95,8 @@ class Model:
                 possibilities = self.create_all_subsets(free_vars)
                 for ass in possibilities:
                     truth_list.append(self.evaluate_formula(formula, ass))
-
+            else:
+                return self.evaluate_formula(formula)
         return False if False in truth_list else True
 
     def create_all_subsets(self, vars):

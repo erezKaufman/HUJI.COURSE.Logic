@@ -63,10 +63,8 @@ def replace_relations_with_functions_in_model(model: Model, original_functions: 
     return new_model
 
 
-
-
 def compile_term(term):
-    def compile_term_helper(term:Term, z_list:list, map:dict):
+    def compile_term_helper(term: Term, z_list: list, map: dict):
         """
 
         :param term: the term to process
@@ -81,17 +79,18 @@ def compile_term(term):
 
         if is_function(term.root):
             var = next(fresh_variable_name_generator)
-            new_args = [] #holds the new args for this trem, if one of the args should be z_i append that
-            for arg in term.arguments: # iterate over all term's args
+            new_args = []  # holds the new args for this trem, if one of the args should be z_i append that
+            for arg in term.arguments:  # iterate over all term's args
                 if is_function(arg.root):
-                    if arg in map.keys(): # it's possible we already added this var , if so
+                    if arg in map.keys():  # it's possible we already added this var , if so
                         new_args.append(map[arg])  # just append it!
                 else:
-                    new_args.append(arg) # this is a new arg for a var, append it
+                    new_args.append(arg)  # this is a new arg for a var, append it
 
             result = Formula('=', Term(var), Term(term.root, new_args))
             z_list.append(result)
             map[term] = Term(var)
+
     """ Return a list of steps that result from compiling the given term,
         whose root is a function invocation (possibly with nested function
         invocations down the term tree). Each of the returned steps is a
@@ -111,37 +110,82 @@ def compile_term(term):
     # Task 8.4
 
 
-
 def replace_functions_with_relations_in_formula(formula: Formula):
-    def rfwrif_helper(formula: Formula):
-        if is_relation(formula.root):
+    def make_func_to_relation(function: Term, new_var):
+        """
+
+        :param function:
+        :param new_var:
+        :return:
+        """
+        relation_name = function.root[0].upper() + function.root[1:]
+        new_args = [new_var] + function.arguments
+        return Formula(relation_name, new_args)
+
+    def create_valid_formula(sequences):
+        if len(sequences) == 1:
+            return sequences[0]
+        if is_equality(sequences[0].root):
+            new_var = sequences[0].first
+            if is_function(sequences[0].second.root):
+                new_relation = make_func_to_relation(sequences[0].second, new_var)
+            else:
+                return sequences[0]
+            sequence_formula = Formula('->', new_relation, create_valid_formula(sequences[1:]))
+            return Formula('A', new_var.root, sequence_formula)
+        else:
+            return sequences[0]
+
+
+
+    def rfwrif_helper(temp_formula: Formula):
+        """
+
+        :param temp_formula:
+        :return:
+        """
+        helper_sequence = []
+        if is_relation(temp_formula.root):
             new_relation_args = []
-            for arg in formula.arguments:
-                term = compile_term(arg)
-                list_of_sequences.append(term)
-                zs_dict.update(term)
-                new_relation_args.append(zs_dict[arg]) # TODO check this for validity
-            list_of_sequences.append(Formula(formula.root,new_relation_args))
+            for arg in temp_formula.arguments:
+                term = arg
+                if is_function(arg.root):
+                    term = compile_term(arg)
+                    helper_sequence = helper_sequence + term
+                    term = zs_dict[arg] = helper_sequence[-1].first  # TODO maybe insert  here what I want it to be
 
-        elif is_equality(formula.root):  # Populate self.first and self.second
-            term_first = compile_term(formula.first)
-            term_second = compile_term(formula.second)
-            list_of_sequences.append(term_first)
-            list_of_sequences.append(term_second)
-            zs_dict.update(term_first)
-            zs_dict.update(term_second)
-            list_of_sequences.append(Formula(formula.root,term_first[-1],term_second[-1]))
+                new_relation_args.append(term)  # TODO check this for validity
+            helper_sequence.append(Formula(temp_formula.root, new_relation_args))
 
-        elif is_quantifier(formula.root):  # Populate self.variable and self.predicate
+        elif is_equality(temp_formula.root):  # Populate self.first and self.second
+            term_first = temp_formula.first
+            term_second = temp_formula.second
+            if is_function(temp_formula.first.root):
+                term_first = compile_term(temp_formula.first)
+                helper_sequence = helper_sequence + term_first
+                zs_dict[temp_formula.first] = term_first
+                term_first = helper_sequence[-1].first
+            if is_function(temp_formula.second.root):
+                term_second = compile_term(temp_formula.second)
+                helper_sequence = helper_sequence + term_second
+                zs_dict[ helper_sequence[-1].second] = helper_sequence[-1].first
+                term_second = helper_sequence[-1].first
 
-            assert is_variable(first) and type(second) is Formula
-            self.root, self.variable, self.predicate = root, first, second
-        elif is_unary(formula.root):  # Populate self.first
-            assert type(first) is Formula and second is None
-            self.root, self.first = root, first
+            helper_sequence.append(Formula(temp_formula.root, term_first, term_second))
+
+        elif is_quantifier(temp_formula.root):  # Populate self.variable and self.predicate
+            helper_sequence = helper_sequence + rfwrif_helper(temp_formula.predicate)
+            helper_sequence.append(Formula(temp_formula.root, temp_formula.variable, helper_sequence[-1]))
+        elif is_unary(temp_formula.root):  # Populate self.first
+            helper_sequence = helper_sequence + rfwrif_helper(temp_formula.second)
+            helper_sequence.append(Formula(temp_formula.root, helper_sequence[-1]))
         else:  # Populate self.first and self.second
-            assert is_binary(root) and type(first) is Formula and type(second) is Formula
-            self.root, self.first, self.second = root, first, second
+            helper_sequence = helper_sequence + rfwrif_helper(temp_formula.first)
+            first_arg = helper_sequence[-1]
+            helper_sequence = helper_sequence + rfwrif_helper(temp_formula.second)
+            second_arg = helper_sequence[-1]
+            helper_sequence.append(Formula(temp_formula.root, first_arg, second_arg))
+        return helper_sequence
 
     """ Return a function-free analog of the given formula. Every k-ary
     function that is used in the given formula should be replaced with a
@@ -155,10 +199,20 @@ def replace_functions_with_relations_in_formula(formula: Formula):
     to have single possible value for the first relation argument for every
     k-tuple of the other arguments """
     assert type(formula) is Formula
-    list_of_sequences = []
-    zs_dict = {}
-    rfwrif_helper(formula)
 
+    zs_dict = {}
+    list_of_sequences = rfwrif_helper(formula)
+    return create_valid_formula(list_of_sequences)
+    # print(list_of_sequences)
+
+
+if __name__ == '__main__':
+    # print(replace_functions_with_relations_in_formula(Formula.parse('R(f(g(x)),h(2,y),3)')))
+    print(replace_functions_with_relations_in_formula(Formula.parse('Ax[(Ey[f(y)=x]->GT(x,a))]')))
+    # replace_functions_with_relations_in_formula(Formula.parse('R(3)'))
+
+
+# ∀z1[(G(z1, x)→∀z2[(F(z2, z1)→∀z3[(H(z3, 2, y)→R(z2, z3, 3))])])]
 
 
 def replace_functions_with_relations_in_formulae(formulae):
