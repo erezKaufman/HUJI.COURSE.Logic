@@ -113,16 +113,24 @@ def compile_term(term):
 def replace_functions_with_relations_in_formula(formula: Formula):
     def make_func_to_relation(function: Term, new_var):
         """
-
-        :param function:
+        help method for 'create_valid_formula'. it's purpose is to get a function and return a relation in the
+        form of Formula object, with the new_var as it's first variable
+        :param function: Term object of the formula
         :param new_var:
         :return:
         """
+        assert type(function) is Term
         relation_name = function.root[0].upper() + function.root[1:]
         new_args = [new_var] + function.arguments
         return Formula(relation_name, new_args)
 
     def create_valid_formula(sequences):
+        """
+        the help method is called from 'replace_functions_with_relations_in_formula' itself. it receives lit of
+        sequences that from which we will build our new Formula
+        :param sequences:
+        :return:
+        """
         if len(sequences) == 1:
             return sequences[0]
         if is_equality(sequences[0].root):
@@ -203,7 +211,6 @@ def replace_functions_with_relations_in_formula(formula: Formula):
     zs_dict = {}
     list_of_sequences = rfwrif_helper(formula)
     return create_valid_formula(list_of_sequences)
-    # print(list_of_sequences)
 
 
 if __name__ == '__main__':
