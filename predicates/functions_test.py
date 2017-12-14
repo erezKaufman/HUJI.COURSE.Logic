@@ -223,7 +223,7 @@ def test_replace_equality_with_SAME(debug):
     if debug:
         print('... got', new_formulae)
     new_formulae = set(new_formulae)
-    assert 'Ax[Ay[Az[((S(x,y)&S(x,z))->SAME(y,z))]]]' in new_formulae
+    assert 'Ax[Ay`[Az[((S(x,y)&S(x,z))->SAME(y,z))]]]' in new_formulae
 
     for model,validity in [
             [Model({'0', '1', '2'},

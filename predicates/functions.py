@@ -106,6 +106,7 @@ def compile_term(term):
         step should evaluate to the value of the given term """
     assert type(term) is Term and is_function(term.root)
     z_list = []
+    # map = {}
     compile_term_helper(term, z_list)
     return z_list
     # Task 8.4
@@ -234,6 +235,43 @@ def replace_functions_with_relations_in_formulae(formulae):
 
 
 def replace_equality_with_SAME(formulae):
+    def equilty_to_SAME_syntax(formula:str):
+        chars = list(formula)
+        front_index = -1
+        deleted = 0
+        for index, char in enumerate(formula):
+            if index < front_index:
+                continue
+            if char == '=':
+                for back in range(index-1, 0, -1):
+                    if not formula[back].isalnum():
+                        break
+                for front in range(index+1, len(formula)):
+                    if not formula[front].isalnum():
+                        break
+                cur = 'SAME('
+                for c in formula[back+1:index]:
+                    cur += c
+                cur += ','
+                for c in formula[index+1:front]:
+                    cur += c
+                cur += ')'
+                chars[back+1-deleted] = cur
+                del chars[back+2-deleted:front-deleted]
+                deleted += front - back - 2
+                front_index = front
+        ret = ''
+        for char in chars: ret+= char
+        return ret
+
+
+
+    def SAME_helper(formula):
+        ret = []
+        formula = 'Ax[Ey[x=s]->[a=8][M[p=np]'
+        ret.append(equilty_to_SAME_syntax(formula))
+        print(ret)
+
     """ Return a list of equality-free formulae (as strings) that is equivalent
         to the given formulae list (also of strings) that may contain the
         equality symbol. Every occurrence of equality should be replaced with a
@@ -245,6 +283,10 @@ def replace_equality_with_SAME(formulae):
         transitive, and respected by all relations in the given formulae """
     for formula in formulae:
         assert type(formula) is str
+        ret = []
+        for formula in formulae:
+            ret.append(SAME_helper(formula))
+        return ret
         # Task 8.7
 
 
