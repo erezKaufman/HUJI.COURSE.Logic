@@ -235,42 +235,46 @@ def replace_functions_with_relations_in_formulae(formulae):
 
 
 def replace_equality_with_SAME(formulae):
-    def equilty_to_SAME_syntax(formula:str):
+    def add_rules(x, y):
+        rules = []
+        # ret.append('A'+x+ 'SAME(' + x ,x)]')
+        ret.append('Ax[SAME(x,x)]')
+
+    def SAME_helper(formula):
+        ret = []
         chars = list(formula)
         front_index = -1
         deleted = 0
         for index, char in enumerate(formula):
             if index < front_index:
                 continue
-            if char == '=':
-                for back in range(index-1, 0, -1):
+            if char == '=':  # we need to replace this
+                for back in range(index - 1, 0, -1):  # find all the char's before '=' that we need to take
                     if not formula[back].isalnum():
                         break
-                for front in range(index+1, len(formula)):
+                for front in range(index + 1, len(formula)):  # find all the char's after '=' that we need to take
                     if not formula[front].isalnum():
                         break
+                # from here create the SAME to add
                 cur = 'SAME('
-                for c in formula[back+1:index]:
-                    cur += c
-                cur += ','
-                for c in formula[index+1:front]:
-                    cur += c
-                cur += ')'
-                chars[back+1-deleted] = cur
-                del chars[back+2-deleted:front-deleted]
-                deleted += front - back - 2
-                front_index = front
-        ret = ''
-        for char in chars: ret+= char
+                x = ''
+                for c in formula[back + 1:index]:
+                    x += c
+                cur += x + ','
+                y = ''
+                for c in formula[index + 1:front]:
+                    y += c
+                cur += y + ')'
+                ret.extend(add_rules(x,y))
+                chars[back + 1 - deleted] = cur  # append the SAME to the first variable slot, minus the ones we del
+                del chars[back + 2 - deleted:front - deleted]  # del the others
+                deleted += front - back - 2  # updated the amount we deleted
+                front_index = front  # updated how many items we iterated over already
+        cur_final = ''
+        for char in chars: ret += char
+        ret.append(cur_final)
         return ret
 
-
-
-    def SAME_helper(formula):
-        ret = []
-        formula = 'Ax[Ey[x=s]->[a=8][M[p=np]'
-        ret.append(equilty_to_SAME_syntax(formula))
-        print(ret)
 
     """ Return a list of equality-free formulae (as strings) that is equivalent
         to the given formulae list (also of strings) that may contain the
@@ -310,3 +314,6 @@ def make_equality_as_SAME(model):
         there are no function meanings in the given model """
     assert type(model) is Model
     # Task 8.9
+
+if __name__ == '__main__':
+    replace_equality_with_SAME(['Ax[Ay[Az[((S(x,y)&S(x,z))->y=z)]]]'])
