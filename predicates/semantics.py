@@ -89,6 +89,7 @@ class Model:
             the free variables """
         truth_list = []
         for formula in formulae_repr:
+
             formula = Formula.parse(formula)
             free_vars = formula.free_variables()
             if free_vars != set():
