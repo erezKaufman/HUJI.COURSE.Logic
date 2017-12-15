@@ -309,7 +309,7 @@ def replace_equality_with_SAME(formulae):
                 relation_same_formula += 'Ax'+str(i)+'['
                 relation_same_formula += 'Ay'+str(i)+'['
 
-            relation_same_formula+= '(' + '(' * (arity-1) # open for IMPLICATION and open for & * # of times of x1...
+            relation_same_formula += '(' + '(' * (arity-1) # open for IMPLICATION and open for & * # of times of x1...
 
             for i in range(1, arity + 1):
                 if i != 1:

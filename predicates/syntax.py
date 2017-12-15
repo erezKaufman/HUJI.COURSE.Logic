@@ -401,13 +401,16 @@ class Formula:
         if args_vars != set(): # the set is not empty
             for var in args_vars:
                 if var not in non_free and is_variable(var): # if it wasnt refrenced and is a var add it
-                    free.add(Term(var))
+                    free.add(var)
 
     def free_variables(self):
         """ Return the set of variables that are free in this formula """
 
         free_vars = set()
         self.free_variables_helper(free_vars)
+        for var in free_vars:
+            if type(var) != str:
+                print(type(var))
         return free_vars
         # Task 7.6
 

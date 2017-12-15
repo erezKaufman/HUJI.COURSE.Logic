@@ -95,11 +95,11 @@ class Model:
                 for ass in possibilities:
                     truth_list.append(self.evaluate_formula(formula, ass))
             else:
-                truth_list.append(self.evaluate_formula(formula,{}))
+                truth_list.append(self.evaluate_formula(formula, {}))
 
         return False if False in truth_list else True
 
-    def create_all_subsets(self, vars):
+    def create_all_subsets(self, vars: set()):
         iter_sets = product(self.universe, repeat=len(vars))
         list_to_return = []
         for arg in iter_sets:
