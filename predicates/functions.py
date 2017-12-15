@@ -271,7 +271,6 @@ def replace_functions_with_relations_in_formulae(formulae):
             for i in range(arity - 1):
                 second_part += ']'  # 2 times ] # close Axs...
             returned_list.append('(' + first_part + '&' + second_part + ')')  # ( & )
-            # print(second_part)
 
     for formula in formulae:
         assert type(formula) is str

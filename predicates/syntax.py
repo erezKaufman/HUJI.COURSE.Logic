@@ -408,9 +408,6 @@ class Formula:
 
         free_vars = set()
         self.free_variables_helper(free_vars)
-        for var in free_vars:
-            if type(var) != str:
-                print(type(var))
         return free_vars
         # Task 7.6
 
