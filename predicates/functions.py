@@ -370,14 +370,3 @@ def make_equality_as_SAME(model):
         there are no function meanings in the given model """
     assert type(model) is Model
     # Task 8.9
-
-
-if __name__ == '__main__':
-    test = 'Ax[Ay[Az[((S(x,y)&S(x,z))->y=z)]]]'
-    fore = replace_equality_with_SAME([test])
-    for form in fore:
-        print(form)
-        Formula.parse(form)
-    # ['Az1[(G(z1,a)->Az2[(F(z2,z1)->G(z2))])]',
-    #  '(Ez[g(z)]&Az1[Az2[((g(z1)&g(z2))->z1=z2)]])',
-    #  '(Ez[f(z)]&Az1[Az2[((f(z1)&f(z2))->z1=z2)]])']
