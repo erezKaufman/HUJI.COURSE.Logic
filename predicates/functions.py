@@ -4,7 +4,6 @@
     File name: code/predicates/functions.py """
 import copy
 
-from predicates.syntax import *
 from predicates.semantics import *
 from predicates.util import *
 
@@ -23,15 +22,14 @@ def replace_functions_with_relations_in_model(model: Model):
     for func in model.meaning:
         if is_function(func):
             # new_func = func # makes the first letter capital
-            new_func = "".join(c.upper() if i == 0  else c for i, c in enumerate(func))
-            realtions = set()
+            new_func = "".join(c.upper() if i == 0 else c for i, c in enumerate(func))
+            relations = set()
             for key in model.meaning[func]:
-                new_pair = []
-                new_pair.append(model.meaning[func][key])
+                new_pair = [model.meaning[func][key]]
                 for value in key:
                     new_pair.append(value)
-                realtions.add(tuple(new_pair))
-            new_meaning[new_func] = realtions
+                relations.add(tuple(new_pair))
+            new_meaning[new_func] = relations
         else:
             new_meaning[func] = model.meaning[func]
     return Model(model.universe, new_meaning)
@@ -39,9 +37,9 @@ def replace_functions_with_relations_in_model(model: Model):
 
 
 def replace_relations_with_functions_in_model(model: Model, original_functions: set()):
-    def check_for_valid_number_of_vals():
-        len_of_vals = len(val) - 1
-        return len(values) == 2 ** len_of_vals
+    def check_for_valid_number_of_val():
+        len_of_val = len(val) - 1
+        return len(values) == 2 ** len_of_val
 
     """ Return a new model original_model with function names
         original_functions such that:
@@ -56,7 +54,7 @@ def replace_relations_with_functions_in_model(model: Model, original_functions: 
             function_dict = {}
             for val in values:
 
-                if not check_for_valid_number_of_vals():
+                if not check_for_valid_number_of_val():
                     return None
                 function_dict[(val[1:])] = val[0]
             new_meaning[temp_key] = function_dict
@@ -67,32 +65,31 @@ def replace_relations_with_functions_in_model(model: Model, original_functions: 
 
 
 def compile_term(term):
-    def compile_term_helper(term: Term, z_list: list):
+    def compile_term_helper(term_helper: Term, z_list_helper: list):
         """
 
-        :param term: the term to process
-        :param z_list:  our list of formula's to update
-        :param map: a mapping between previously created var's to their respective terms
+        :param term_helper: the term to process
+        :param z_list_helper:  our list of formula's to update
         """
-        if is_constant(term.root) or is_variable(term.root):
+        if is_constant(term_helper.root) or is_variable(term_helper.root):
             return
 
-        for arg in term.arguments:
-            compile_term_helper(arg, z_list)
+        for arg in term_helper.arguments:
+            compile_term_helper(arg, z_list_helper)
 
-        if is_function(term.root):
+        if is_function(term_helper.root):
             var = next(fresh_variable_name_generator)
             new_args = []  # holds the new args for this trem, if one of the args should be z_i append that
-            for arg in term.arguments:  # iterate over all term's args
+            for arg in term_helper.arguments:  # iterate over all term_helper's args
                 if is_function(arg.root):
                     if arg in zs_dict.keys():  # it's possible we already added this var , if so
                         new_args.append(zs_dict[arg])  # just append it!
                 else:
                     new_args.append(arg)  # this is a new arg for a var, append it
 
-            result = Formula('=', Term(var), Term(term.root, new_args))
-            z_list.append(result)
-            zs_dict[term] = Term(var)
+            result = Formula('=', Term(var), Term(term_helper.root, new_args))
+            z_list_helper.append(result)
+            zs_dict[term_helper] = Term(var)
 
     """ Return a list of steps that result from compiling the given term,
         whose root is a function invocation (possibly with nested function
@@ -248,7 +245,7 @@ def replace_functions_with_relations_in_formulae(formulae):
                 arity_list.append('x' + str(i))
 
             first_part += 'Ez[' + func + '(z'  # open quantify for specific z and open relation
-            while arity_list != []:
+            while arity_list:
                 first_part += ',' + arity_list.pop(0)  # add x1,x2,etc..
             first_part += ')]'  # close relation and EZ
             for i in range(arity - 1):
@@ -263,7 +260,7 @@ def replace_functions_with_relations_in_formulae(formulae):
             for i in range(arity - 1):
                 second_part += ',' + arity_list[i]  # add x1,x2,etc.. to relation
             second_part += ')&' + func + '(z2'  # ) &( close relation, and close &, and open another relation
-            while arity_list != []:
+            while arity_list:
                 second_part += ',' + arity_list.pop(0)  # add x1,x2,etc.. to relation
 
             # close relation, close ->, close Az1 close Az2
@@ -282,53 +279,53 @@ def replace_functions_with_relations_in_formulae(formulae):
 
 
 def replace_equality_with_SAME(formulae):
-
     def helper_same(help_formula: Formula):
         if is_relation(help_formula.root):  # Populate self.root and self.arguments
-            return Formula(help_formula.root,help_formula.arguments)
+            return Formula(help_formula.root, help_formula.arguments)
         elif is_equality(help_formula.root):  # Populate self.first and self.second
             first = help_formula.first
             second = help_formula.second
-            return Formula('SAME',[first,second])
-        elif is_quantifier(help_formula.root): # Populate self.variable and self.predicate
-            return Formula(help_formula.root,help_formula.variable, helper_same(help_formula.predicate))
-        elif is_unary(help_formula.root): # Populate self.first
-            return Formula(help_formula.root,helper_same(help_formula.first))
-        else: # Populate self.first and self.second
-            return Formula(help_formula.root,helper_same(help_formula.first),helper_same(help_formula.second))
+            return Formula('SAME', [first, second])
+        elif is_quantifier(help_formula.root):  # Populate self.variable and self.predicate
+            return Formula(help_formula.root, help_formula.variable, helper_same(help_formula.predicate))
+        elif is_unary(help_formula.root):  # Populate self.first
+            return Formula(help_formula.root, helper_same(help_formula.first))
+        else:  # Populate self.first and self.second
+            return Formula(help_formula.root, helper_same(help_formula.first), helper_same(help_formula.second))
 
-    def get_rules_for_same(ret,formula):
-        relation_list = formula.relations()
-        ret.append('SAME(x,x)')
-        ret.append('(SAME(x,y)->SAME(y,x))')
-        ret.append('((SAME(x,y)&SAME(y,z))->SAME(x,z))')
+    def get_rules_for_same(ret_helper, formula_helper):
+        relation_list = formula_helper.relations()
+        ret_helper.append('SAME(x,x)')
+        ret_helper.append('(SAME(x,y)->SAME(y,x))')
+        ret_helper.append('((SAME(x,y)&SAME(y,z))->SAME(x,z))')
         for relation, arity in relation_list:
             relation_same_formula = ''
-            for i in range(1,arity+1):
-                relation_same_formula += 'Ax'+str(i)+'['
-                relation_same_formula += 'Ay'+str(i)+'['
+            for i in range(1, arity + 1):
+                relation_same_formula += 'Ax' + str(i) + '['
+                relation_same_formula += 'Ay' + str(i) + '['
 
-            relation_same_formula += '(' + '(' * (arity-1) # open for IMPLICATION and open for & * # of times of x1...
+            relation_same_formula += '(' + '(' * (
+                arity - 1)  # open for IMPLICATION and open for & * # of times of x1...
 
             for i in range(1, arity + 1):
                 if i != 1:
                     relation_same_formula += '&'
-                relation_same_formula += 'SAME(x'+str(i)+',y'+str(i)+')'
+                relation_same_formula += 'SAME(x' + str(i) + ',y' + str(i) + ')'
                 if i != 1:
-                    relation_same_formula += ')' # close the openings for &
-            relation_same_formula +='->('+relation+'('
-            for i in range(1,arity+1):
+                    relation_same_formula += ')'  # close the openings for &
+            relation_same_formula += '->(' + relation + '('
+            for i in range(1, arity + 1):
                 if i != 1:
                     relation_same_formula += ','
-                relation_same_formula+= 'x'+str(i)
-            relation_same_formula+=')->'+relation+'('
+                relation_same_formula += 'x' + str(i)
+            relation_same_formula += ')->' + relation + '('
             for i in range(1, arity + 1):
                 if i != 1:
                     relation_same_formula += ','
                 relation_same_formula += 'y' + str(i)
-            relation_same_formula+= ')))'
-            relation_same_formula += ']' * 2*arity
-            ret.append(relation_same_formula)
+            relation_same_formula += ')))'
+            relation_same_formula += ']' * 2 * arity
+            ret_helper.append(relation_same_formula)
 
     """ Return a list of equality-free formulae (as strings) that is equivalent
         to the given formulae list (also of strings) that may contain the
@@ -342,12 +339,12 @@ def replace_equality_with_SAME(formulae):
     for formula in formulae:
         assert type(formula) is str
         ret = []
-        for formula in formulae:
-            formula = Formula.parse(formula)
-            ret.append(str(helper_same(formula)))
-            get_rules_for_same(ret,formula)
-        return ret
-        # Task 8.7
+    for formula in formulae:
+        formula = Formula.parse(formula)
+        ret.append(str(helper_same(formula)))
+        get_rules_for_same(ret, formula)
+    return ret
+    # Task 8.7
 
 
 def add_SAME_as_equality(model):
@@ -358,28 +355,29 @@ def add_SAME_as_equality(model):
     new_model = copy.deepcopy(model)
     new_model.meaning['SAME'] = set()
     for elem in model.universe:
-        new_model.meaning['SAME'].add((elem,elem))
+        new_model.meaning['SAME'].add((elem, elem))
     return new_model
 
 
 def make_equality_as_SAME(model):
-    def is_symmetric(pair_1, pair_2):
-        return pair_1[0] == pair_2[1] and pair_2[0] == pair_1[1]
+    def is_symmetric(pair_1_helper, pair_2_helper):
+        return pair_1_helper[0] == pair_2_helper[1] and pair_2_helper[0] == pair_1_helper[1]
 
-    def make_adjusments():
-        switch_to = pair_1[0] # this is the value to be directed to
-        to_switch = pair_1[1] # this is the value we want to throw away
+    def make_adjustments():
+        switch_to = pair_1[0]  # this is the value to be directed to
+        to_switch = pair_1[1]  # this is the value we want to throw away
         new_model.universe.remove(to_switch)  # removing the value from the universe
-        for key in new_model.meaning.keys(): # new go over all meaning and make adjusments
+        for key in new_model.meaning.keys():  # new go over all meaning and make adjustments
             if is_constant(key):  # switch constant value to new value
                 if new_model.meaning[key] == to_switch:
-                    new_model.meaning[key] = switch_to # points now to the value
-            elif is_relation(key): # we need to take out the realation with the switch_to
-                new_set = set() # make a fresh set
+                    new_model.meaning[key] = switch_to  # points now to the value
+            elif is_relation(key):  # we need to take out the relation with the switch_to
+                new_set = set()  # make a fresh set
                 for value in new_model.meaning[key]:
                     if value[0] != to_switch:
-                        new_set.add(value) # this value isn't switch_to, add it
-                new_model.meaning[key] = new_set # adjust the relation
+                        new_set.add(value)  # this value isn't switch_to, add it
+                new_model.meaning[key] = new_set  # adjust the relation
+
     """ Return a new model where equality is made to coincide with the
         reflexive, symmetric, transitive, and respected by all relations,
         relation SAME in the the given model. The requirement is that for every
@@ -392,16 +390,16 @@ def make_equality_as_SAME(model):
         there are no function meanings in the given model """
     assert type(model) is Model
     # Task 8.9
-    new_model = copy.deepcopy(model) # make a fresh model copy to work upon
-    new_model.meaning.pop('SAME') # take out the SAME 
-    same_pairs = model.meaning['SAME'] # get all the pairs, we're gonna find the symatric ones from it
+    new_model = copy.deepcopy(model)  # make a fresh model copy to work upon
+    new_model.meaning.pop('SAME')  # take out the SAME
+    same_pairs = model.meaning['SAME']  # get all the pairs, we're gonna find the symatric ones from it
     removed_pairs = []
     # here we iterate over all pairs, find the ones who match in symmetric
     for pair_1 in same_pairs:
         if pair_1 not in removed_pairs:
             for pair_2 in same_pairs:
                 if pair_2 not in removed_pairs:
-                    if is_symmetric(pair_1, pair_2) and pair_1 is not pair_2: # we need to switch the data
-                        make_adjusments() # this does all the actual work, it's lives in a decorator
-                        removed_pairs.extend([pair_1, pair_2]) # we dont want to go over the pairs we handled
+                    if is_symmetric(pair_1, pair_2) and pair_1 is not pair_2:  # we need to switch the data
+                        make_adjustments()  # this does all the actual work, it's lives in a decorator
+                        removed_pairs.extend([pair_1, pair_2])  # we dont want to go over the pairs we handled
     return new_model
