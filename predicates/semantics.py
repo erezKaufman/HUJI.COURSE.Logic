@@ -42,7 +42,6 @@ class Model:
             variables that are free in the formula get their values from the
             given assignment """
         assert formula.free_variables().issubset(assignment.keys())
-
         if is_equality(formula.root):
             first_term = self.evaluate_term(formula.first, assignment)
             second_term = self.evaluate_term(formula.second, assignment)
@@ -89,7 +88,6 @@ class Model:
             the free variables """
         truth_list = []
         for formula in formulae_repr:
-
             formula = Formula.parse(formula)
             free_vars = formula.free_variables()
             if free_vars != set():
@@ -97,7 +95,8 @@ class Model:
                 for ass in possibilities:
                     truth_list.append(self.evaluate_formula(formula, ass))
             else:
-                return self.evaluate_formula(formula)
+                truth_list.append(self.evaluate_formula(formula,{}))
+
         return False if False in truth_list else True
 
     def create_all_subsets(self, vars):

@@ -210,8 +210,6 @@ def replace_functions_with_relations_in_formula(formula: Formula):
     return list_of_sequences
 
 
-
-
 def replace_functions_with_relations_in_formulae(formulae):
     """ Return a list of function-free formulae (as strings) that is equivalent
         to the given formulae list (also of strings) that may contain function
@@ -229,52 +227,108 @@ def replace_functions_with_relations_in_formulae(formulae):
         names starting with z.) The returned list should have one formula for
         each formula in the given list, as well as one additional formula for
         every relation that replaces a function name from the given list """
+
+    def rfwrif_helper(form: Formula):
+        function_list = form.functions()
+        form = replace_functions_with_relations_in_formula(form)
+        returned_list.append(str(form))
+        # relation_list = (form.relations())
+        # run on all relations in the form, and for each - create a new form - to check each relation
+        for (func, arity) in function_list:
+            first_part = ''
+            second_part = ''
+            arity_list = []
+            arity += 1
+            func = func[0].upper() + func[1:]
+
+            # first part
+            for i in range(1, arity):
+                first_part += 'Ax' + str(i) + '['  # open quantify for each variable in relation
+                arity_list.append('x' + str(i))
+
+            first_part += 'Ez[' + func + '(z'  # open quantify for specific z and open relation
+            while arity_list != []:
+                first_part += ',' + arity_list.pop(0)  # add x1,x2,etc..
+            first_part += ')]'  # close relation and EZ
+            for i in range(arity - 1):
+                first_part += ']'  # close Axs
+
+            # second part
+            for i in range(1, arity):
+                second_part += 'Ax' + str(i) + '['  # open quantify for each variable in relation (Ax1,Ax2...)
+                arity_list.append('x' + str(i))  # 2 times '['
+            # open Az1, Az2 and relation, open & and open ->, and start relation
+            second_part += 'Az1[Az2[((' + func + '(z1'  # ([([(((
+            for i in range(arity - 1):
+                second_part += ',' + arity_list[i]  # add x1,x2,etc.. to relation
+            second_part += ')&' + func + '(z2'  # ) &( close relation, and close &, and open another relation
+            while arity_list != []:
+                second_part += ',' + arity_list.pop(0)  # add x1,x2,etc.. to relation
+
+            # close relation, close ->, close Az1 close Az2
+            second_part += '))->z1=z2)]]'  # )) -> )])])
+            for i in range(arity - 1):
+                second_part += ']'  # 2 times ] # close Axs...
+            returned_list.append('(' + first_part + '&' + second_part + ')')  # ( & )
+            # print(second_part)
+
     for formula in formulae:
         assert type(formula) is str
         # task 8.6
+    returned_list = []
+    for formula in formulae:
+        rfwrif_helper(Formula.parse(formula))
+    return returned_list
 
 
 def replace_equality_with_SAME(formulae):
-    def add_rules(x, y):
-        rules = []
-        # ret.append('A'+x+ 'SAME(' + x ,x)]')
-        ret.append('Ax[SAME(x,x)]')
 
-    def SAME_helper(formula):
-        ret = []
-        chars = list(formula)
-        front_index = -1
-        deleted = 0
-        for index, char in enumerate(formula):
-            if index < front_index:
-                continue
-            if char == '=':  # we need to replace this
-                for back in range(index - 1, 0, -1):  # find all the char's before '=' that we need to take
-                    if not formula[back].isalnum():
-                        break
-                for front in range(index + 1, len(formula)):  # find all the char's after '=' that we need to take
-                    if not formula[front].isalnum():
-                        break
-                # from here create the SAME to add
-                cur = 'SAME('
-                x = ''
-                for c in formula[back + 1:index]:
-                    x += c
-                cur += x + ','
-                y = ''
-                for c in formula[index + 1:front]:
-                    y += c
-                cur += y + ')'
-                ret.extend(add_rules(x,y))
-                chars[back + 1 - deleted] = cur  # append the SAME to the first variable slot, minus the ones we del
-                del chars[back + 2 - deleted:front - deleted]  # del the others
-                deleted += front - back - 2  # updated the amount we deleted
-                front_index = front  # updated how many items we iterated over already
-        cur_final = ''
-        for char in chars: ret += char
-        ret.append(cur_final)
-        return ret
+    def helper_same(help_formula: Formula):
+        if is_relation(help_formula.root):  # Populate self.root and self.arguments
+            return Formula(help_formula.root,help_formula.arguments)
+        elif is_equality(help_formula.root):  # Populate self.first and self.second
+            first = help_formula.first
+            second = help_formula.second
+            return Formula('SAME',[first,second])
+        elif is_quantifier(help_formula.root): # Populate self.variable and self.predicate
+            return Formula(help_formula.root,help_formula.variable, helper_same(help_formula.predicate))
+        elif is_unary(help_formula.root): # Populate self.first
+            return Formula(help_formula.root,helper_same(help_formula.first))
+        else: # Populate self.first and self.second
+            return Formula(help_formula.root,helper_same(help_formula.first),helper_same(help_formula.second))
 
+    def get_rules_for_same(ret,formula):
+        relation_list = formula.relations()
+        ret.append('SAME(x,x)')
+        ret.append('(SAME(x,y)->SAME(y,x))')
+        ret.append('((SAME(x,y)&SAME(y,z))->SAME(x,z))')
+        for relation, arity in relation_list:
+            relation_same_formula = ''
+            for i in range(1,arity+1):
+                relation_same_formula += 'Ax'+str(i)+'['
+                relation_same_formula += 'Ay'+str(i)+'['
+
+            relation_same_formula+= '(' + '(' * (arity-1) # open for IMPLICATION and open for & * # of times of x1...
+
+            for i in range(1, arity + 1):
+                if i != 1:
+                    relation_same_formula += '&'
+                relation_same_formula += 'SAME(x'+str(i)+',y'+str(i)+')'
+                if i != 1:
+                    relation_same_formula += ')' # close the openings for &
+            relation_same_formula +='->('+relation+'('
+            for i in range(1,arity+1):
+                if i != 1:
+                    relation_same_formula += ','
+                relation_same_formula+= 'x'+str(i)
+            relation_same_formula+=')->'+relation+'('
+            for i in range(1, arity + 1):
+                if i != 1:
+                    relation_same_formula += ','
+                relation_same_formula += 'y' + str(i)
+            relation_same_formula+= ')))'
+            relation_same_formula += ']' * 2*arity
+            ret.append(relation_same_formula)
 
     """ Return a list of equality-free formulae (as strings) that is equivalent
         to the given formulae list (also of strings) that may contain the
@@ -289,7 +343,9 @@ def replace_equality_with_SAME(formulae):
         assert type(formula) is str
         ret = []
         for formula in formulae:
-            ret.append(SAME_helper(formula))
+            formula = Formula.parse(formula)
+            ret.append(str(helper_same(formula)))
+            get_rules_for_same(ret,formula)
         return ret
         # Task 8.7
 
@@ -315,5 +371,13 @@ def make_equality_as_SAME(model):
     assert type(model) is Model
     # Task 8.9
 
+
 if __name__ == '__main__':
-    replace_equality_with_SAME(['Ax[Ay[Az[((S(x,y)&S(x,z))->y=z)]]]'])
+    test = 'Ax[Ay[Az[((S(x,y)&S(x,z))->y=z)]]]'
+    fore = replace_equality_with_SAME([test])
+    for form in fore:
+        print(form)
+        Formula.parse(form)
+    # ['Az1[(G(z1,a)->Az2[(F(z2,z1)->G(z2))])]',
+    #  '(Ez[g(z)]&Az1[Az2[((g(z1)&g(z2))->z1=z2)]])',
+    #  '(Ez[f(z)]&Az1[Az2[((f(z1)&f(z2))->z1=z2)]])']
