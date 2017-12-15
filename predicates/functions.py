@@ -2,6 +2,7 @@
     Mathematical Logic through Programming
     by Gonczarowski and Nisan.
     File name: code/predicates/functions.py """
+import copy
 
 from predicates.syntax import *
 from predicates.semantics import *
@@ -355,9 +356,31 @@ def add_SAME_as_equality(model):
         SAME that behaves like equality """
     assert type(model) is Model
     # Task 8.8
+    new_model = copy.deepcopy(model)
+    new_model.meaning['SAME'] = set()
+    for elem in model.universe:
+        new_model.meaning['SAME'].add((elem,elem))
+    return new_model
 
 
 def make_equality_as_SAME(model):
+    def is_symmetric(pair_1, pair_2):
+        return pair_1[0] == pair_2[1] and pair_2[0] == pair_1[1]
+
+    def make_adjusments():
+        switch_to = pair_1[0] # this is the value to be directed to
+        to_switch = pair_1[1] # this is the value we want to throw away
+        new_model.universe.remove(to_switch)  # removing the value from the universe
+        for key in new_model.meaning.keys(): # new go over all meaning and make adjusments
+            if is_constant(key):  # switch constant value to new value
+                if new_model.meaning[key] == to_switch:
+                    new_model.meaning[key] = switch_to # points now to the value
+            elif is_relation(key): # we need to take out the realation with the switch_to
+                new_set = set() # make a fresh set
+                for value in new_model.meaning[key]:
+                    if value[0] != to_switch:
+                        new_set.add(value) # this value isn't switch_to, add it
+                new_model.meaning[key] = new_set # adjust the relation
     """ Return a new model where equality is made to coincide with the
         reflexive, symmetric, transitive, and respected by all relations,
         relation SAME in the the given model. The requirement is that for every
@@ -370,14 +393,16 @@ def make_equality_as_SAME(model):
         there are no function meanings in the given model """
     assert type(model) is Model
     # Task 8.9
-
-
-if __name__ == '__main__':
-    test = 'Ax[Ay[Az[((S(x,y)&S(x,z))->y=z)]]]'
-    fore = replace_equality_with_SAME([test])
-    for form in fore:
-        print(form)
-        Formula.parse(form)
-    # ['Az1[(G(z1,a)->Az2[(F(z2,z1)->G(z2))])]',
-    #  '(Ez[g(z)]&Az1[Az2[((g(z1)&g(z2))->z1=z2)]])',
-    #  '(Ez[f(z)]&Az1[Az2[((f(z1)&f(z2))->z1=z2)]])']
+    new_model = copy.deepcopy(model) # make a fresh model copy to work upon
+    new_model.meaning.pop('SAME') # take out the SAME 
+    same_pairs = model.meaning['SAME'] # get all the pairs, we're gonna find the symatric ones from it
+    removed_pairs = []
+    # here we iterate over all pairs, find the ones who match in symmetric
+    for pair_1 in same_pairs:
+        if pair_1 not in removed_pairs:
+            for pair_2 in same_pairs:
+                if pair_2 not in removed_pairs:
+                    if is_symmetric(pair_1, pair_2) and pair_1 is not pair_2: # we need to switch the data
+                        make_adjusments() # this does all the actual work, it's lives in a decorator
+                        removed_pairs.extend([pair_1, pair_2]) # we dont want to go over the pairs we handled
+    return new_model
