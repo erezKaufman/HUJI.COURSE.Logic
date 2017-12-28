@@ -374,6 +374,35 @@ class Formula:
         # Task 7.4.2
 
     def substitute(self, substitution_map):
+        def subsitute_helper(free_vars_list):
+            """
+            help method for substitut method in Formula class. it calls recursively to terms of the formula or deeper
+            formulas in the tree, while removing non-free variables that might appear in the substitution_map
+            :param free_vars_list:
+            :return:
+            """
+            second = None
+            if is_relation(self.root):  # Populate self.root and self.arguments
+                first = []
+                for x in self.arguments:
+                    first.append(x.substitute(substitution_map))
+
+            elif is_equality(self.root):  # Populate self.first and self.second
+                first = self.first.substitute(substitution_map)
+                second = self.second.substitute(substitution_map)
+
+            elif is_quantifier(self.root):  # Populate self.variable and self.predicate
+                if self.variable in substitution_map: # if the variable appears in the quantifier, delete it from the
+                    #  dictionary for this part of the tree
+                    del substitution_map[self.variable]
+                first = self.variable
+                second = self.predicate.substitute(substitution_map)
+            elif is_unary(self.root):  # Populate self.first
+                first = self.first.substitute(substitution_map)
+            else:  # Populate self.first and self.second
+                first = self.first.substitute(substitution_map)
+                second = self.second.substitute(substitution_map)
+            return Formula(self.root, first, second)
         """ Return a first-order formula obtained from this formula where all
             occurrences of each constant name element_name and all *free*
             occurrences of each variable name element_name for element_name
@@ -382,6 +411,8 @@ class Formula:
         for element_name in substitution_map:
             assert (is_constant(element_name) or is_variable(element_name)) and \
                    type(substitution_map[element_name]) is Term
+        return subsitute_helper([])
+
 
     def free_variables_helper(self ,free:set, non_free=set()):
         if is_variable(self.root):

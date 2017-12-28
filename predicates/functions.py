@@ -174,7 +174,7 @@ def replace_functions_with_relations_in_formula(formula: Formula):
         elif is_equality(temp_formula.root):  # Populate self.first and self.second # b=f(a)
             term_first, steps_list = appeand_to_sequence(temp_formula.first, steps_list)  # b
             term_second, steps_list = appeand_to_sequence(temp_formula.second, steps_list)  # f(a) = z1
-            return handle_relation(steps_list, Formula(temp_formula.root, term_first, term_second))
+            return handle_relation(steps_list, Formula(temp_formula.root, term_first, _second))
 
         elif is_quantifier(temp_formula.root):  # Populate self.variable and self.predicate
 
