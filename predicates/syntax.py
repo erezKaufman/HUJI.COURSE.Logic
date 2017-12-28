@@ -397,7 +397,7 @@ class Formula:
             if self.variable in inner_subsitution_map:
                 # if we entered the method through 'instantiate_formula', then we want to keep the
                 if is_instantiation:
-                    first = inner_subsitution_map[self.variable]
+                    first = inner_subsitution_map[self.variable].root
 
                 else:
                     del inner_subsitution_map[self.variable]
