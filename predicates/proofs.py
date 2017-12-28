@@ -70,7 +70,7 @@ class Schema:
                 pass
 
             # now we will
-            second = None
+            root,first,second = None, None,None
             if is_relation(formula.root):  # Populate self.root and self.arguments
                 if formula.root in relations_instantiation_map:
                     subsitution_map = {}
@@ -82,19 +82,22 @@ class Schema:
                 else:
                     first = formula.arguments
                     root = formula.root
-            elif is_equality(formula.root):  # Populate self.first and self.second
+            elif is_equality(formula.root):  # adapt formula.first and formula.second
                 root = formula.root
                 first = formula.first
                 second = formula.second
             elif is_quantifier(formula.root):  # Populate self.variable and self.predicate
                 # if the variable appears in the quantifier, delete it from the   dictionary for this part of the tree
-
-                second = formula.predicate.subsitute_helper(inner_subsitution_map, is_instantiation)
-            elif is_unary(formula.root):  # Populate self.first
-                first = self.first.subsitute_helper(inner_subsitution_map, is_instantiation)
+                bound_variables.add(formula.variable)
+                second = second_run(formula.second)
+                bound_variables.remove(formula.variable)
+            elif is_unary(formula.root):
+                root = formula.root
+                first = second_run(formula.first)
             else:  # Populate self.first and self.second
-                first = self.first.subsitute_helper(inner_subsitution_map, is_instantiation)
-                second = self.second.subsitute_helper(inner_subsitution_map, is_instantiation)
+                root = formula.root
+                first = second_run(formula.first)
+                second = second_run(formula.second)
             return Formula(root, first, second)
 
         """ Return the Formula resulting in simultaneously making the following

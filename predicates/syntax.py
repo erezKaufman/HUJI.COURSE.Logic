@@ -298,7 +298,6 @@ class Formula:
             string """
 
         Term.str = replace_string(s) # replace operators with more than one letter to be one letter
-
         second = None
 
         # if there is a left parentheses it means that we are having an operator that is enclosed by parenthesis
