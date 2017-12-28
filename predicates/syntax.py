@@ -185,21 +185,21 @@ class Term:
             assert (is_constant(element_name) or is_variable(element_name)) and \
                    type(substitution_map[element_name]) is Term
 
-        if is_constant(self.root) or is_variable(self.root):
+        if is_constant(self.root) or is_variable(self.root): # we need to to deal only with the root
             if self.root in substitution_map.keys():
-                return substitution_map[self.root]
-            else: return Term(self.root)
-        else:
-            assert is_function(self.root)
-            if self.root in substitution_map.keys():
-                root = substitution_map[self.root]
-            else:
-                root = self.root
-            args = []
-            for index, arg in enumerate(self.arguments):
-                args.append(arg.substitute(substitution_map))
-            return Term(root,args)
+                return substitution_map[self.root] # change it with it is in the map
+            else: return Term(self.root) # else return it as is
 
+        else:
+            assert is_function(self.root) # we have a function
+            if self.root in substitution_map.keys():
+                root = substitution_map[self.root] # update the root if it is in map
+            else:
+                root = self.root # else, leave it as it is, without changing it to Term
+            args = [] # this is our args
+            for index, arg in enumerate(self.arguments): # for every arg, switch it with it's substitute
+                args.append(arg.substitute(substitution_map)) # recursive call to substitute
+            return Term(root,args)
         # Task 9.1
 
 

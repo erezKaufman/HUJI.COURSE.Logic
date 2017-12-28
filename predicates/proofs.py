@@ -52,14 +52,9 @@ class Schema:
     def instantiate_formula(formula, constants_and_variables_instantiation_map,
                             relations_instantiation_map, bound_variables):
         def first_run():
-            """
-
-            :return:
-            """
-            return formula.substitute(constants_and_variables_instantiation_map,True)
-
-        def second_run():
-            pass
+            x = formula.substitute(constants_and_variables_instantiation_map, True)
+            print(x)
+            return
         """ Return the Formula resulting in simultaneously making the following
             substitutions in formula:
             1) Replace every occurrence of every constant name or variable name
@@ -105,7 +100,25 @@ class Schema:
             assert type(template) is Formula
         for variable in bound_variables:
             assert is_variable(variable)
-        new_formula = first_run()
+
+        first_run() #
+        # if is_relation(root):  # Populate self.root and self.arguments
+        #
+        #     self.root, self.arguments = root, first
+        # elif is_equality(root):  # Populate self.first and self.second
+        #
+        #     self.root, self.first, self.second = root, first, second
+        # elif is_quantifier(root): # Populate self.variable and self.predicate
+        #
+        #     self.root, self.variable, self.predicate = root, first, second
+        # elif is_unary(root): # Populate self.first
+        #
+        #     self.root, self.first = root, first
+        # else: # Populate self.first and self.second
+        #
+        #     self.root, self.first, self.second = root, first, second
+
+        # Task 9.3
 
     def instantiate(self, instantiation_map):
         """ Return the first-order formula obtained by applying the mapping
