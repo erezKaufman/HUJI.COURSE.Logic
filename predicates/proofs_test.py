@@ -21,14 +21,14 @@ def test_instantiate_formula(debug=False):
              'Ax[x=1]'),
             ('Ax[R(x)]', {'R', 'x'}, {'x': Term('z')},
              {'R':(['v'],Formula.parse('v=x'))}, 'Az[z=x]')]:
-        schema = Schema(formula_str, templates)
         if debug:
+            schema = Schema(formula_str, templates)
             print('Substituting constant and variable instantiation map',
                   constant_and_variable_instantiation_map,
                   'and relations instantiation map',
                   relations_instantiation_map,
                   'in schema', schema, '...')
-        result = schema.instantiate_formula(
+        result = Schema.instantiate_formula(
             Formula.parse(formula_str), constant_and_variable_instantiation_map,
             relations_instantiation_map, set())
         if debug:

@@ -5,6 +5,7 @@
 
 from propositions.syntax import Formula as PropositionalFormula
 from predicates.util import *
+import copy
 
 def is_unary(s):
     """ Is s a unary operator? """
@@ -373,36 +374,45 @@ class Formula:
         return new_Formula
         # Task 7.4.2
 
-    def substitute(self, substitution_map):
-        def subsitute_helper(inner_subsitution_map):
-            """
-            help method for substitut method in Formula class. it calls recursively to terms of the formula or deeper
-            formulas in the tree, while removing non-free variables that might appear in the substitution_map
-            :param free_vars_list:
-            :return:
-            """
-            second = None
-            if is_relation(self.root):  # Populate self.root and self.arguments
-                first = []
-                for x in self.arguments:
-                    first.append(x.substitute(inner_subsitution_map))
+    def subsitute_helper(self, inner_subsitution_map,is_instantiation):
+        """
+        help method for substitut method in Formula class. it calls recursively to terms of the formula or deeper
+        formulas in the tree, while removing non-free variables that might appear in the substitution_map
+        :param free_vars_list:
+        :return:
+        """
+        second = None
+        if is_relation(self.root):  # Populate self.root and self.arguments
+            first = []
+            for x in self.arguments:
+                first.append(x.substitute(inner_subsitution_map))
 
-            elif is_equality(self.root):  # Populate self.first and self.second
-                first = self.first.substitute(inner_subsitution_map)
-                second = self.second.substitute(inner_subsitution_map)
+        elif is_equality(self.root):  # Populate self.first and self.second
+            first = self.first.substitute(inner_subsitution_map)
+            second = self.second.substitute(inner_subsitution_map)
 
-            elif is_quantifier(self.root):  # Populate self.variable and self.predicate
-                if self.variable in inner_subsitution_map: # if the variable appears in the quantifier, delete it from the
-                    #  dictionary for this part of the tree
+        elif is_quantifier(self.root):  # Populate self.variable and self.predicate
+            # if the variable appears in the quantifier, delete it from the   dictionary for this part of the tree
+            if self.variable in inner_subsitution_map:
+                # if we entered the method through 'instantiate_formula', then we want to keep the
+                if is_instantiation:
+                    first = inner_subsitution_map[self.variable]
+
+                else:
                     del inner_subsitution_map[self.variable]
+                    first = self.variable
+            else:
                 first = self.variable
-                second = self.predicate.substitute(inner_subsitution_map)
-            elif is_unary(self.root):  # Populate self.first
-                first = self.first.substitute(inner_subsitution_map)
-            else:  # Populate self.first and self.second
-                first = self.first.substitute(inner_subsitution_map)
-                second = self.second.substitute(inner_subsitution_map)
-            return Formula(self.root, first, second)
+            second = self.predicate.subsitute_helper(inner_subsitution_map,is_instantiation)
+        elif is_unary(self.root):  # Populate self.first
+            first = self.first.subsitute_helper(inner_subsitution_map,is_instantiation)
+        else:  # Populate self.first and self.second
+            first = self.first.subsitute_helper(inner_subsitution_map,is_instantiation)
+            second = self.second.subsitute_helper(inner_subsitution_map,is_instantiation)
+        return Formula(self.root, first, second)
+
+    def substitute(self, substitution_map):
+
         """ Return a first-order formula obtained from this formula where all
             occurrences of each constant name element_name and all *free*
             occurrences of each variable name element_name for element_name
@@ -411,7 +421,7 @@ class Formula:
         for element_name in substitution_map:
             assert (is_constant(element_name) or is_variable(element_name)) and \
                    type(substitution_map[element_name]) is Term
-        return subsitute_helper(substitution_map)
+        return self.subsitute_helper(copy.deepcopy(substitution_map),False)
 
 
     def free_variables_helper(self ,free:set, non_free=set()):
@@ -521,3 +531,33 @@ class Formula:
             starting from left to right """
         # Task 9.5
 
+
+# def subsitute_helper(self, inner_subsitution_map, is_instance):
+#     """
+#     help method for substitut method in Formula class. it calls recursively to terms of the formula or deeper
+#     formulas in the tree, while removing non-free variables that might appear in the substitution_map
+#     :param free_vars_list:
+#     :return:
+#     """
+#     second = None
+#     if is_relation(self.root):  # Populate self.root and self.arguments
+#         first = []
+#         for x in self.arguments:
+#             first.append(x.substitute(inner_subsitution_map))
+#
+#     elif is_equality(self.root):  # Populate self.first and self.second
+#         first = self.first.substitute(inner_subsitution_map)
+#         second = self.second.substitute(inner_subsitution_map)
+#
+#     elif is_quantifier(self.root):  # Populate self.variable and self.predicate
+#         if self.variable in inner_subsitution_map:  # if the variable appears in the quantifier, delete it from the
+#             #  dictionary for this part of the tree
+#             del inner_subsitution_map[self.variable]
+#         first = self.variable
+#         second = self.predicate.substitute(inner_subsitution_map)
+#     elif is_unary(self.root):  # Populate self.first
+#         first = self.first.substitute(inner_subsitution_map)
+#     else:  # Populate self.first and self.second
+#         first = self.first.substitute(inner_subsitution_map)
+#         second = self.second.substitute(inner_subsitution_map)
+#     return Formula(self.root, first, second)
