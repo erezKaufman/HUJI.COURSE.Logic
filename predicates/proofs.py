@@ -56,10 +56,47 @@ class Schema:
 
             :return:
             """
-            return formula.substitute(constants_and_variables_instantiation_map,True)
+            substitute = formula.subsitute_helper(constants_and_variables_instantiation_map,True)
+            print(str(substitute))
+            return substitute
 
-        def second_run():
-            pass
+        def second_run(formula):
+            """
+
+            :return:
+            """
+            # we now run on all terms inside the value and change their constants or variables with the substitution
+            for key, value in relations_instantiation_map:
+                pass
+
+            # now we will
+            second = None
+            if is_relation(formula.root):  # Populate self.root and self.arguments
+                if formula.root in relations_instantiation_map:
+                    subsitution_map = {}
+                    for index ,args in enumerate(formula.arguments):
+                        # create a map to which we enter the index value in the list that is in the tuple of the
+                        # dictionary
+                        subsitution_map[args] = relations_instantiation_map[formula.root][0][index]
+                    return relations_instantiation_map[formula.root][1].substitute(subsitution_map)
+                else:
+                    first = formula.arguments
+                    root = formula.root
+            elif is_equality(formula.root):  # Populate self.first and self.second
+                root = formula.root
+                first = formula.first
+                second = formula.second
+            elif is_quantifier(formula.root):  # Populate self.variable and self.predicate
+                # if the variable appears in the quantifier, delete it from the   dictionary for this part of the tree
+
+                second = formula.predicate.subsitute_helper(inner_subsitution_map, is_instantiation)
+            elif is_unary(formula.root):  # Populate self.first
+                first = self.first.subsitute_helper(inner_subsitution_map, is_instantiation)
+            else:  # Populate self.first and self.second
+                first = self.first.subsitute_helper(inner_subsitution_map, is_instantiation)
+                second = self.second.subsitute_helper(inner_subsitution_map, is_instantiation)
+            return Formula(root, first, second)
+
         """ Return the Formula resulting in simultaneously making the following
             substitutions in formula:
             1) Replace every occurrence of every constant name or variable name
@@ -105,7 +142,9 @@ class Schema:
             assert type(template) is Formula
         for variable in bound_variables:
             assert is_variable(variable)
+
         new_formula = first_run()
+        return second_run(new_formula)
 
     def instantiate(self, instantiation_map):
         """ Return the first-order formula obtained by applying the mapping
