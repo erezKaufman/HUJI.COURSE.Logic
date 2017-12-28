@@ -183,6 +183,22 @@ class Term:
         for element_name in substitution_map:
             assert (is_constant(element_name) or is_variable(element_name)) and \
                    type(substitution_map[element_name]) is Term
+
+        if is_constant(self.root) or is_variable(self.root):
+            if self.root in substitution_map.keys():
+                return substitution_map[self.root]
+            else: return Term(self.root)
+        else:
+            assert is_function(self.root)
+            if self.root in substitution_map.keys():
+                root = substitution_map[self.root]
+            else:
+                root = self.root
+            args = []
+            for index, arg in enumerate(self.arguments):
+                args.append(arg.substitute(substitution_map))
+            return Term(root,args)
+
         # Task 9.1
 
 
