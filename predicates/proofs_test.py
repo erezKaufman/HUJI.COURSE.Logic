@@ -38,7 +38,7 @@ def test_instantiate_formula(debug=False):
         assert str(result) == instance
 
     for formula_str,templates,constant_and_variable_instantiation_map,relations_instantiation_map in [
-            ('Ax[R(0)]', {'R'}, {}, {'R':(['v'],Formula.parse('x=1'))}),
+            ('Ax[R(0)]', {'R'}, {}, {'R':(['v'],Formula.parse('Ax[x=1]'))}),
             ('Ax[R(0)]', {'R', 'x'}, {'x': Term('z')},
              {'R':(['v'],Formula.parse('z=1'))})]:
         schema = Schema(formula_str, templates)

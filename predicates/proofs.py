@@ -65,19 +65,23 @@ class Schema:
 
             :return:
             """
-            # we now run on all terms inside the value and change their constants or variables with the substitution
-            for key, value in relations_instantiation_map:
-                pass
 
             # now we will
             root,first,second = None, None,None
             if is_relation(formula.root):  # Populate self.root and self.arguments
                 if formula.root in relations_instantiation_map:
+                    temp_formula = relations_instantiation_map[formula.root][1]
+                    var_set = temp_formula.free_variables()
+                    for var in bound_variables:
+                        if var in var_set:
+                            raise Schema.BoundVariableError
                     subsitution_map = {}
                     for index ,args in enumerate(formula.arguments):
                         # create a map to which we enter the index value in the list that is in the tuple of the
                         # dictionary
                         subsitution_map[args] = relations_instantiation_map[formula.root][0][index]
+                    # return the formula from the tuple of the dictionary - and call subsitute on it with the dict we
+                    # created
                     return relations_instantiation_map[formula.root][1].substitute(subsitution_map)
                 else:
                     first = formula.arguments
@@ -99,6 +103,7 @@ class Schema:
                 first = second_run(formula.first)
                 second = second_run(formula.second)
             return Formula(root, first, second)
+
 
         """ Return the Formula resulting in simultaneously making the following
             substitutions in formula:
