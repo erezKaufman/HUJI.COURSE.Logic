@@ -288,3 +288,26 @@ def test_make_equality_as_SAME(debug):
     for x in new_model.universe:
         assert (x,) in new_model.meaning['Q']
     assert len(new_model.meaning['Q']) == 2
+
+    model = Model({'0', '1', '2', '3', '4', '5'},
+                  {'SAME': {('0', '0'), ('1', '1'), ('2', '2'), ('3', '3'),
+                            ('4', '4'), ('5', '5'), ('1', '2'),
+                            ('2', '1'), ('1', '3'), ('3', '1'), ('2', '3'),
+                            ('3', '2'), ('4', '5'), ('5', '4')},
+                   'a': '0', 'b': '1', 'c': '2', 'd': '3', 'd5': '4', 'd6': '5',
+                   'Q': {('1', '2'), ('2', '3'), ('4', '5'), ('5', '4'), ('4', '4'), ('0', '0'), ('5', '5')}})
+    if debug:
+        print('Making equality as SAME in model', model)
+    new_model = make_equality_as_SAME(model)
+    if debug:
+        print('... got', new_model)
+    print("--------------------")
+    print(new_model)
+    assert len(new_model.universe) == 3
+    assert new_model.meaning.keys() == {'a', 'b', 'c', 'd', 'd5', 'd6', 'Q'}
+    assert new_model.meaning['b'] == new_model.meaning['c']
+    assert new_model.meaning['a'] != new_model.meaning['b']
+    assert new_model.meaning['d5'] == new_model.meaning['d6']
+    for x in new_model.universe:
+        assert (x, x) in new_model.meaning['Q']
+    assert len(new_model.meaning['Q']) == 3

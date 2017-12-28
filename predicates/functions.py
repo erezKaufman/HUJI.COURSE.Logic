@@ -371,11 +371,19 @@ def make_equality_as_SAME(model):
             if is_constant(key):  # switch constant value to new value
                 if new_model.meaning[key] == to_switch:
                     new_model.meaning[key] = switch_to  # points now to the value
-            elif is_relation(key):  # we need to take out the relation with the switch_to
+
+    def fix_relation():
+        for key in new_model.meaning.keys():
+            if is_relation(key):  # we need to take out the relation with the switch_to
                 new_set = set()  # make a fresh set
                 for value in new_model.meaning[key]:
-                    if value[0] != to_switch:
-                        new_set.add(value)  # this value isn't switch_to, add it
+                    new_pair = []
+                    for inner_val in value:
+                        if inner_val in del_already:
+                            new_pair.append(new_model.meaning[del_dict[inner_val]])
+                        else:
+                            new_pair.append(inner_val)
+                    new_set.add(tuple(new_pair))  # this value isn't switch_to, add it
                 new_model.meaning[key] = new_set  # adjust the relation
 
     """ Return a new model where equality is made to coincide with the
@@ -394,12 +402,22 @@ def make_equality_as_SAME(model):
     new_model.meaning.pop('SAME')  # take out the SAME
     same_pairs = model.meaning['SAME']  # get all the pairs, we're gonna find the symatric ones from it
     removed_pairs = []
+    del_already = set() # keeps a set of all deleted vars
+    del_dict = {} # keeps a dict of the meaning pointed of the deleted var
     # here we iterate over all pairs, find the ones who match in symmetric
     for pair_1 in same_pairs:
-        if pair_1 not in removed_pairs:
+        if pair_1 not in removed_pairs and pair_1[0] != pair_1[1]:
             for pair_2 in same_pairs:
-                if pair_2 not in removed_pairs:
+                if pair_2[0] != pair_2[1] and pair_2 not in removed_pairs: # there's no need to check for symmetry
                     if is_symmetric(pair_1, pair_2) and pair_1 is not pair_2:  # we need to switch the data
-                        make_adjustments()  # this does all the actual work, it's lives in a decorator
-                        removed_pairs.extend([pair_1, pair_2])  # we dont want to go over the pairs we handled
+                        if pair_1[1] not in del_already and pair_1[0] not in del_already:
+                            make_adjustments()  # this does all the actual work, it's lives in a decorator
+                            del_already.add(pair_1[1]) # updateds del_already
+                            for key in model.meaning.keys():
+                                if model.meaning[key] == pair_1[1]:
+                                    del_dict[pair_1[1]] = key # updates del_dict
+                                    break
+                            removed_pairs.extend([pair_1, pair_2])  # we dont want to go over the pairs we handled
+                            break
+    fix_relation() # this function is all about fixing th relations in model.meaning
     return new_model

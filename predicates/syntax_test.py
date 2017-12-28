@@ -6,32 +6,20 @@
 from predicates.syntax import *
 
 def test_term_repr(debug=False):
-    terms = [Term('0'), Term('c1'), Term('7x'), Term('a12'), Term('x'), Term('y12'), Term('zLast') ,
-             Term('plus', [Term('x'), Term('s', [Term('y')])]),
-             Term('f', [Term('g',[Term('x')]),Term('h',[Term('7'),Term('y')])]),
-             Term('pp', [Term('0'),
-                         Term('c1'),
-                         Term('zLast'),
-                         Term('minus', [Term('4'), Term('5'), Term('6'), Term('7'), Term('8')]),
-                         Term('plus', [Term('x'), Term('s', [Term('y')])]),
-                         Term('f', [Term('g',[Term('x')]),Term('h',[Term('7'),Term('y')])])])]
-    strs = ['0', 'c1', '7x','a12', 'x','y12' ,'zLast' ,'plus(x,s(y))', 'f(g(x),h(7,y))',
-            'pp(0,c1,zLast,minus(4,5,6,7,8),plus(x,s(y)),f(g(x),h(7,y)))']
-    for index, s in enumerate(strs):
-        if debug:
-            print('Testing representation of the term ', s)
-        assert str(terms[index]) == s
+    if debug:
+        print('Testing representation of the term f(s(0),x)')
+    term = Term('f', [Term('s', [Term('0')]), Term('x')])
+    assert str(term) == 'f(s(0),x)'
 
 def test_term_parse_prefix(debug=False):
     for s in ['a12', 'a,g(x))', 'g(x))', 'f(a,g(x))', 's(0)))', 's(s(0)))',
-              's(s(s(0)))', 'x,s(y))', 's(y))', 'plus(x,s(y))', 'plus(0,c1,zLast,minus(4,5,6,7,8),plus(x,s(y)),f(g(x),h(7,y)))))',
-              'zLast,minus(4,5,6,7,8))']:
+              's(s(s(0)))', 'x,s(y))', 's(y))', 'plus(x,s(y))']:
         if debug:
             print('Parsing a prefix of', s, 'as a Term...')
         term, remainder = Term.parse_prefix(s)
         if debug:
             print('... and got', term, 'with unparsed remainder', remainder)
-        assert str(term)+remainder == s
+        assert str(term)+remainder == s 
 
 def test_term_parse(debug=False):
     for s in ['a12', 'f(a,g(x))', 's(s(s(0)))', 'plus(x,s(y))']:
@@ -40,15 +28,13 @@ def test_term_parse(debug=False):
         term = Term.parse(s)
         if debug:
             print('... and got', term)
-        # print(str(term), s)
         assert str(term) == s 
 
 def test_variables(debug=False):
     for s,expected_variables in [
             ['0', set()], ['x', {'x'}], ['s(s(x))', {'x'}],
             ['f(x,g(y,x,0),1)', {'x', 'y'}],
-            ['s(plus(times(zz,x),times(x,s(s(0)))))', {'x', 'zz'}],
-            ['pp(0,c1,zLast,minus(4,5,6,u30,8),plus(x,s(y)),f(g(vT),h(7,y)))', {'zLast', 'x', 'y','u30','vT'}]]:
+            ['s(plus(times(zz,x),times(x,s(s(0)))))', {'x', 'zz'}]]:
         variables = Term.parse(s).variables()
         if debug:
             print('The variables in', s, 'are', variables)
@@ -105,61 +91,46 @@ def test_relations(debug=False):
             print('The relations in', s, 'are', relations)
         assert relations == expected
 
-def test_term_substitute_variables(debug=False):
+def test_term_substitute(debug=False):
+    # Test substitution of a single variable
     substitution_map = {'x': Term.parse('g(1)')}
     for s,expected in [['0', '0'], ['x', 'g(1)'], ['f(x)', 'f(g(1))'],
                        ['s(s(x))', 's(s(g(1)))'],
                        ['f(x,g(y,x,0),1)', 'f(g(1),g(y,g(1),0),1)'],
                        ['f(x,0,g(x))', 'f(g(1),0,g(g(1)))']]:
-        result = Term.parse(s).substitute_variables(substitution_map)
+        result = Term.parse(s).substitute(substitution_map)
         if debug:
             print("Substituting 'g(1)' for 'x' in", s, 'gives', result)
         assert str(result) == expected
 
-def test_term_substitute_constants(debug=False):
+    # Test substitution of a single constant
     substitution_map = {'c': Term.parse('g(1)')}
     for s,expected in [['0', '0'], ['c', 'g(1)'], ['f(c)', 'f(g(1))'],
                        ['s(s(c))', 's(s(g(1)))'],
                        ['f(c,g(y,c,0),1)', 'f(g(1),g(y,g(1),0),1)'],
                        ['f(c,0,g(c))', 'f(g(1),0,g(g(1)))']]:
-        result = Term.parse(s).substitute_constants(substitution_map)
+        result = Term.parse(s).substitute(substitution_map)
         if debug:
             print("Substituting 'g(1)' for 'c' in", s, 'gives', result)
         assert str(result) == expected
 
+    # Test a more complex substitution
+    substitution_map = {'c':Term.parse('g(f(x))'), 'x':Term.parse('f(c,x)')}
+    result = Term.parse('h(c,f(x))').substitute(substitution_map)
+    if debug:
+        print('Substituting', substitution_map, " in 'h(c,f(x))' gives", result)
+    assert str(result) == 'h(g(f(x)),f(f(c,x)))'
+
 def test_formula_repr(debug=False):
-    terms = [Term('0'),
-             Term('c1'),
-             Term('zLast'),
-             Term('minus', [Term('4'), Term('5'), Term('6'), Term('7'), Term('8')]),
-             Term('plus', [Term('x'), Term('s', [Term('y')])]),
-             Term('f', [Term('g',[Term('x')]),Term('h',[Term('7'),Term('y')])]),
-             Term('pp', [Term('0'),
-                         Term('c1'),
-                         Term('zLast'),
-                         Term('minus', [Term('4'), Term('5'), Term('6'), Term('7'), Term('8')]),
-                         Term('plus', [Term('x'), Term('s', [Term('y')])]),
-                         Term('f', [Term('g',[Term('x')]),Term('h',[Term('7'),Term('y')])]),])]
-    formulea = [Formula('->',
+    if debug:
+        print('Testing representation of the formula (Ax[plus(x,y)=0]->~R(v,c7))')
+    formula = Formula('->',
                       Formula('A', 'x',
                               Formula('=',
                                       Term('plus', [Term('x'), Term('y')]),
                                       Term('0'))),
-                      Formula('~', Formula('R', [Term('v'), Term('c7')]))),
-                Formula('=', terms[4], terms[5]),
-                Formula('Plus', terms[:-1]),
-                Formula('~', Formula('=', terms[4], terms[5])),
-                Formula('->', Formula('E', 'x', Formula('=', Term('plus', [Term('s', [Term('x')]), Term('3')]), Term('y'))),
-                              Formula('GT', [Term('y'), Term('4')]))]
-    strs = ['(Ax[plus(x,y)=0]->~R(v,c7))',
-              'plus(x,s(y))=f(g(x),h(7,y))',
-              'Plus(0,c1,zLast,minus(4,5,6,7,8),plus(x,s(y)),f(g(x),h(7,y)))',
-              '~plus(x,s(y))=f(g(x),h(7,y))',
-              '(Ex[plus(s(x),3)=y]->GT(y,4))']
-    for index, s in enumerate(strs):
-        if debug:
-            print('Testing representation of the formula ', s)
-        assert str(formulea[index]) == s
+                      Formula('~', Formula('R', [Term('v'), Term('c7')])))
+    assert str(formula) == '(Ax[plus(x,y)=0]->~R(v,c7))'
 
 def test_formula_parse_prefix(debug=False):
     for s in ['0=0', 'R(x)|Q(y))', 'Q(y))', '(R(x)|Q(y))', '0=0&1=1)', '1=1)',
@@ -202,32 +173,25 @@ def test_free_variables(debug=False):
             print('The free variables in', s, 'are', variables)
         assert variables == expected_variables
 
-def test_formula_substitute_variables(debug=False):
-    for s,variable,term,expected in [
-            ('R(x,y)', 'x', 'f(0)', 'R(f(0),y)'),
-            ('(x=x|y=y)', 'y', '0', '(x=x|0=0)'),
-            ('Ax[R(x,y)]', 'y', 'z', 'Ax[R(x,z)]'),
-            ('(x=x|Ex[R(x,y)])', 'x', 'z', '(z=z|Ex[R(x,y)])')]:
+def test_formula_substitute(debug=False):
+    for s,substitution,expected in [
+            ('R(x,y)', {'x':'f(0)'}, 'R(f(0),y)'),
+            ('(x=x|y=y)', {'y':'0'}, '(x=x|0=0)'),
+            ('Ax[R(x,y)]', {'y':'z'}, 'Ax[R(x,z)]'),
+            ('(x=x|Ex[R(x,y)])', {'x':'z'}, '(z=z|Ex[R(x,y)])'),
+            ('R(c,y)', {'c':'f(0)'}, 'R(f(0),y)'),
+            ('(x=x|c=c)', {'c':'0'}, '(x=x|0=0)'),
+            ('Ax[R(x,c)]', {'c':'z'}, 'Ax[R(x,z)]'),
+            ('(c=c|Ex[R(c,y)])', {'c':'z'}, '(z=z|Ex[R(z,y)])'),
+            ('R(c,d)', {'c':'d','d':'c'}, 'R(d,c)'),
+            ('Q(x,c)', {'x':'f(c,d)','c':'f(1,x)'}, 'Q(f(c,d),f(1,x))')]:
         formula = Formula.parse(s)
-        substitution_map = {variable: Term.parse(term)}
-        result = str(formula.substitute_variables(substitution_map))
+        substitution_map = {v: Term.parse(substitution[v])
+                            for v in substitution.keys()}
+        result = str(formula.substitute(substitution_map))
         if debug:
-            print('Substituting', substitution_map[variable], 'for', variable,
-                  'in', formula, 'yields', result)
-        assert result == expected
-
-def test_formula_substitute_constants(debug=False):
-    for s,constant,term,expected in [
-            ('R(c,y)', 'c', 'f(0)', 'R(f(0),y)'),
-            ('(x=x|c=c)', 'c', '0', '(x=x|0=0)'),
-            ('Ax[R(x,c)]', 'c', 'z', 'Ax[R(x,z)]'),
-            ('(c=c|Ex[R(c,y)])', 'c', 'z', '(z=z|Ex[R(z,y)])')]:
-        formula = Formula.parse(s)
-        substitution_map = {constant: Term.parse(term)}
-        result = str(formula.substitute_constants(substitution_map))
-        if debug:
-            print('Substituting', substitution_map[constant], 'for', constant,
-                  'in', formula, 'yields', result)
+            print('Substituting', substitution_map, 'in', formula, 'yields',
+                  result)
         assert result == expected
 
 def test_skeleton(debug=False):
