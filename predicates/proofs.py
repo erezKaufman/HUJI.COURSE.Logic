@@ -51,6 +51,15 @@ class Schema:
     @staticmethod
     def instantiate_formula(formula, constants_and_variables_instantiation_map,
                             relations_instantiation_map, bound_variables):
+        def first_run():
+            """
+
+            :return:
+            """
+            return formula.substitute(constants_and_variables_instantiation_map,True)
+
+        def second_run():
+            pass
         """ Return the Formula resulting in simultaneously making the following
             substitutions in formula:
             1) Replace every occurrence of every constant name or variable name
@@ -96,7 +105,7 @@ class Schema:
             assert type(template) is Formula
         for variable in bound_variables:
             assert is_variable(variable)
-        # Task 9.3
+        new_formula = first_run()
 
     def instantiate(self, instantiation_map):
         """ Return the first-order formula obtained by applying the mapping

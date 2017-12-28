@@ -378,7 +378,8 @@ class Formula:
         """
         help method for substitut method in Formula class. it calls recursively to terms of the formula or deeper
         formulas in the tree, while removing non-free variables that might appear in the substitution_map
-        :param free_vars_list:
+        :param inner_subsitution_map:
+        :param is_instantiation: flag to be raised when the method is called from 'instantiate_formula' method
         :return:
         """
         second = None
