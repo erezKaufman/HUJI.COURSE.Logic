@@ -158,7 +158,8 @@ def test_verify_a_justification(debug=False):
             ('u=0', {'u'}, {'u': 'x'}, 'y=0', False),
             ('Av[u=v]', {'u'}, {'u': 'x'}, 'Av[u=v]', False),
             ('Av[u=v]', {'u'}, {'u': 'x'}, 'Ax[u=x]', False),
-            ('Ax[(Q(z)->R(x))]', {'Q'}, {'Q(v)': 'x=v'}, 'Ax[(x=z->R(x))]', False)]:
+            ('Ax[(Q(z)->R(x))]', {'Q'}, {'Q(v)': 'x=v'}, 'Ax[(x=z->R(x))]', False)
+        ]:
 
         assumptions = [Schema(assumption_str, templates)]
         conclusion = Formula.parse(conclusion_str)

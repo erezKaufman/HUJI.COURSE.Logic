@@ -185,6 +185,7 @@ class Term:
             assert (is_constant(element_name) or is_variable(element_name)) and \
                    type(substitution_map[element_name]) is Term
 
+
         if is_constant(self.root) or is_variable(self.root): # we need to to deal only with the root
             if self.root in substitution_map.keys():
                 return substitution_map[self.root] # change it with it is in the map
@@ -529,8 +530,28 @@ class Formula:
             The variables in the propositional formula will have the names
             z1,z2,... (obtained by calling next(fresh_variable_name_generator)),
             starting from left to right """
-        # Task 9.5
+        def skel_helper(formula):
+            if is_variable(formula.root) or is_constant(formula.root): # a naive base case
+                return
 
+            if is_unary(formula.root):
+                return PropositionalFormula('~', skel_helper(formula.first))
+
+            elif is_equality(formula.root) or is_relation(formula.root) or is_quantifier(formula.root):
+                str_formula = str(formula)
+                if str_formula in z_dict.keys(): # we already met this formula
+                    return PropositionalFormula(z_dict[str_formula])
+                else: # this is the first time we find this z rep
+                    cur_z = next(fresh_variable_name_generator)
+                    z_dict[str_formula] = cur_z
+                    return PropositionalFormula(cur_z)
+
+            elif is_binary(formula.root):
+                return PropositionalFormula(formula.root, skel_helper(formula.first), skel_helper(formula.second))
+
+                # Task 9.5
+        z_dict = {}
+        return skel_helper(self)
 
 # def subsitute_helper(self, inner_subsitution_map, is_instance):
 #     """
