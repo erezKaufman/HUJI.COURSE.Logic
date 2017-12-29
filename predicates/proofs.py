@@ -256,6 +256,7 @@ class Proof:
             assert type(variable) is str and \
                    type(justification[2][variable]) is str
         # Task 9.5
+        return True
 
     def verify_t_justification(self, line):
         """ Returns whether the line with the given number is a tautology """

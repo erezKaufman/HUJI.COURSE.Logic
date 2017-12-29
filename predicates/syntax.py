@@ -160,7 +160,7 @@ class Term:
     @staticmethod
     def get_whole_name():
         retruned_name = ''
-        while Term.str != '' and Term.str[0].isalnum():
+        while Term.str != '' and Term.str[0] != 'א'  and Term.str[0].isalnum():
             retruned_name += Term.str[0]
             Term.eat()
         return retruned_name
@@ -561,3 +561,5 @@ class Formula:
 #         first = self.first.substitute(inner_subsitution_map)
 #         second = self.second.substitute(inner_subsitution_map)
 #     return Formula(self.root, first, second)
+
+
