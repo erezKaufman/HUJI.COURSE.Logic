@@ -48,7 +48,6 @@ class Model:
             return first_term == second_term
 
         elif is_quantifier(formula.root):
-            frees_vars = formula.free_variables()  # TODO how do the free var's go into the picture?
             results = []
             for elem in self.universe:
                 assignment[formula.variable] = elem  # assigns cur universe element to variable

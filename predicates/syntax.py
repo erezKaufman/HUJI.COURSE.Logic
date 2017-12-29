@@ -524,63 +524,41 @@ class Formula:
         return returned_set
 
         # Ex12
+    @staticmethod
+    def skel_helper(formula, z_dict):
+        """
+        a helper function desgined to get a formual's skeleton, could be used to get only this line's skeleton
+        without previous lines by callingt the function with z_dict={} or with listing previous lines by calling it
+        a z_dict of these lines as well.
+        :param formula: the formula to transform to skeleton form
+        :param z_dict: the z_dict to adress in case of previous show's of a z_form
+        :return: a z_from skeleton of formula
+        """
+        if is_variable(formula.root) or is_constant(formula.root):  # a naive base case
+            return
+
+        if is_unary(formula.root): # call recursivly with first
+            return PropositionalFormula('~', Formula.skel_helper(formula.first, z_dict))
+
+        # treat of all these the same way - either make a new z or list an old one
+        elif is_equality(formula.root) or is_relation(formula.root) or is_quantifier(formula.root):
+            str_formula = str(formula)
+            if str_formula in z_dict.keys():  # we already met this formula
+                return PropositionalFormula(z_dict[str_formula])
+            else:  # this is the first time we find this z rep
+                cur_z = next(fresh_variable_name_generator)
+                z_dict[str_formula] = cur_z
+                return PropositionalFormula(cur_z)
+
+        # return the binary of the recursive calls for this function
+        elif is_binary(formula.root):
+            return PropositionalFormula(formula.root, Formula.skel_helper(formula.first, z_dict),
+                                        Formula.skel_helper(formula.second, z_dict))
 
     def propositional_skeleton(self):
         """ Return a PropositionalFormula that is the skeleton of this one.
             The variables in the propositional formula will have the names
             z1,z2,... (obtained by calling next(fresh_variable_name_generator)),
             starting from left to right """
-        def skel_helper(formula):
-            if is_variable(formula.root) or is_constant(formula.root): # a naive base case
-                return
-
-            if is_unary(formula.root):
-                return PropositionalFormula('~', skel_helper(formula.first))
-
-            elif is_equality(formula.root) or is_relation(formula.root) or is_quantifier(formula.root):
-                str_formula = str(formula)
-                if str_formula in z_dict.keys(): # we already met this formula
-                    return PropositionalFormula(z_dict[str_formula])
-                else: # this is the first time we find this z rep
-                    cur_z = next(fresh_variable_name_generator)
-                    z_dict[str_formula] = cur_z
-                    return PropositionalFormula(cur_z)
-
-            elif is_binary(formula.root):
-                return PropositionalFormula(formula.root, skel_helper(formula.first), skel_helper(formula.second))
-
                 # Task 9.5
-        z_dict = {}
-        return skel_helper(self)
-
-# def subsitute_helper(self, inner_subsitution_map, is_instance):
-#     """
-#     help method for substitut method in Formula class. it calls recursively to terms of the formula or deeper
-#     formulas in the tree, while removing non-free variables that might appear in the substitution_map
-#     :param free_vars_list:
-#     :return:
-#     """
-#     second = None
-#     if is_relation(self.root):  # Populate self.root and self.arguments
-#         first = []
-#         for x in self.arguments:
-#             first.append(x.substitute(inner_subsitution_map))
-#
-#     elif is_equality(self.root):  # Populate self.first and self.second
-#         first = self.first.substitute(inner_subsitution_map)
-#         second = self.second.substitute(inner_subsitution_map)
-#
-#     elif is_quantifier(self.root):  # Populate self.variable and self.predicate
-#         if self.variable in inner_subsitution_map:  # if the variable appears in the quantifier, delete it from the
-#             #  dictionary for this part of the tree
-#             del inner_subsitution_map[self.variable]
-#         first = self.variable
-#         second = self.predicate.substitute(inner_subsitution_map)
-#     elif is_unary(self.root):  # Populate self.first
-#         first = self.first.substitute(inner_subsitution_map)
-#     else:  # Populate self.first and self.second
-#         first = self.first.substitute(inner_subsitution_map)
-#         second = self.second.substitute(inner_subsitution_map)
-#     return Formula(self.root, first, second)
-
-
+        return Formula.skel_helper(self, {}) # use skel_helper with an empty dict to solve

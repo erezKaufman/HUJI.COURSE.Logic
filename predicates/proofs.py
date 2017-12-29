@@ -4,6 +4,7 @@
     File name: code/predicates/proofs.py """
 
 from predicates.syntax import *
+import propositions.semantics
 
 class Schema:
     """ A schema of first-order formulae. A schema is given by an object of
@@ -242,7 +243,7 @@ class Proof:
             s = s + str(line) + "\n"
         return s
         
-    def verify_a_justification(self, line:Line):
+    def verify_a_justification(self, line):
         """ Returns whether the line with the given number is a valid
             instantiation of an assumption/axiom given in its justification via
             an instantiation map given in its justification """
@@ -269,6 +270,10 @@ class Proof:
         justification = self.lines[line].justification
         assert justification[0] == 'T'
         assert len(justification) == 1
+
+        l = self.lines[line]
+        z_skel = l.formula.propositional_skeleton() # get the z form
+        return propositions.semantics.is_tautology(z_skel) # check if it's a tautology
         # Task 9.7
 
     def verify_mp_justification(self, line):
@@ -283,6 +288,21 @@ class Proof:
         assert type(justification[2]) == int
         # Task 9.8
 
+        # first, get all the parts to check MP validity
+        l = self.lines[line] # cur line
+        # check if cur line number is smaller then justifiction lines
+        if line < l.justification[1] or line < l.justification[2]:
+            return False
+        phi_1 = self.lines[l.justification[1]] # ass 1 line
+        phi_2 = self.lines[l.justification[2]] # ass 2 line
+        z_dict = {} # this dict lists all the usages of z in mondes ponens
+        z_phi_1 = Formula.skel_helper(phi_1.formula, z_dict) # phi1 skeleton, should be in form z1
+        z_phi_2 = Formula.skel_helper(phi_2.formula, z_dict) # phy2 skeleton, should be in form z1->z2
+        z_conc = Formula.skel_helper(l.formula,z_dict) # conc skeleton, should be in form z2
+
+        # what we want is that z_phi_1 == z_phi_2.first and z_conc == z_phi_2.second
+        return z_phi_1 == z_phi_2.first and z_phi_2.second == z_conc
+
     def verify_ug_justification(self, line):
         """ Returns whether the line with the given number a valid universal
             generalization of a previous line given in its justification """
@@ -292,6 +312,12 @@ class Proof:
         assert len(justification) == 2
         assert type(justification[1]) == int
         # Task 9.9
+        cur_line = self.lines[line] # get the cur line
+        # check if we have 'A' and we do not exceed current line bound
+        if line < cur_line.justification[1] or cur_line.formula.root != 'A':
+            return False
+        just = self.lines[cur_line.justification[1]] # get the justification line
+        return str(cur_line.formula.predicate) == str(just.formula) # check if the phi match
 
     def verify_justification(self, line):
         """ Returns whether the line with the given number is validly justified
