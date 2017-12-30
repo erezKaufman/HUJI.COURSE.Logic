@@ -8,7 +8,6 @@ from predicates.proofs import *
 
 def test_instantiate_formula(debug=False):
     for formula_str,templates,constant_and_variable_instantiation_map,relations_instantiation_map,instance in [
-            ('Ax[Q(x)]', {'Q'}, {}, {'Q': (['x'], Formula.parse('T(x,w)'))}, 'Ax[T(x,w)]'),
             ('R(c)', {'c'}, {'c': Term('9')}, {},  'R(9)'),
             ('(R(0)->R(x))', {'R'}, {}, {'R': (['v'], Formula.parse('v=1'))},
              '(0=1->x=1)'),
@@ -22,29 +21,22 @@ def test_instantiate_formula(debug=False):
              'Ax[x=1]'),
             ('Ax[R(x)]', {'R', 'x'}, {'x': Term('z')},
              {'R':(['v'],Formula.parse('v=x'))}, 'Az[z=x]')]:
+        schema = Schema(formula_str, templates)
         if debug:
-            schema = Schema(formula_str, templates)
             print('Substituting constant and variable instantiation map',
                   constant_and_variable_instantiation_map,
                   'and relations instantiation map',
                   relations_instantiation_map,
                   'in schema', schema, '...')
-        result = Schema.instantiate_formula(
+        result = schema.instantiate_formula(
             Formula.parse(formula_str), constant_and_variable_instantiation_map,
             relations_instantiation_map, set())
         if debug:
             print('... yields', result)
         assert str(result) == instance
-    # ('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'R', 'Q', 'x'},
-    #  {'Q()': 'Ax[x=0]'},
-    #  '(Ax[(Ax[x=0]->R(x))]->(Ax[x=0]->Ax[R(x)]))')
 
-    # ('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'R', 'Q', 'x'},
-    #  {'Q()': 'Az[z=0]', 'x': 'z'},
-    #  '(Az[(Az[z=0]->R(z))]->(Az[z=0]->Az[R(z)]))')
-    # #  ('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'R', 'Q', 'x'}, {} , {'Q':([] , Formula.parse('Ax[x=0]'))},
     for formula_str,templates,constant_and_variable_instantiation_map,relations_instantiation_map in [
-            ('Ax[R(0)]', {'R'}, {}, {'R':(['v'],Formula.parse('Ax[x=1]'))}),
+            ('Ax[R(0)]', {'R'}, {}, {'R':(['v'],Formula.parse('x=1'))}),
             ('Ax[R(0)]', {'R', 'x'}, {'x': Term('z')},
              {'R':(['v'],Formula.parse('z=1'))})]:
         schema = Schema(formula_str, templates)
@@ -59,7 +51,6 @@ def test_instantiate_formula(debug=False):
                 Formula.parse(formula_str),
                 constant_and_variable_instantiation_map,
                 relations_instantiation_map, set())
-            print("this is result: ",result)
             assert False
         except Schema.BoundVariableError:
             if debug:
@@ -129,7 +120,6 @@ def test_instantiate(debug=False):
             ('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'R', 'Q', 'x'},
              {'Q()':'Ax[x=0]'},
              '(Ax[(Ax[x=0]->R(x))]->(Ax[x=0]->Ax[R(x)]))'),
-
             ('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'R', 'Q', 'x'},
              {'Q()':'x=0', 'x':'z'}, '(Az[(x=0->R(z))]->(x=0->Az[R(z)]))'),
             ('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'R', 'Q', 'x'},
@@ -156,7 +146,6 @@ def test_instantiate(debug=False):
         if instance is None:
             assert result is None
         else:
-            print("result is: ",str(result),"\n instance is: ",instance)
             assert str(result) == instance
 
 def test_verify_a_justification(debug=False):
@@ -167,8 +156,7 @@ def test_verify_a_justification(debug=False):
             ('u=0', {'u'}, {'u': 'x'}, 'y=0', False),
             ('Av[u=v]', {'u'}, {'u': 'x'}, 'Av[u=v]', False),
             ('Av[u=v]', {'u'}, {'u': 'x'}, 'Ax[u=x]', False),
-            ('Ax[(Q(z)->R(x))]', {'Q'}, {'Q(v)': 'x=v'}, 'Ax[(x=z->R(x))]', False)
-        ]:
+            ('Ax[(Q(z)->R(x))]', {'Q'}, {'Q(v)': 'x=v'}, 'Ax[(x=z->R(x))]', False)]:
 
         assumptions = [Schema(assumption_str, templates)]
         conclusion = Formula.parse(conclusion_str)
