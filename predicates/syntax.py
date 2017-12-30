@@ -119,9 +119,9 @@ class Term:
             return (self.root)
         else:
             return_string = self.root + "("
-            for arg in self.arguments:
+            for index, arg in enumerate(self.arguments):
                 return_string += str(arg)
-                if arg != self.arguments[-1]:
+                if index != len(self.arguments)-1:
                     return_string += ","
             return_string += ")"
             return return_string
@@ -275,9 +275,9 @@ class Formula:
         ret = ""
         if is_relation(self.root):
             ret += self.root + '('
-            for obj in self.arguments:
+            for index, obj in enumerate(self.arguments):
                 ret += str(obj)
-                if obj != self.arguments[-1]:
+                if index != len(self.arguments)-1:
                     ret += ','
             ret += ')'
         elif is_equality(self.root):

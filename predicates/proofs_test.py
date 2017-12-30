@@ -52,6 +52,7 @@ def test_instantiate_formula(debug=False):
                 Formula.parse(formula_str),
                 constant_and_variable_instantiation_map,
                 relations_instantiation_map, set())
+            print("this is result: ",result)
             assert False
         except Schema.BoundVariableError:
             if debug:

@@ -77,9 +77,11 @@ class Schema:
                     # takes the temp formula from the map's value
                     temp_formula = relations_instantiation_map[formula.root][1]
                     # find all the free variables of the temp formula
-                    var_set = get_all_vars(temp_formula, set())
+                    # var_set = get_all_vars(temp_formula, set())
+                    var_set = temp_formula.free_variables()
                     # run on all the bound variables, and if it's in the stated set, raise an error
                     for var in bound_variables:
+                        # if the var is in the bounded set, and it's not in the template list, raise exception
                         if (var in var_set) and var not in relations_instantiation_map[formula.root][0]:
                             raise Schema.BoundVariableError(var, formula.root)
                     # create a subsitution_map and run on all arguments of the relations, and set a substitution
@@ -133,8 +135,6 @@ class Schema:
             elif is_equality(help_formula.root):
                 var_set.update(help_formula.first.variables())
                 var_set.update(help_formula.second.variables())
-                # help_formula.get_Term_frees(help_formula.first, var_set, non_free)  # appends all first term's var_set var's
-                # help_formula.get_Term_frees(help_formula.second, var_set, non_free)  # appends all second term's var_set var's
 
             elif is_relation(help_formula.root):
                 for arg in help_formula.arguments:
@@ -232,7 +232,28 @@ class Schema:
         for variable in instantiation_map:
             assert type(variable) is str and \
                    type(instantiation_map[variable]) is str
-            # Task 9.4
+        returned_formula = self.formula
+        try:
+            constants_and_variables_instantiation_map ={}
+            relations_instantiation_map = {}
+
+            for key, value in instantiation_map.items():
+                if is_constant(key) or is_variable(key): # if the key is variable or constant -
+                    if key not in self.templates:
+                        return None
+                    constants_and_variables_instantiation_map[key] = Term.parse(value)
+                else: # if it's a relation
+                    key_formula = Formula.parse(key)
+                    if key_formula.root not in self.templates:
+                        return None
+                    value_formula = Formula.parse(value)
+                    key_variables = key_formula.free_variables()
+                    relations_instantiation_map[key_formula.root] = (list(key_variables), value_formula)
+            returned_formula = self.instantiate_formula(self.formula,constants_and_variables_instantiation_map,
+                                     relations_instantiation_map,set())
+        except Schema.BoundVariableError:
+            return None
+        return returned_formula
 
 
 class Proof:
@@ -385,3 +406,4 @@ class Proof:
             if not self.verify_justification(line):
                 return False
         return True
+
