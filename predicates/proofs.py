@@ -6,6 +6,7 @@
 from predicates.syntax import *
 import propositions.semantics
 
+
 class Schema:
     """ A schema of first-order formulae. A schema is given by an object of
         type Formula together with a set of constant, variable, and relation
@@ -57,30 +58,37 @@ class Schema:
 
             :return:
             """
-            substitute = formula.subsitute_helper(constants_and_variables_instantiation_map,True)
+            substitute = formula.subsitute_helper(constants_and_variables_instantiation_map, True)
             print(str(substitute))
             return substitute
 
         def second_run(formula):
             """
-
+            the second run will run in recursion on the presented formula, and switch every occurrences of the
+            variable in the formulas inside the dictionary, to be the right variable, and then switch between the
+            relation and the substituted formula
             :return:
             """
 
-            # now we will
-            root,first,second = None, None,None
-            if is_relation(formula.root):  # Populate self.root and self.arguments
+            root, first, second = None, None, None
+            if is_relation(formula.root):
+                # if the root is a relation, and the relation appears as a key in the relations_instantiation_map:
                 if formula.root in relations_instantiation_map:
+                    # takes the temp formula from the map's value
                     temp_formula = relations_instantiation_map[formula.root][1]
-                    var_set = temp_formula.free_variables()
+                    # find all the free variables of the temp formula
+                    var_set = get_all_vars(temp_formula, set())
+                    # run on all the bound variables, and if it's in the stated set, raise an error
                     for var in bound_variables:
                         if var in var_set:
-                            raise Schema.BoundVariableError
+                            raise Schema.BoundVariableError(var, formula.root)
+                    # create a subsitution_map and run on all arguments of the relations, and set a substitution
+                    # between the stated argument and the new variable in the dictionary
                     subsitution_map = {}
-                    for index ,args in enumerate(formula.arguments):
+                    for index, args in enumerate(formula.arguments):
                         # create a map to which we enter the index value in the list that is in the tuple of the
                         # dictionary
-                        subsitution_map[args] = relations_instantiation_map[formula.root][0][index]
+                        subsitution_map[relations_instantiation_map[formula.root][0][index]] = args
                     # return the formula from the tuple of the dictionary - and call subsitute on it with the dict we
                     # created
                     return relations_instantiation_map[formula.root][1].substitute(subsitution_map)
@@ -93,8 +101,10 @@ class Schema:
                 second = formula.second
             elif is_quantifier(formula.root):  # Populate self.variable and self.predicate
                 # if the variable appears in the quantifier, delete it from the   dictionary for this part of the tree
+                root = formula.root
+                first = formula.variable
                 bound_variables.add(formula.variable)
-                second = second_run(formula.second)
+                second = second_run(formula.predicate)
                 bound_variables.remove(formula.variable)
             elif is_unary(formula.root):
                 root = formula.root
@@ -105,6 +115,33 @@ class Schema:
                 second = second_run(formula.second)
             return Formula(root, first, second)
 
+        def get_all_vars(help_formula: Formula, var_set: set):
+            if is_variable(help_formula.root):
+                var_set.add(formula.root)  # adds var
+
+            if is_constant(help_formula.root):
+                return var_set
+
+            elif is_unary(help_formula.root):
+                get_all_vars(formula.first, var_set)  # recursive call on first
+            elif is_equality(help_formula.root):
+                var_set.update(help_formula.first.variables())
+                var_set.update(help_formula.second.variables())
+                # help_formula.get_Term_frees(help_formula.first, var_set, non_free)  # appends all first term's var_set var's
+                # help_formula.get_Term_frees(help_formula.second, var_set, non_free)  # appends all second term's var_set var's
+
+            elif is_relation(help_formula.root):
+                for arg in help_formula.arguments:
+                    var_set.update(arg.variables())
+
+            elif is_quantifier(help_formula.root):
+                var_set.add(help_formula.variable)  # add var to non_free
+                get_all_vars(help_formula.predicate, var_set)  # call helper with predicate values
+
+            elif is_binary(help_formula.root):
+                get_all_vars(help_formula.first, var_set)  # call helper with first
+                get_all_vars(help_formula.second, var_set)  # call helper with second
+            return var_set
 
         """ Return the Formula resulting in simultaneously making the following
             substitutions in formula:
@@ -145,7 +182,7 @@ class Schema:
                 assert is_variable(constants_and_variables_instantiation_map[k].root)
         for k in relations_instantiation_map:
             assert is_relation(k)
-            formal_parameters,template = relations_instantiation_map[k]
+            formal_parameters, template = relations_instantiation_map[k]
             for parameter in formal_parameters:
                 assert is_variable(parameter)
             assert type(template) is Formula
@@ -189,7 +226,7 @@ class Schema:
         for variable in instantiation_map:
             assert type(variable) is str and \
                    type(instantiation_map[variable]) is str
-        # Task 9.4
+            # Task 9.4
 
 
 class Proof:
@@ -224,7 +261,6 @@ class Proof:
 
         def __repr__(self):
             return str(self.formula) + "     {" + str(self.justification) + "}"
-    
 
     def __init__(self, assumptions, conclusion, lines):
         assert type(conclusion) is Formula
@@ -242,7 +278,7 @@ class Proof:
         for line in self.lines:
             s = s + str(line) + "\n"
         return s
-        
+
     def verify_a_justification(self, line):
         """ Returns whether the line with the given number is a valid
             instantiation of an assumption/axiom given in its justification via
@@ -256,12 +292,12 @@ class Proof:
         for variable in justification[2]:
             assert type(variable) is str and \
                    type(justification[2][variable]) is str
-        l = self.lines[line] # get the current line worked on
-        ass_str = str(self.assumptions[l.justification[1]].formula) # get the assumption formula
+        l = self.lines[line]  # get the current line worked on
+        ass_str = str(self.assumptions[l.justification[1]].formula)  # get the assumption formula
         map = l.justification[2]
         for key in map.keys():
-            ass_str = ass_str.replace(key, map[key]) # for every key in ass replace with value
-        return str(ass_str) == str(l.formula) # return if after switch values are the same
+            ass_str = ass_str.replace(key, map[key])  # for every key in ass replace with value
+        return str(ass_str) == str(l.formula)  # return if after switch values are the same
         # Task 9.5
 
     def verify_t_justification(self, line):
@@ -272,8 +308,8 @@ class Proof:
         assert len(justification) == 1
 
         l = self.lines[line]
-        z_skel = l.formula.propositional_skeleton() # get the z form
-        return propositions.semantics.is_tautology(z_skel) # check if it's a tautology
+        z_skel = l.formula.propositional_skeleton()  # get the z form
+        return propositions.semantics.is_tautology(z_skel)  # check if it's a tautology
         # Task 9.7
 
     def verify_mp_justification(self, line):
@@ -289,16 +325,16 @@ class Proof:
         # Task 9.8
 
         # first, get all the parts to check MP validity
-        l = self.lines[line] # cur line
+        l = self.lines[line]  # cur line
         # check if cur line number is smaller then justifiction lines
         if line < l.justification[1] or line < l.justification[2]:
             return False
-        phi_1 = self.lines[l.justification[1]] # ass 1 line
-        phi_2 = self.lines[l.justification[2]] # ass 2 line
-        z_dict = {} # this dict lists all the usages of z in mondes ponens
-        z_phi_1 = Formula.skel_helper(phi_1.formula, z_dict) # phi1 skeleton, should be in form z1
-        z_phi_2 = Formula.skel_helper(phi_2.formula, z_dict) # phy2 skeleton, should be in form z1->z2
-        z_conc = Formula.skel_helper(l.formula,z_dict) # conc skeleton, should be in form z2
+        phi_1 = self.lines[l.justification[1]]  # ass 1 line
+        phi_2 = self.lines[l.justification[2]]  # ass 2 line
+        z_dict = {}  # this dict lists all the usages of z in mondes ponens
+        z_phi_1 = Formula.skel_helper(phi_1.formula, z_dict)  # phi1 skeleton, should be in form z1
+        z_phi_2 = Formula.skel_helper(phi_2.formula, z_dict)  # phy2 skeleton, should be in form z1->z2
+        z_conc = Formula.skel_helper(l.formula, z_dict)  # conc skeleton, should be in form z2
 
         # what we want is that z_phi_1 == z_phi_2.first and z_conc == z_phi_2.second
         return z_phi_1 == z_phi_2.first and z_phi_2.second == z_conc
@@ -312,12 +348,12 @@ class Proof:
         assert len(justification) == 2
         assert type(justification[1]) == int
         # Task 9.9
-        cur_line = self.lines[line] # get the cur line
+        cur_line = self.lines[line]  # get the cur line
         # check if we have 'A' and we do not exceed current line bound
         if line < cur_line.justification[1] or cur_line.formula.root != 'A':
             return False
-        just = self.lines[cur_line.justification[1]] # get the justification line
-        return str(cur_line.formula.predicate) == str(just.formula) # check if the phi match
+        just = self.lines[cur_line.justification[1]]  # get the justification line
+        return str(cur_line.formula.predicate) == str(just.formula)  # check if the phi match
 
     def verify_justification(self, line):
         """ Returns whether the line with the given number is validly justified
