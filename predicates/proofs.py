@@ -4,7 +4,7 @@
     File name: code/predicates/proofs.py """
 
 from predicates.syntax import *
-import propositions.semantics
+from propositions.semantics import is_tautology
 
 
 class Schema:
@@ -357,7 +357,7 @@ class Proof:
 
         l = self.lines[line]
         z_skel = l.formula.propositional_skeleton()  # get the z form
-        return propositions.semantics.is_tautology(z_skel)  # check if it's a tautology
+        return is_tautology(z_skel)  # check if it's a tautology
         # Task 9.7
 
     def verify_mp_justification(self, line):
