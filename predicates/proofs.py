@@ -80,7 +80,7 @@ class Schema:
                     var_set = get_all_vars(temp_formula, set())
                     # run on all the bound variables, and if it's in the stated set, raise an error
                     for var in bound_variables:
-                        if var in var_set:
+                        if (var in var_set) and var not in relations_instantiation_map[formula.root][0]:
                             raise Schema.BoundVariableError(var, formula.root)
                     # create a subsitution_map and run on all arguments of the relations, and set a substitution
                     # between the stated argument and the new variable in the dictionary
@@ -116,6 +116,12 @@ class Schema:
             return Formula(root, first, second)
 
         def get_all_vars(help_formula: Formula, var_set: set):
+            """
+            help method to get all the variables in the formula, including free and bounded variables
+            :param help_formula:
+            :param var_set:
+            :return:
+            """
             if is_variable(help_formula.root):
                 var_set.add(formula.root)  # adds var
 

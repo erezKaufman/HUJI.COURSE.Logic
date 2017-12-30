@@ -8,6 +8,7 @@ from predicates.proofs import *
 
 def test_instantiate_formula(debug=False):
     for formula_str,templates,constant_and_variable_instantiation_map,relations_instantiation_map,instance in [
+            ('Ax[Q(x)]', {'Q'}, {}, {'Q': (['x'], Formula.parse('T(x,w)'))}, 'Ax[T(x,w)]'),
             ('R(c)', {'c'}, {'c': Term('9')}, {},  'R(9)'),
             ('(R(0)->R(x))', {'R'}, {}, {'R': (['v'], Formula.parse('v=1'))},
              '(0=1->x=1)'),
