@@ -35,7 +35,14 @@ def test_instantiate_formula(debug=False):
         if debug:
             print('... yields', result)
         assert str(result) == instance
+    # ('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'R', 'Q', 'x'},
+    #  {'Q()': 'Ax[x=0]'},
+    #  '(Ax[(Ax[x=0]->R(x))]->(Ax[x=0]->Ax[R(x)]))')
 
+    # ('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'R', 'Q', 'x'},
+    #  {'Q()': 'Az[z=0]', 'x': 'z'},
+    #  '(Az[(Az[z=0]->R(z))]->(Az[z=0]->Az[R(z)]))')
+    # #  ('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'R', 'Q', 'x'}, {} , {'Q':([] , Formula.parse('Ax[x=0]'))},
     for formula_str,templates,constant_and_variable_instantiation_map,relations_instantiation_map in [
             ('Ax[R(0)]', {'R'}, {}, {'R':(['v'],Formula.parse('Ax[x=1]'))}),
             ('Ax[R(0)]', {'R', 'x'}, {'x': Term('z')},
@@ -122,6 +129,7 @@ def test_instantiate(debug=False):
             ('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'R', 'Q', 'x'},
              {'Q()':'Ax[x=0]'},
              '(Ax[(Ax[x=0]->R(x))]->(Ax[x=0]->Ax[R(x)]))'),
+
             ('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'R', 'Q', 'x'},
              {'Q()':'x=0', 'x':'z'}, '(Az[(x=0->R(z))]->(x=0->Az[R(z)]))'),
             ('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'R', 'Q', 'x'},
@@ -148,6 +156,7 @@ def test_instantiate(debug=False):
         if instance is None:
             assert result is None
         else:
+            print("result is: ",str(result),"\n instance is: ",instance)
             assert str(result) == instance
 
 def test_verify_a_justification(debug=False):

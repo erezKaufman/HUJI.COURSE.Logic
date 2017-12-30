@@ -52,7 +52,7 @@ class Schema:
 
     @staticmethod
     def instantiate_formula(formula, constants_and_variables_instantiation_map,
-                            relations_instantiation_map, bound_variables,templates= None):
+                            relations_instantiation_map, bound_variables):
         def first_run():
             """
 
@@ -75,16 +75,36 @@ class Schema:
                 if formula.root in relations_instantiation_map:
                     # takes the temp formula from the map's value
                     temp_formula = relations_instantiation_map[formula.root][1]
+
                     # find all the free variables of the temp formula
-                    var_set = get_all_vars(temp_formula, set())
-                    # var_set = temp_formula.free_variables()
-                    # run on all the bound variables, and if it's in the stated set, raise an error
-                    for var in bound_variables:
-                        # if the var is in the bounded set, and it's not in the template list, raise exception
-                        # TODO this is where we fail by our logical thought :(
-                        if (var not in relations_instantiation_map[formula.root][0] and (var in var_set)):
-                                # or var in templates:
-                            raise Schema.BoundVariableError(var, formula.root)
+                    var_set = temp_formula.free_variables()
+                    # I want to check if there are bounded variables that appear in 'var_set'.
+                    # If there are so many, we will raise an exception. also I want to check if the variables appear
+                    # as a free variable in the inner formula.
+                    # for var in relations_instantiation_map[formula.root][0]:
+                    #     if var not in var_set:
+                    #         raise Schema.BoundVariableError(relations_instantiation_map[formula.root][0], formula.root)
+
+
+                    for bounded_variable in bound_variables:
+                        if bounded_variable in var_set and \
+                                (bounded_variable not in relations_instantiation_map[formula.root][0]):
+                            raise Schema.BoundVariableError(bounded_variable, formula.root)
+
+
+
+
+
+                    # # run on all the bound variables, and if it's in the stated set, raise an error
+                    # for var in bound_variables:
+                    #     # if the var is in the bounded set, and it's not in the template list, raise exception
+                    #     # TODO this is where we fail by our logical thought :(
+                    #     if (var not in relations_instantiation_map[formula.root][0] and (var in var_set)):
+                    #             # or var in templates:
+                    #         raise Schema.BoundVariableError(var, formula.root)
+
+
+
                     # create a subsitution_map and run on all arguments of the relations, and set a substitution
                     # between the stated argument and the new variable in the dictionary
                     subsitution_map = {}
@@ -251,7 +271,7 @@ class Schema:
                     key_variables = key_formula.free_variables()
                     relations_instantiation_map[key_formula.root] = (list(key_variables), value_formula)
             returned_formula = self.instantiate_formula(self.formula,constants_and_variables_instantiation_map,
-                                     relations_instantiation_map,set(),self.templates)
+                                     relations_instantiation_map,set())
         except Schema.BoundVariableError:
             return None
         return returned_formula
