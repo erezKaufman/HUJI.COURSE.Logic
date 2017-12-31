@@ -78,51 +78,34 @@ class Schema:
 
                     # find all the free variables of the temp formula
                     var_set = temp_formula.free_variables()
-                    # I want to check if there are bounded variables that appear in 'var_set'.
-                    # If there are so many, we will raise an exception. also I want to check if the variables appear
-                    # as a free variable in the inner formula.
-                    # for var in relations_instantiation_map[formula.root][0]:
-                    #     if var not in var_set:
-                    #         raise Schema.BoundVariableError(relations_instantiation_map[formula.root][0], formula.root)
 
+                    # I want to check if there are bounded variables that appear in 'var_set'.
+                    # If there are some, we will raise an exception. also I want to check if the variables appear
+                    # as a free variable in the inner formula.
 
                     for bounded_variable in bound_variables:
                         if bounded_variable in var_set and \
                                 (bounded_variable not in relations_instantiation_map[formula.root][0]):
                             raise Schema.BoundVariableError(bounded_variable, formula.root)
 
-
-
-
-
-                    # # run on all the bound variables, and if it's in the stated set, raise an error
-                    # for var in bound_variables:
-                    #     # if the var is in the bounded set, and it's not in the template list, raise exception
-                    #     # TODO this is where we fail by our logical thought :(
-                    #     if (var not in relations_instantiation_map[formula.root][0] and (var in var_set)):
-                    #             # or var in templates:
-                    #         raise Schema.BoundVariableError(var, formula.root)
-
-
-
-                    # create a subsitution_map and run on all arguments of the relations, and set a substitution
+                    # create a substitution_map and run on all arguments of the relations, and set a substitution
                     # between the stated argument and the new variable in the dictionary
                     subsitution_map = {}
                     for index, args in enumerate(formula.arguments):
                         # create a map to which we enter the index value in the list that is in the tuple of the
                         # dictionary
                         subsitution_map[relations_instantiation_map[formula.root][0][index]] = args
-                    # return the formula from the tuple of the dictionary - and call subsitute on it with the dict we
+                    # return the formula from the tuple of the dictionary - and call substitute on it with the dict we
                     # created
                     return relations_instantiation_map[formula.root][1].substitute(subsitution_map)
                 else:
                     first = formula.arguments
                     root = formula.root
-            elif is_equality(formula.root):  # adapt formula.first and formula.second
+            elif is_equality(formula.root):
                 root = formula.root
                 first = formula.first
                 second = formula.second
-            elif is_quantifier(formula.root):  # Populate self.variable and self.predicate
+            elif is_quantifier(formula.root):
                 # if the variable appears in the quantifier, delete it from the   dictionary for this part of the tree
                 root = formula.root
                 first = formula.variable
@@ -132,43 +115,11 @@ class Schema:
             elif is_unary(formula.root):
                 root = formula.root
                 first = second_run(formula.first)
-            else:  # Populate self.first and self.second
+            else:
                 root = formula.root
                 first = second_run(formula.first)
                 second = second_run(formula.second)
             return Formula(root, first, second)
-
-        def get_all_vars(help_formula: Formula, var_set: set):
-            """
-            help method to get all the variables in the formula, including free and bounded variables
-            :param help_formula:
-            :param var_set:
-            :return:
-            """
-            if is_variable(help_formula.root):
-                var_set.add(formula.root)  # adds var
-
-            if is_constant(help_formula.root):
-                return var_set
-
-            elif is_unary(help_formula.root):
-                get_all_vars(formula.first, var_set)  # recursive call on first
-            elif is_equality(help_formula.root):
-                var_set.update(help_formula.first.variables())
-                var_set.update(help_formula.second.variables())
-
-            elif is_relation(help_formula.root):
-                for arg in help_formula.arguments:
-                    var_set.update(arg.variables())
-
-            elif is_quantifier(help_formula.root):
-                var_set.add(help_formula.variable)  # add var to non_free
-                get_all_vars(help_formula.predicate, var_set)  # call helper with predicate values
-
-            elif is_binary(help_formula.root):
-                get_all_vars(help_formula.first, var_set)  # call helper with first
-                get_all_vars(help_formula.second, var_set)  # call helper with second
-            return var_set
 
         """ Return the Formula resulting in simultaneously making the following
             substitutions in formula:
@@ -215,8 +166,11 @@ class Schema:
             assert type(template) is Formula
         for variable in bound_variables:
             assert is_variable(variable)
+        # --finished assertions-- #
 
+        # make the first run, substitute all variables and constants
         new_formula = first_run()
+        # make the second run, substitute all the relations and bound variables if there are in a quantifier
         return second_run(new_formula)
 
     def instantiate(self, instantiation_map):
@@ -253,25 +207,31 @@ class Schema:
         for variable in instantiation_map:
             assert type(variable) is str and \
                    type(instantiation_map[variable]) is str
-        returned_formula = self.formula
+        # --finished assertion-- #
         try:
-            constants_and_variables_instantiation_map ={}
+            # create new dictionaries for relations and constants/variables
+            constants_and_variables_instantiation_map = {}
             relations_instantiation_map = {}
 
+            # run on all elements in the map
             for key, value in instantiation_map.items():
-                if is_constant(key) or is_variable(key): # if the key is variable or constant -
+                # if the element is a constant/variable, first we will check if it appears in the templates (else we
+                # return None). and then we will add it to the right map
+                if is_constant(key) or is_variable(key):  # if the key is variable or constant -
                     if key not in self.templates:
                         return None
                     constants_and_variables_instantiation_map[key] = Term.parse(value)
-                else: # if it's a relation
+                # if the element is a relation, we will check if the root appears as a template, and then create the
+                # proper way that we want the map's value to appear.
+                else:
                     key_formula = Formula.parse(key)
                     if key_formula.root not in self.templates:
                         return None
                     value_formula = Formula.parse(value)
                     key_variables = key_formula.free_variables()
                     relations_instantiation_map[key_formula.root] = (list(key_variables), value_formula)
-            returned_formula = self.instantiate_formula(self.formula,constants_and_variables_instantiation_map,
-                                     relations_instantiation_map,set())
+            returned_formula = self.instantiate_formula(self.formula, constants_and_variables_instantiation_map,
+                                                        relations_instantiation_map, set())
         except Schema.BoundVariableError:
             return None
         return returned_formula
@@ -427,4 +387,3 @@ class Proof:
             if not self.verify_justification(line):
                 return False
         return True
-
