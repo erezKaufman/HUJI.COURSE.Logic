@@ -387,3 +387,4 @@ class Proof:
             if not self.verify_justification(line):
                 return False
         return True
+# Hello tester :)
