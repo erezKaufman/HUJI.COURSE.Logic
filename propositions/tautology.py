@@ -520,26 +520,32 @@ def proof_or_counterexample(formula):
 def proof_or_counterexample_for_inference(rule):
     """ Return either a proof of rule via AXIOMATIC_SYSTEM, or a model where
         rule does not hold """
-
+    # if the assumption list is empty, throw to 'proof_or_counterexample' function with the conclusion alone
     if rule.assumptions == []:
         return proof_or_counterexample(rule.conclusion)
     else:
         lines = []
+        # for each assumption, add the lines of tha assumption to the proof list
         for ass in rule.assumptions:
             lines.append(DeductiveProof.Line(ass, None, []))
         formula = rule.conclusion
+        # for each assumption - create a formula out of the last assumptions
         for index in range((len(rule.assumptions) - 1), -1, -1):
             formula = Formula(IMPLICATION_OPERATOR, rule.assumptions[index], formula)
+        # call 'proof_or_counterexample' and check the result
         cur_proof_or_counter = proof_or_counterexample(formula)
         if type(cur_proof_or_counter) == dict:
             return cur_proof_or_counter  # this is a modle with a counter example for rule
         else:  # we have a proof
             cur_line_counter = len(lines)
+            # for each line in the proof
             for line in cur_proof_or_counter.lines:
-                justifications = []
+                justifications = [] # create new empty list for justifications
+                # for each justification for that line,
                 for just in line.justification:
-                    justifications.append(just + cur_line_counter)
-                lines.append(DeductiveProof.Line(line.conclusion, line.rule, justifications))
+                    justifications.append(just + cur_line_counter)  # add counter for justification
+                lines.append(DeductiveProof.Line(line.conclusion, line.rule, justifications)) # add the new line
+            # discard of all the other parts of the formula
             for run in range(len(rule.assumptions)):
                 formula = formula.second
                 lines.append(DeductiveProof.Line(formula, 0, [run, len(lines) - 1]))

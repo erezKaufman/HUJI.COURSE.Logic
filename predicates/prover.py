@@ -144,19 +144,17 @@ class Prover:
         :return:
         """
         # Task 10.1
-        # I need to use the UI schema (AXIOM[0]. I will create a map to enter the instantiate and then use MP for it
-        # (again with creating map)
-        #     UI = Schema('(Ax[R(x)]->R(c))', {'R', 'x', 'c'})
+
         # I receive a line number, I need to reach it and take the formula there. Then I need to  set the variable in
         #  the quantifier to be as 'x', the Formula inside of the quantifier to be as 'R' and the constant after the
-        # implication to be as 'c'
-        # self.AXIOMS[0].instantiate_formula()
+        # get the formula form of the current line, and check it's a quantifier
         line_formula = self.proof.lines[line_number].formula
         assert is_quantifier(line_formula.root)
+        # create an instantiation map and add to it the instantiated values
         instantiation_map = {}
-        x_var = str(line_formula.variable)
-        R_var = str(line_formula.predicate)
-        term_obj = term
+        x_var = str(line_formula.variable) # the x instantiated value will be the variable of the quantifier
+        R_var = str(line_formula.predicate) # the R instantiated value will be the predicate of the quantifier
+        term_obj = term # the c instantiated value will be the whole term
         instantiation_map['R(x)'] = R_var
         instantiation_map['x'] = x_var
         instantiation_map['c'] = term_obj
@@ -168,9 +166,6 @@ class Prover:
         return self._add_line(ui_formula.second, mp_justification)
 
 
-        # if is_constant(term_obj):
-        #     c_var = term_obj
-
     def add_tautological_inference(self, conclusion, line_numbers):
         """ Add a sequence of validly justified lines to the proof being
             constructed, where the formula of the last line is conclusion,
@@ -179,6 +174,16 @@ class Prover:
             number of the (new) line in this proof containing conclusion is
             returned """
         # Task 10.2
+        formula = Formula.parse(conclusion)
+        for i in range (len(line_numbers)-1,-1,-1):
+            formula = Formula('->',self.proof.lines[line_numbers[i]].formula,formula)
+
+        last_line_number = self._add_line(formula,('T',))
+        for j in range(len(line_numbers)):
+            last_line_number = self._add_line(formula.second,('MP',line_numbers[j],last_line_number))
+            formula = formula.second
+        return last_line_number
+
 
     def add_existential_derivation(self, statement, line1, line2):
         """ Add a sequence of validly justified lines to the proof being
