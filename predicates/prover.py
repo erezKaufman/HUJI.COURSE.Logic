@@ -7,18 +7,19 @@ from predicates.syntax import *
 from predicates.proofs import *
 from predicates.util import *
 
+
 class Prover:
     """ A class for gradually constructing a first-order Proof for a given
         conclusion, from given assumptions as well as from the six AXIOMS
         Universal Instantiation (UI), Existential Introduction (EI), Universal
         Simplification (US), Existential Simplification (ES), Reflexivity (RX),
         and Meaning of Equality (ME) """
-    UI = Schema('(Ax[R(x)]->R(c))', {'R','x','c'})
-    EI = Schema('(R(c)->Ex[R(x)])', {'R','x','c'})
-    US = Schema('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'x','Q','R'})
-    ES = Schema('((Ax[(R(x)->Q())]&Ex[R(x)])->Q())', {'x','Q','R'})
+    UI = Schema('(Ax[R(x)]->R(c))', {'R', 'x', 'c'})
+    EI = Schema('(R(c)->Ex[R(x)])', {'R', 'x', 'c'})
+    US = Schema('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'x', 'Q', 'R'})
+    ES = Schema('((Ax[(R(x)->Q())]&Ex[R(x)])->Q())', {'x', 'Q', 'R'})
     RX = Schema('c=c', {'c'})
-    ME = Schema('(c=d->(R(c)->R(d)))', {'c','d','R'})
+    ME = Schema('(c=d->(R(c)->R(d)))', {'c', 'd', 'R'})
     AXIOMS = [UI, EI, US, ES, RX, ME]
 
     def __init__(self, assumptions, conclusion, print_as_proof_forms=False):
@@ -35,8 +36,8 @@ class Prover:
                             if type(assumption) is str else assumption
                             for assumption in assumptions
                             if assumption not in Prover.AXIOMS],
-                            Formula.parse(conclusion)
-                            if type(conclusion) is str else conclusion, [])
+                           Formula.parse(conclusion)
+                           if type(conclusion) is str else conclusion, [])
         self.print_as_proof_forms = print_as_proof_forms
         if self.print_as_proof_forms:
             print("Starting Proof")
@@ -69,7 +70,7 @@ class Prover:
         return self._add_line(instance,
                               ('A', self.proof.assumptions.index(schema),
                                instantiation_map))
-        
+
     def add_assumption(self, assumption):
         """ Append to the proof being constructed a validly justified line
             whose formula is assumption, which is the (unique) instance of a
@@ -121,22 +122,44 @@ class Prover:
                             line.justification[2] + line_shift)
             if line.justification[0] == 'UG':
                 self.add_ug(line.formula, line.justification[1] + line_shift)
-        line_number = len(self.proof.lines)-1
+        line_number = len(self.proof.lines) - 1
         assert str(self.proof.lines[line_number].formula) == str(conclusion)
-        return line_number                
+        return line_number
 
-    def add_universal_instantiation(self, instantiation, line_number, term):
-        """ Append a sequence of validly justified lines to the proof being
-            constructed, where the formula of the last line is statement, which
-            is an instantiation of the formula in line line_number in this
-            proof, where the instantiation is to the universally
-            quantified variable appearing at the beginning of the formula in
-            the given line number. Example: if line line_number has the formula
-            'Ay[Az[f(x,y)=g(z,y)]]', then when calling this method with the
-            term 'h(w)', the instantiation should be
-            'Az[f(x,h(w))=g(z,h(w))]'. The number of the (new) line in this
-            proof containing instantiation is returned """
+    def add_universal_instantiation(self, instantiation: str, line_number: int, term: str) -> int:
+        """
+        Append a sequence of validly justified lines to the proof being
+        constructed, where the formula of the last line is statement, which
+        is an instantiation of the formula in line line_number in this
+        proof, where the instantiation is to the universally
+        quantified variable appearing at the beginning of the formula in
+        the given line number. Example: if line line_number has the formula
+        'Ay[Az[f(x,y)=g(z,y)]]', then when calling this method with the
+        term 'h(w)', the instantiation should be
+        'Az[f(x,h(w))=g(z,h(w))]'. The number of the (new) line in this
+        proof containing instantiation is returned
+        :param instantiation:
+        :param line_number:
+        :param term:
+        :return:
+        """
         # Task 10.1
+        # I need to use the UI schema (AXIOM[0]. I will create a map to enter the instantiate and then use MP for it
+        # (again with creating map)
+        #     UI = Schema('(Ax[R(x)]->R(c))', {'R', 'x', 'c'})
+        # I receive a line number, I need to reach it and take the formula there. Then I need to  set the variable in
+        #  the quantifier to be as 'x', the Formula inside of the quantifier to be as 'R' and the constant after the
+        # implication to be as 'c'
+        # self.AXIOMS[0].instantiate_formula()
+        line_formula = self.proof.lines[line_number].formula
+        assert is_quantifier(line_formula.root)
+        x_var = line_formula.variable
+        R_var = line_formula.predicate
+        # term_obj = Term.parse(term)
+        # if is_constant(term_obj):
+        #     c_var = term_obj
+
+
 
     def add_tautological_inference(self, conclusion, line_numbers):
         """ Add a sequence of validly justified lines to the proof being
@@ -176,6 +199,7 @@ class Prover:
             instantiation should be 'Az[f(x,h(w))=g(z,h(w))]'. The number of the
             (new) line in this proof containing instantiation is returned """
         # Task 10.7
+
     def add_substituted_equality(self, substituted, line_number,
                                  term_with_free_v):
         """ Add a sequence of validly justified lines to the proof being

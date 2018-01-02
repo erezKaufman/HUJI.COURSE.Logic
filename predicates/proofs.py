@@ -270,7 +270,7 @@ class Proof:
         def __repr__(self):
             return str(self.formula) + "     {" + str(self.justification) + "}"
 
-    def __init__(self, assumptions, conclusion, lines):
+    def __init__(self, assumptions: [Schema], conclusion: Formula, lines: [Line]):
         assert type(conclusion) is Formula
         for assumption in assumptions:
             assert type(assumption) is Schema
