@@ -287,7 +287,7 @@ class Proof:
             s = s + str(line) + "\n"
         return s
 
-    def verify_a_justification(self, line):
+    def verify_a_justification(self, line: Line):
         """ Returns whether the line with the given number is a valid
             instantiation of an assumption/axiom given in its justification via
             an instantiation map given in its justification """
@@ -301,11 +301,13 @@ class Proof:
             assert type(variable) is str and \
                    type(justification[2][variable]) is str
         l = self.lines[line]  # get the current line worked on
-        ass_str = str(self.assumptions[l.justification[1]].formula)  # get the assumption formula
+        cur_schema = self.assumptions[l.justification[1]]
+        # assumption = self.assumptions[l.justification[1]].formula  # get the assumption formula
         map = l.justification[2]
-        for key in map.keys():
-            ass_str = ass_str.replace(key, map[key])  # for every key in ass replace with value
-        return str(ass_str) == str(l.formula)  # return if after switch values are the same
+        instansiated_formula = cur_schema.instantiate(map)
+        # for key in map.keys():
+        #     ass_str = ass_str.replace(key, map[key])  # for every key in ass replace with value
+        return instansiated_formula == l.formula  # return if after switch values are the same
         # Task 9.5
 
     def verify_t_justification(self, line):
@@ -387,4 +389,3 @@ class Proof:
             if not self.verify_justification(line):
                 return False
         return True
-# Hello tester :)
