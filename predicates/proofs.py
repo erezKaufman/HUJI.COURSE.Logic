@@ -261,7 +261,7 @@ class Proof:
             3) ('MP', line1, line2), where line1 and line2 are line indices
             4) ('UG', line), where line is a line index """
 
-        def __init__(self, formula, justification):
+        def __init__(self, formula: Formula, justification: tuple):
             assert type(formula) is Formula
             assert justification[0] in {'A', 'T', 'MP', 'UG'}
             self.formula = formula
@@ -333,7 +333,6 @@ class Proof:
         assert type(justification[1]) == int
         assert type(justification[2]) == int
         # Task 9.8
-
         # first, get all the parts to check MP validity
         l = self.lines[line]  # cur line
         # check if cur line number is smaller then justifiction lines

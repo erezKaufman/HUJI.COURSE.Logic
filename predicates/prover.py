@@ -153,13 +153,23 @@ class Prover:
         # self.AXIOMS[0].instantiate_formula()
         line_formula = self.proof.lines[line_number].formula
         assert is_quantifier(line_formula.root)
-        x_var = line_formula.variable
-        R_var = line_formula.predicate
-        # term_obj = Term.parse(term)
+        instantiation_map = {}
+        x_var = str(line_formula.variable)
+        R_var = str(line_formula.predicate)
+        term_obj = term
+        instantiation_map['R(x)'] = R_var
+        instantiation_map['x'] = x_var
+        instantiation_map['c'] = term_obj
+        ui_formula = self.AXIOMS[0].instantiate(instantiation_map)
+        ui_justification = ('A', 0, instantiation_map)
+        ui_line_num = self._add_line(ui_formula, ui_justification)
+
+        mp_justification = ('MP', line_number, ui_line_num)
+        return self._add_line(ui_formula.second, mp_justification)
+
+
         # if is_constant(term_obj):
         #     c_var = term_obj
-
-
 
     def add_tautological_inference(self, conclusion, line_numbers):
         """ Add a sequence of validly justified lines to the proof being
