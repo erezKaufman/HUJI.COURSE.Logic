@@ -138,10 +138,6 @@ class Prover:
         term 'h(w)', the instantiation should be
         'Az[f(x,h(w))=g(z,h(w))]'. The number of the (new) line in this
         proof containing instantiation is returned
-        :param instantiation:
-        :param line_number:
-        :param term:
-        :return:
         """
         # Task 10.1
 
@@ -152,19 +148,16 @@ class Prover:
         assert is_quantifier(line_formula.root)
         # create an instantiation map and add to it the instantiated values
         instantiation_map = {}
-        x_var = str(line_formula.variable) # the x instantiated value will be the variable of the quantifier
-        R_var = str(line_formula.predicate) # the R instantiated value will be the predicate of the quantifier
-        term_obj = term # the c instantiated value will be the whole term
-        instantiation_map['R(x)'] = R_var
+        x_var = str(line_formula.variable)  # the x instantiated value will be the variable of the quantifier
+        r_var = str(line_formula.predicate)  # the R instantiated value will be the predicate of the quantifier
+        term_obj = term  # the c instantiated value will be the whole term
+        instantiation_map['R(x)'] = r_var
         instantiation_map['x'] = x_var
         instantiation_map['c'] = term_obj
         ui_formula = self.AXIOMS[0].instantiate(instantiation_map)
-        ui_justification = ('A', 0, instantiation_map)
-        ui_line_num = self._add_line(ui_formula, ui_justification)
+        ui_line_num = self.add_instantiated_assumption(ui_formula,self.AXIOMS[0],instantiation_map)
 
-        mp_justification = ('MP', line_number, ui_line_num)
-        return self._add_line(ui_formula.second, mp_justification)
-
+        return self.add_mp(instantiation,line_number,ui_line_num)
 
     def add_tautological_inference(self, conclusion, line_numbers):
         """ Add a sequence of validly justified lines to the proof being
@@ -175,15 +168,14 @@ class Prover:
             returned """
         # Task 10.2
         formula = Formula.parse(conclusion)
-        for i in range (len(line_numbers)-1,-1,-1):
-            formula = Formula('->',self.proof.lines[line_numbers[i]].formula,formula)
+        for i in range(len(line_numbers) - 1, -1, -1):
+            formula = Formula('->', self.proof.lines[line_numbers[i]].formula, formula)
 
-        last_line_number = self._add_line(formula,('T',))
+        last_line_number = self.add_tautology(formula)
         for j in range(len(line_numbers)):
-            last_line_number = self._add_line(formula.second,('MP',line_numbers[j],last_line_number))
+            last_line_number = self.add_mp(formula.second,line_numbers[j],last_line_number)
             formula = formula.second
         return last_line_number
-
 
     def add_existential_derivation(self, statement, line1, line2):
         """ Add a sequence of validly justified lines to the proof being
@@ -193,6 +185,24 @@ class Prover:
             'cond(x)->statement' (where x is not free is statement). The number
             of the (new) line in this proof containing statement is returned """
         # Task 10.3
+        formula1 = self.proof.lines[line1].formula
+        formula2 = self.proof.lines[line2].formula
+        assert is_quantifier(formula1.root)
+        assert formula2.root == '->'
+        # TODO do I need to know what is the var x?
+        new_quantified_line2 = Formula('A',formula1.variable,formula2)
+        line_num_1 = self.add_ug(new_quantified_line2,line2)
+        x_var = formula1.variable
+        r_formula = str(formula2.first)
+        q_formula =  str(statement)
+        instantiation_map = {}
+        instantiation_map['x'] = x_var
+        instantiation_map['R(x)'] = r_formula
+        instantiation_map['Q()'] = q_formula
+        es_formula = self.AXIOMS[3].instantiate(instantiation_map)
+        line_num_2 = self.add_instantiated_assumption(es_formula,self.AXIOMS[3],instantiation_map)
+        return self.add_tautological_inference(statement,[line1,line_num_1,line_num_2])
+
 
     def add_flipped_equality(self, flipped, line_number):
         """ Add a sequence of validly justified lines to the proof being
