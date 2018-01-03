@@ -190,79 +190,24 @@ class Prover:
 
         formula1 = self.proof.lines[line1].formula
         formula2 = self.proof.lines[line2].formula
-        assert is_quantifier(formula1.root)
-        assert formula2.root == '->'
+        # assert is_quantifier(formula1.root)
+        # assert formula2.root == '->'
 
         # create quantified formula 2:
         f1_var = formula1.variable
         quantified_form2 = Formula('A',f1_var,formula2)
-        quantified_form2_line = self.add_ug(quantified_form2,line2)
-
+        quantified_form2_line = self.add_ug(str(quantified_form2),line2)
         # create es formula
-        part_1_es = Formula('&',quantified_form2,formula1)
-        es_formula = Formula('->',part_1_es,Formula.parse(statement))
+        part_1_es = Formula('&',self.proof.lines[quantified_form2_line].formula, formula1)
+        es_formula = Formula('->', part_1_es, formula2.second)
         # finished es formula
-
         # create new instantiation map for ES
         # ES = Schema('((Ax[(R(x)->Q())]&Ex[R(x)])->Q())', {'x', 'Q', 'R'})
-
-        instantiation_map = {'x': f1_var ,'R('+f1_var+')' : str(formula1.predicate) , 'Q()' : statement }
+        sub = formula1.predicate.substitute({f1_var : Term('v')})
+        instantiation_map = {'x': f1_var ,'R(v)' : str(sub) , 'Q()' : str(formula2.second)}
         # es_formula = Prover.ES.instantiate(instantiation_map)
         es_line = self.add_instantiated_assumption(es_formula,Prover.ES,instantiation_map)
         return self.add_tautological_inference(statement,[line1,quantified_form2_line,es_line])
-
-        # create ES formula
-        # new_quantified_line2 = Formula('A',formula1.variable,formula2)
-        # part_1_es_formula = Formula('&',new_quantified_line2,formula1)
-        # es_formula = Formula('->',part_1_es_formula,Formula.parse(statement))
-        #
-        # # finished creating es formula
-        #
-        # # add new line for quantified formula2
-        # line_num_1 = self.add_ug(new_quantified_line2,line2)
-        # # r_formula = str(formula2.first)
-        #
-        # # q_free_vars = Formula.parse(statement).free_variables()
-        # instantiation_map = {}
-        # instantiation_map['x'] = formula1.variable
-        # instantiation_map['R(v)'] = str(part_1_es_formula)
-        # instantiated_form = formula1.predicate.substitute({formula1.variable: Term('v')})
-        # instantiation_map['Q()'] = statement
-        # # es_formula = Prover.ES.instantiate(instantiation_map)
-        # line_num_2 = self.add_instantiated_assumption(es_formula,Prover.ES,instantiation_map)
-        # return self.add_tautological_inference(statement,[line1,line_num_1,line_num_2])
-
-        # def add_existential_derivation(self, statement, line1, line2):
-        #     """ Add a sequence of validly justified lines to the proof being
-        #         constructed, where the formula of the last line is statement.
-        #         The formula in line line1 must be of the form 'Ex[cond(x)]' (for
-        #         some variable x), and the formula in line line2 must be of the form
-        #         'cond(x)->statement' (where x is not free is statement). The number
-        #         of the (new) line in this proof containing statement is returned """
-        #     # Task 10.3
-        #     formula1 = self.proof.lines[line1].formula
-        #     formula2 = self.proof.lines[line2].formula
-        #     assert is_quantifier(formula1.root)
-        #     assert formula2.root == '->'
-        #     # TODO do I need to know what is the var x?
-        #     new_quantified_line2 = Formula('A', formula1.variable, formula2)
-        #     line_num_1 = self.add_ug(new_quantified_line2, line2)
-        #     x_var = formula1.variable
-        #     r_formula = str(formula2.first)
-        #     q_formula = str(statement)
-        #     q_free_vars = Formula.parse(statement).free_variables()
-        #     instantiation_map = {}
-        #     instantiation_map['x'] = x_var
-        #     instantiation_map['R(' + x_var + ')'] = r_formula
-        #     var_str = ''
-        #     for index, var in enumerate(q_free_vars):
-        #         var_str += var
-        #         if index != len(q_free_vars) - 1:
-        #             var_str += ','
-        #     instantiation_map['Q(' + var_str + ')'] = q_formula
-        #     es_formula = self.AXIOMS[3].instantiate(instantiation_map)
-        #     line_num_2 = self.add_instantiated_assumption(es_formula, self.AXIOMS[3], instantiation_map)
-        #     return self.add_tautological_inference(statement, [line1, line_num_1, line_num_2])
 
     def add_flipped_equality(self, flipped, line_number):
         """ Add a sequence of validly justified lines to the proof being

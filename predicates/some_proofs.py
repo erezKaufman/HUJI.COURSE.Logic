@@ -18,35 +18,15 @@ def lovers_proof(print_as_proof_forms=False):
                      'Ax[Az[Ay[(Loves(x,y)->Loves(z,x))]]]'],
                     'Ax[Az[Loves(z,x)]]', print_as_proof_forms)
     # Task 10.4
-    # step_1 = prover.add_assumption('Ax[Ey[Loves(x,y)]]')
-    # step_2 = prover.add_assumption('Ax[Az[Ay[(Loves(x,y)->Loves(z,x))]]]')
-    # # step_3 = prover.add_ug('Ey[Loves(x,y)',step_1)
-    # step_3 = prover.add_universal_instantiation('Ey[Loves(x,y)]', step_1, 'x')
-    # step_4 = prover.add_universal_instantiation('Az[Ay[(Loves(x,y)->Loves(z,x))]]', step_2, 'x')
-    # # step_4 = prover.add_ug('Az[Ay[(Loves(x,y)->Loves(z,x))]]',step_2)
-    # # step_5 = prover.add_ug('Ay[(Loves(x,y)->Loves(z,x))]',step_4)
-    # step_5 = prover.add_universal_instantiation('Ay[(Loves(x,y)->Loves(z,x))]', step_4, '')
-    # step_6 = prover.add_existential_derivation('((Ay[(Loves(x,y)->Loves(z,x))]&Ey[Loves(x,y))->Loves(z,x))', step_3,
-    #                                            step_5)
-    # step_7 = prover.add_tautological_inference('Loves(z,x)',[step_3,step_5])
-    # return prover.proof
-
-
     step_1 = prover.add_assumption('Ax[Ey[Loves(x,y)]]')
     step_2 = prover.add_assumption('Ax[Az[Ay[(Loves(x,y)->Loves(z,x))]]]')
-    # step_3 = prover.add_ug('Ey[Loves(x,y)',step_1)
     step_3 = prover.add_universal_instantiation('Ey[Loves(x,y)]', step_1, 'x')
     step_4 = prover.add_universal_instantiation('Az[Ay[(Loves(x,y)->Loves(z,x))]]', step_2, 'x')
-    # step_4 = prover.add_ug('Az[Ay[(Loves(x,y)->Loves(z,x))]]',step_2)
-    # step_5 = prover.add_ug('Ay[(Loves(x,y)->Loves(z,x))]',step_4)
     step_5 = prover.add_universal_instantiation('Ay[(Loves(x,y)->Loves(z,x))]', step_4, 'z')
-    step_6 = prover.add_universal_instantiation('(Loves(x,y)->Loves(z,x))',step_5,'y')
-
-    step_7 = prover.add_existential_derivation('(((Loves(x,y)->Loves(z,x))&Ey[Loves(x,y)])->Loves(z,x))', step_3,
-                                               step_6)
-    step_8 = prover.add_tautological_inference('Loves(z,x)',[step_3,step_7])
-    step_9 = prover.add_ug('Az[Loves(z,x)]', step_8)
-    step_10 = prover.add_ug('Ax[Az[Loves(z,x)]]', step_9)
+    step_6 = prover.add_universal_instantiation('(Loves(x,y)->Loves(z,x))', step_5, 'y')
+    step_7 = prover.add_existential_derivation('Loves(z,x)', step_3, step_6)
+    step_8 = prover.add_ug('Az[Loves(z,x)]', step_7)
+    step_9 = prover.add_ug('Ax[Az[Loves(z,x)]]', step_8)
     return prover.proof
 
 def homework_proof(print_as_proof_forms=False):
@@ -61,6 +41,9 @@ def homework_proof(print_as_proof_forms=False):
                      'Ex[(Homework(x)&Reading(x))]'],
                     'Ex[(Reading(x)&~Fun(x))]', print_as_proof_forms)
     # Task 10.5
+    step_1 = prover.add_assumption('~Ex[(Homework(x)&Fun(x))]')
+    step_2 = prover.add_assumption('Ex[(Homework(x)&Reading(x))]')
+    step_3 =
     return prover.proof
 
 
@@ -124,3 +107,7 @@ def russell_paradox_proof(print_as_proof_forms=False):
     # Task 10.13
     return prover.proof
 
+if __name__ == '__main__':
+    pass
+    # f = Formula.parse('((Ay[(Loves(x,y)->Loves(z,x))]&Ey[Loves(x,y)])->Loves(z,x))')
+    # print(f.root)

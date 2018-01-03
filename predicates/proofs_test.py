@@ -376,4 +376,3 @@ def test_is_valid(debug=False):
     if debug:
         print('\n*************\nCreated a Proof:', proof)
     assert proof.is_valid()
-# Hello bar

@@ -301,13 +301,12 @@ class Proof:
         for variable in justification[2]:
             assert type(variable) is str and \
                    type(justification[2][variable]) is str
+
+
         l = self.lines[line]  # get the current line worked on
         cur_schema = self.assumptions[l.justification[1]]
-        # assumption = self.assumptions[l.justification[1]].formula  # get the assumption formula
         map = l.justification[2]
         instansiated_formula = cur_schema.instantiate(map)
-        # for key in map.keys():
-        #     ass_str = ass_str.replace(key, map[key])  # for every key in ass replace with value
         return instansiated_formula == l.formula  # return if after switch values are the same
         # Task 9.5
 
