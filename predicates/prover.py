@@ -206,7 +206,7 @@ class Prover:
         # create new instantiation map for ES
         # ES = Schema('((Ax[(R(x)->Q())]&Ex[R(x)])->Q())', {'x', 'Q', 'R'})
 
-        instantiation_map = {'x': f1_var ,'R('+f1_var+')' : formula1.predicate , 'Q()' : Formula.parse(statement )}
+        instantiation_map = {'x': f1_var ,'R('+f1_var+')' : str(formula1.predicate) , 'Q()' : statement }
         # es_formula = Prover.ES.instantiate(instantiation_map)
         es_line = self.add_instantiated_assumption(es_formula,Prover.ES,instantiation_map)
         return self.add_tautological_inference(statement,[line1,quantified_form2_line,es_line])
