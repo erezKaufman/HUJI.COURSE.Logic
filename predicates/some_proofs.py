@@ -5,6 +5,7 @@
 
 from predicates.prover import *
 
+
 def lovers_proof(print_as_proof_forms=False):
     """ Return a proof that from assumptions (in addition to Prover.AXIOMS):
         1) Everybody loves somebody and
@@ -17,7 +18,19 @@ def lovers_proof(print_as_proof_forms=False):
                      'Ax[Az[Ay[(Loves(x,y)->Loves(z,x))]]]'],
                     'Ax[Az[Loves(z,x)]]', print_as_proof_forms)
     # Task 10.4
+    step_1 = prover.add_assumption('Ax[Ey[Loves(x,y)]]')
+    step_2 = prover.add_assumption('Ax[Az[Ay[(Loves(x,y)->Loves(z,x))]]]')
+    # step_3 = prover.add_ug('Ey[Loves(x,y)',step_1)
+    step_3 = prover.add_universal_instantiation('Ey[Loves(x,y)]', step_1, 'x')
+    step_4 = prover.add_universal_instantiation('Az[Ay[(Loves(x,y)->Loves(z,x))]]', step_2, 'x')
+    # step_4 = prover.add_ug('Az[Ay[(Loves(x,y)->Loves(z,x))]]',step_2)
+    # step_5 = prover.add_ug('Ay[(Loves(x,y)->Loves(z,x))]',step_4)
+    step_5 = prover.add_universal_instantiation('Ay[(Loves(x,y)->Loves(z,x))]', step_4, '')
+    step_6 = prover.add_existential_derivation('((Ay[(Loves(x,y)->Loves(z,x))]&Ey[Loves(x,y))->Loves(z,x))', step_3,
+                                               step_5)
+    step_7 = prover.add_tautological_inference('Loves(z,x)',[step_3,step_5])
     return prover.proof
+
 
 def homework_proof(print_as_proof_forms=False):
     """ Return a proof that from the assumptions (in addition to Prover.AXIOMS):
@@ -32,9 +45,11 @@ def homework_proof(print_as_proof_forms=False):
                     'Ex[(Reading(x)&~Fun(x))]', print_as_proof_forms)
     # Task 10.5
     return prover.proof
-    
+
+
 GROUP_AXIOMS = ['plus(0,x)=x', 'plus(minus(x),x)=0',
                 'plus(plus(x,y),z)=plus(x,plus(y,z))']
+
 
 def unique_zero_proof(print_as_proof_forms=False):
     """ Return a proof that from the group axioms (in addition to Prover.AXIOMS)
@@ -45,11 +60,13 @@ def unique_zero_proof(print_as_proof_forms=False):
     # Task 10.10
     return prover.proof
 
+
 FIELD_AXIOMS = GROUP_AXIOMS + ['plus(x,y)=plus(y,x)', 'times(x,1)=x',
                                'times(x,y)=times(y,x)',
                                'times(times(x,y),z)=times(x,times(y,z))',
                                '(~x=0->Ey[times(y,x)=1])',
                                'times(x,plus(y,z))=plus(times(x,y),times(x,z))']
+
 
 def multiply_zero_proof(print_as_proof_forms=False):
     """ Return a proof that from the field axioms (in addition to Prover.AXIOMS)
@@ -60,10 +77,12 @@ def multiply_zero_proof(print_as_proof_forms=False):
     # Task 10.11
     return prover.proof
 
+
 PEANO_AXIOMS = ['(s(x)=s(y)->x=y)', '(~x=0->Ey[s(y)=x])', '~s(x)=0',
                 'plus(x,0)=x', 'plus(x,s(y))=s(plus(x,y))', 'times(x,0)=0',
                 'times(x,s(y))=plus(times(x,y),x)',
                 Schema('((R(0)&Ax[(R(x)->R(s(x)))])->Ax[R(x)])', 'R')]
+
 
 def peano_zero_proof(print_as_proof_forms=False):
     """ Return a proof that from the Peano axioms (in addition to Prover.AXIOMS)
@@ -74,7 +93,9 @@ def peano_zero_proof(print_as_proof_forms=False):
     # Task 10.12
     return prover.proof
 
+
 COMPREHENSION_AXIOM = Schema('Ey[Ax[((In(x,y)->R(x))&(R(x)->In(x,y)))]]', {'R'})
+
 
 def russell_paradox_proof(print_as_proof_forms=False):
     """ Return a proof that from the axiom schema of (unrestricted)
