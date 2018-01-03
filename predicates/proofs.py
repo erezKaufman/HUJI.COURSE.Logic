@@ -86,6 +86,7 @@ class Schema:
                     for bounded_variable in bound_variables:
                         if bounded_variable in var_set and \
                                 (bounded_variable not in relations_instantiation_map[formula.root][0]):
+                            print('my var set: ',var_set,'\nmy bounded vars: ',bound_variables,'\nmy relation: ',formula.root,'\n my value for the relation in map: ',relations_instantiation_map[formula.root])
                             raise Schema.BoundVariableError(bounded_variable, formula.root)
 
                     # create a substitution_map and run on all arguments of the relations, and set a substitution
