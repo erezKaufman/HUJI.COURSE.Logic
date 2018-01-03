@@ -180,6 +180,7 @@ def right_neutral_proof(stop_before_flipped_equality,
         'plus(x,plus(y,z))=plus(plus(x,y),z)', associativity)
     if stop_before_free_instantiation:
         return None
+
     step7 = prover.add_free_instantiation(
         '0=plus(minus(minus(x)),minus(x))', flipped_negation, {'x':'minus(x)'})
     step8 = prover.add_flipped_equality('plus(minus(minus(x)),minus(x))=0',

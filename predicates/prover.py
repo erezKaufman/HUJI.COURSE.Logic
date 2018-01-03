@@ -216,6 +216,10 @@ class Prover:
             the formula in line line_numer in this proof is 'd=c'. The number
             of the (new) line in this proof containing flipped is returned """
         # Task 10.6
+        f = line_number # term1=term2
+
+
+
 
     def add_free_instantiation(self, instantiation, line_number,
                                substitution_map):

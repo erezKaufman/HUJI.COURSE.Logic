@@ -44,7 +44,7 @@ def homework_proof(print_as_proof_forms=False):
     step_1 = prover.add_assumption('~Ex[(Homework(x)&Fun(x))]')
     step_2 = prover.add_assumption('Ex[(Homework(x)&Reading(x))]')
     #R(c)->Ex[R(x)]
-    inst_dict = {'R(x)':'Homework(x)&Fun(x)', 'c':'x', 'x':'x'}
+    inst_dict = {'R(x)':'(Homework(x)&Fun(x))', 'c':'x', 'x':'x'}
     step_3 = prover.add_instantiated_assumption('((Homework(x)&Fun(x))->Ex[(Homework(x)&Fun(x))])', Prover.EI ,inst_dict)
     # step_4 = prover.add_assumption('((Homework(x)&Fun(x))->Ex[(Homework(x)&Fun(x))])')
     step_5 = prover.add_tautological_inference('(~Ex[(Homework(x)&Fun(x))->~(Homework(x)&Fun(x)))', )
