@@ -38,7 +38,7 @@ def homework_proof(print_as_proof_forms=False):
         The Boolean flag print_as_proof_forms specifies whether the proof being
         constructed is to be printed in real time as it is being constructed """
     prover = Prover(['~Ex[(Homework(x)&Fun(x))]',
-                     'Ex[(Homework(x)&Reading(x))]'], # q
+                     'Ex[(Homework(x)&Reading(x))]'],
                     'Ex[(Reading(x)&~Fun(x))]', print_as_proof_forms)
     # Task 10.5
     step_1 = prover.add_assumption('~Ex[(Homework(x)&Fun(x))]')
@@ -51,9 +51,8 @@ def homework_proof(print_as_proof_forms=False):
     s_7_inst_dict = {'R(x)':'(Reading(x)&~Fun(x))', 'c':'x'}
     step_7 = prover.add_instantiated_assumption('((Reading(x)&~Fun(x))->Ex[(Reading(x)&~Fun(x))])', Prover.EI , s_7_inst_dict)
     step_8 = prover.add_mp('(Homework(x)->~Fun(x))', step_5,step_6)
-    step_9 = prover.add_tautological_inference('((Reading(x)&Homework(x))->(Reading(x)&~Fun(x)))', [step_6,
-                                                                                                    step_8])
-    step_10 = prover.add_tautological_inference('((Reading(x)&Homework(x))->Ex[(Reading(x)&~Fun(x))])', [step_7,step_9])
+    step_9 = prover.add_tautological_inference('((Homework(x)&Reading(x))->(Reading(x)&~Fun(x)))', [step_6,step_8])
+    step_10 = prover.add_tautological_inference('((Homework(x)&Reading(x))->Ex[(Reading(x)&~Fun(x))])', [step_7,step_9])
     step_11 = prover.add_existential_derivation('Ex[(Reading(x)&~Fun(x))]', step_2,step_10)
     return prover.proof
 
