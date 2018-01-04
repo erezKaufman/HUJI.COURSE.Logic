@@ -43,11 +43,18 @@ def homework_proof(print_as_proof_forms=False):
     # Task 10.5
     step_1 = prover.add_assumption('~Ex[(Homework(x)&Fun(x))]')
     step_2 = prover.add_assumption('Ex[(Homework(x)&Reading(x))]')
-    #R(c)->Ex[R(x)]
     inst_dict = {'R(x)':'(Homework(x)&Fun(x))', 'c':'x', 'x':'x'}
     step_3 = prover.add_instantiated_assumption('((Homework(x)&Fun(x))->Ex[(Homework(x)&Fun(x))])', Prover.EI ,inst_dict)
-    # step_4 = prover.add_assumption('((Homework(x)&Fun(x))->Ex[(Homework(x)&Fun(x))])')
-    step_5 = prover.add_tautological_inference('(~Ex[(Homework(x)&Fun(x))->~(Homework(x)&Fun(x)))', )
+    step_4 = prover.add_tautological_inference('(~Ex[(Homework(x)&Fun(x))]->~(Homework(x)&Fun(x)))', [step_3])
+    step_5 = prover.add_mp('~(Homework(x)&Fun(x))', step_1,step_4)
+    step_6 = prover.add_tautological_inference('(~(Homework(x)&Fun(x))->(Homework(x)->~Fun(x)))', [step_4]) #TODO might just use step 4
+    s_7_inst_dict = {'R(x)':'(Reading(x)&~Fun(x))', 'c':'x'}
+    step_7 = prover.add_instantiated_assumption('((Reading(x)&~Fun(x))->Ex[(Reading(x)&~Fun(x))])', Prover.EI , s_7_inst_dict)
+    step_8 = prover.add_mp('(Homework(x)->~Fun(x))', step_5,step_6)
+    step_9 = prover.add_tautological_inference('((Reading(x)&Homework(x))->(Reading(x)&~Fun(x)))', [step_6,step_8])
+    step_10 = prover.add_tautological_inference('((Reading(x)&Homework(x))->Ex[(Reading(x)&~Fun(x))])', [step_7,step_9])
+    step_11 = prover.add_tautological_inference('Ex[(Reading(x)&~Fun(x))]', [step_2,step_10])
+    print('yes')
     return prover.proof
 
 
