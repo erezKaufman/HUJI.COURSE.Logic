@@ -48,7 +48,7 @@ def test_task12(debug=False):
 def test_task13(debug=False):
     test_russell_paradox_proof(debug)
 
-test_skeleton(True)
+# test_skeleton(True)
 # test_task1(True)
 # test_task2(True)
 # test_task3(True)

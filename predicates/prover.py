@@ -157,9 +157,9 @@ class Prover:
         instantiation_map['c'] = term_obj
 
         ui_formula = self.AXIOMS[0].instantiate(instantiation_map)
-        ui_line_num = self.add_instantiated_assumption(ui_formula,Prover.UI,instantiation_map)
+        ui_line_num = self.add_instantiated_assumption(ui_formula, Prover.UI, instantiation_map)
 
-        return self.add_mp(instantiation,line_number,ui_line_num)
+        return self.add_mp(instantiation, line_number, ui_line_num)
 
     def add_tautological_inference(self, conclusion, line_numbers):
         """ Add a sequence of validly justified lines to the proof being
@@ -172,10 +172,10 @@ class Prover:
         formula = Formula.parse(conclusion)
         for i in range(len(line_numbers) - 1, -1, -1):
             formula = Formula('->', self.proof.lines[line_numbers[i]].formula, formula)
-
+        print(formula)
         last_line_number = self.add_tautology(formula)
         for j in range(len(line_numbers)):
-            last_line_number = self.add_mp(formula.second,line_numbers[j],last_line_number)
+            last_line_number = self.add_mp(formula.second, line_numbers[j], last_line_number)
             formula = formula.second
         return last_line_number
 
@@ -190,24 +190,22 @@ class Prover:
 
         formula1 = self.proof.lines[line1].formula
         formula2 = self.proof.lines[line2].formula
-        # assert is_quantifier(formula1.root)
-        # assert formula2.root == '->'
+        assert is_quantifier(formula1.root)
+        assert formula2.root == '->'
 
         # create quantified formula 2:
         f1_var = formula1.variable
-        quantified_form2 = Formula('A',f1_var,formula2)
-        quantified_form2_line = self.add_ug(str(quantified_form2),line2)
+        quantified_form2 = Formula('A', f1_var, formula2)
+        quantified_form2_line = self.add_ug(str(quantified_form2), line2)
         # create es formula
-        part_1_es = Formula('&',self.proof.lines[quantified_form2_line].formula, formula1)
+        part_1_es = Formula('&', self.proof.lines[quantified_form2_line].formula, formula1)
         es_formula = Formula('->', part_1_es, formula2.second)
         # finished es formula
         # create new instantiation map for ES
-        # ES = Schema('((Ax[(R(x)->Q())]&Ex[R(x)])->Q())', {'x', 'Q', 'R'})
-        sub = formula1.predicate.substitute({f1_var : Term('v')})
-        instantiation_map = {'x': f1_var ,'R(v)' : str(sub) , 'Q()' : str(formula2.second)}
-        # es_formula = Prover.ES.instantiate(instantiation_map)
-        es_line = self.add_instantiated_assumption(es_formula,Prover.ES,instantiation_map)
-        return self.add_tautological_inference(statement,[line1,quantified_form2_line,es_line])
+        sub = formula1.predicate.substitute({f1_var: Term('v')})
+        instantiation_map = {'x': f1_var, 'R(v)': str(sub), 'Q()': str(formula2.second)}
+        es_line = self.add_instantiated_assumption(es_formula, Prover.ES, instantiation_map)
+        return self.add_tautological_inference(statement, [line1, quantified_form2_line, es_line])
 
     def add_flipped_equality(self, flipped, line_number):
         """ Add a sequence of validly justified lines to the proof being
@@ -216,10 +214,16 @@ class Prover:
             the formula in line line_numer in this proof is 'd=c'. The number
             of the (new) line in this proof containing flipped is returned """
         # Task 10.6
-        f = line_number # term1=term2
-
-
-
+        unflipped_formula = self.proof.lines[line_number].formula
+        first_term = str(unflipped_formula.first)
+        second_term = str(unflipped_formula.second)
+        me_instantiation_map = {'c': first_term, 'd': second_term, 'R(v)': 'v='+first_term}
+        rx_instantiation_map = {'c': first_term}
+        me_line_number = self.add_instantiated_assumption(Prover.ME.instantiate(me_instantiation_map), Prover.ME,
+                                                          me_instantiation_map)
+        rx_line_number = self.add_instantiated_assumption(Prover.RX.instantiate(rx_instantiation_map), Prover.RX,
+                                                          rx_instantiation_map)
+        return self.add_tautological_inference(flipped, [line_number, me_line_number, rx_line_number])
 
     def add_free_instantiation(self, instantiation, line_number,
                                substitution_map):

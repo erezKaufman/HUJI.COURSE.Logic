@@ -85,7 +85,6 @@ def is_tautology(formula):
         return False
     return True
 
-
 def return_boolean(bool_val):
     """ help function to return string value for the boolean"""
     return TRUE_IN_FORM if bool_val is True else FALSE_IN_FORM
