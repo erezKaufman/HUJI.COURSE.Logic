@@ -327,7 +327,7 @@ class Prover:
         f = self.proof.lines[line_number].formula
         first_term = str(f.first)
         second_term = str(f.second)
-        me_instantiation_map = {'c': first_term, 'd': second_term, 'R(v)': term_with_free_v}
+        me_instantiation_map = {'c': first_term, 'd': second_term, 'R(v)': 'v='+str(term_with_free_v)}
         rx_instantiation_map = {'c': term_with_free_v}
         #ME = Schema('(c=d->(R(c)->R(d)))', {'c', 'd', 'R'})
         subbed_form = Prover.ME.instantiate(me_instantiation_map) #phi(first) = phi(second)
@@ -335,7 +335,7 @@ class Prover:
                                                           me_instantiation_map)
         rx_line_number = self.add_instantiated_assumption(Prover.RX.instantiate(rx_instantiation_map), Prover.RX,
                                                           rx_instantiation_map)
-        return self.add_tautological_inference(line_number, me_line_number)
+        return self.add_tautological_inference(subbed_form ,[line_number, me_line_number, rx_line_number])
 
     def _add_chained_two_equalities(self, line1, line2):
         """ Add a sequence of validly justified lines to the proof being
