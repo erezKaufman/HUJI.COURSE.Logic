@@ -226,6 +226,70 @@ class Prover:
 
     def add_free_instantiation(self, instantiation, line_number,
                                substitution_map):
+
+        def compile_term_helper(term_helper: Term, z_list_helper):
+            """
+
+            :param term_helper: the term to process
+            :param z_list_helper:  our list of formula's to update
+            """
+            if is_constant(term_helper.root) or is_variable(term_helper.root):
+                var = next(fresh_variable_name_generator)
+                zs_dict[term_helper] = Term(var)
+                return
+
+            for arg in term_helper.arguments:
+                compile_term_helper(arg, z_list_helper)
+
+            if is_function(term_helper.root):
+                var = next(fresh_variable_name_generator)
+                new_args = []  # holds the new args for this trem, if one of the args should be z_i append that
+                for arg in term_helper.arguments:  # iterate over all term_helper's args
+                    if is_function(arg.root):
+                        if arg in zs_dict.keys():  # it's possible we already added this var , if so
+                            new_args.append(zs_dict[arg])  # just append it!
+                    else:
+                        new_args.append(arg)  # this is a new arg for a var, append it
+
+                result = Formula('=', Term(var), Term(term_helper.root, new_args))
+                z_list_helper.append(result)
+                zs_dict[term_helper] = Term(var)
+
+        def sub_single_var(line, z_value, sub_value):
+            # phi(x)
+            #
+            # 1.
+            # Ax[phi(x)][UG, 0]
+            #
+            # 2.
+            # Ax[phi(x)]->phi(c)[UI]
+
+            # 3.
+            # phi(c)[MP, 1, 2]
+            # step_1 =
+            pass
+
+        def make_z_lines(formula, z_list):
+                if is_unary(formula.root):  # call recursivly with first
+                    make_z_lines(formula.first, z_list)
+
+                # treat of all these the same way - either make a new z or list an old one
+                elif is_equality(formula.root):
+                    compile_term_helper(formula.first, z_list)
+                    compile_term_helper(formula.second, z_list)
+
+                elif is_relation(formula.root):
+                    for term in formula.arguments:
+                        compile_term_helper(term, z_list)
+
+                elif is_quantifier(formula.root):
+                    make_z_lines(formula.predicate, z_list)
+
+                elif is_binary(formula.root):
+                    make_z_lines(formula.first, z_list)
+                    make_z_lines(formula.second, z_list)
+
+
         """ Append a sequence of validly justified lines to the proof being
             constructed, where the formula of the last line is statement, which
             is an instantiation of the formula in line line_number in this
@@ -257,6 +321,21 @@ class Prover:
             line_number = self.add_universal_instantiation(current_formula,cur_ug_line,substitution_map[key])
 
         return line_number
+
+
+        zs_dict = {}
+        z_list = []
+        f = self.proof.lines[line_number].formula
+        make_z_lines(f, z_list)
+        print(zs_dict)
+
+
+
+
+        for key in zs_dict.keys():
+            sub_single_var()
+
+
 
 
     def add_substituted_equality(self, substituted, line_number,
