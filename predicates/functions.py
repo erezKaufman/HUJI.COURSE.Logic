@@ -91,6 +91,7 @@ def compile_term(term):
             z_list_helper.append(result)
             zs_dict[term_helper] = Term(var)
 
+
     """ Return a list of steps that result from compiling the given term,
         whose root is a function invocation (possibly with nested function
         invocations down the term tree). Each of the returned steps is a

@@ -428,6 +428,7 @@ class Formula:
             that appears as a key in the dictionary substitution_map are
             replaced with substitution_map[element_name] """
         for element_name in substitution_map:
+
             assert (is_constant(element_name) or is_variable(element_name)) and \
                    type(substitution_map[element_name]) is Term
         return self.subsitute_helper(copy.deepcopy(substitution_map), False)

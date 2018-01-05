@@ -3,9 +3,7 @@
     by Gonczarowski and Nisan.
     File name: code/predicates/prover.py """
 
-from predicates.syntax import *
 from predicates.proofs import *
-from predicates.util import *
 
 
 class Prover:
@@ -14,7 +12,8 @@ class Prover:
         Universal Instantiation (UI), Existential Introduction (EI), Universal
         Simplification (US), Existential Simplification (ES), Reflexivity (RX),
         and Meaning of Equality (ME) """
-    UI = Schema('(Ax[R(x)]->R(c))', {'R', 'x', 'c'})
+    UI = Schema('(Ax[R(x)]->R(c))', {'R', 'x', 'c'}) #Ax[plus(x,y)=plus(y,x)] ->plus(c,y)=plus(y,c)
+    # Ax[R(X)]->R(C) | (Ax[0=plus(minus(z1,z1))]->0=plus(minus(minus(x),minus(x))))
     EI = Schema('(R(c)->Ex[R(x)])', {'R', 'x', 'c'})
     US = Schema('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'x', 'Q', 'R'})
     ES = Schema('((Ax[(R(x)->Q())]&Ex[R(x)])->Q())', {'x', 'Q', 'R'})
@@ -217,7 +216,7 @@ class Prover:
         unflipped_formula = self.proof.lines[line_number].formula
         first_term = str(unflipped_formula.first)
         second_term = str(unflipped_formula.second)
-        me_instantiation_map = {'c': first_term, 'd': second_term, 'R(v)': 'v='+first_term}
+        me_instantiation_map = {'c': first_term, 'd': second_term, 'R(v)': 'v=' + first_term}
         rx_instantiation_map = {'c': first_term}
         me_line_number = self.add_instantiated_assumption(Prover.ME.instantiate(me_instantiation_map), Prover.ME,
                                                           me_instantiation_map)
@@ -237,6 +236,28 @@ class Prover:
             instantiation should be 'Az[f(x,h(w))=g(z,h(w))]'. The number of the
             (new) line in this proof containing instantiation is returned """
         # Task 10.7
+        current_formula = self.proof.lines[line_number].formula  # plus(x,y)=plus(y,x)
+        # create the z dictionary
+        z_dict = {}
+        for key in substitution_map:
+            z_dict[key] = next(fresh_variable_name_generator)
+        # let's say I receive a dictionary of variables as keys and zs as values. I will substitute each time it
+        # shows with zs, and then run in loop to find each z and substitute with value in substitution_map
+        for key, value in z_dict.items(): # {x; z1, y: z2}
+            quantified_current_formula = Formula('A', key, current_formula)
+            current_formula = current_formula.substitute({key: Term(value)}) # plus(z1,y)=plus(y,z1)
+            cur_ug_line = self.add_ug(quantified_current_formula, line_number)
+            line_number = self.add_universal_instantiation(current_formula,cur_ug_line,value)
+
+        # run on all items in the z dictionary, and for each occurrence - switch the z with the proper term
+        for key, value in z_dict.items():
+            quantified_current_formula = Formula('A',value,current_formula)
+            current_formula = current_formula.substitute({value: Term.parse(substitution_map[key])})
+            cur_ug_line = self.add_ug(quantified_current_formula, line_number)
+            line_number = self.add_universal_instantiation(current_formula,cur_ug_line,substitution_map[key])
+
+        return line_number
+
 
     def add_substituted_equality(self, substituted, line_number,
                                  term_with_free_v):
