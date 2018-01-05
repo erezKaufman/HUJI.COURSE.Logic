@@ -12,8 +12,7 @@ class Prover:
         Universal Instantiation (UI), Existential Introduction (EI), Universal
         Simplification (US), Existential Simplification (ES), Reflexivity (RX),
         and Meaning of Equality (ME) """
-    UI = Schema('(Ax[R(x)]->R(c))', {'R', 'x', 'c'}) #Ax[plus(x,y)=plus(y,x)] ->plus(c,y)=plus(y,c)
-    # Ax[R(X)]->R(C) | (Ax[0=plus(minus(z1,z1))]->0=plus(minus(minus(x),minus(x))))
+    UI = Schema('(Ax[R(x)]->R(c))', {'R', 'x', 'c'})
     EI = Schema('(R(c)->Ex[R(x)])', {'R', 'x', 'c'})
     US = Schema('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'x', 'Q', 'R'})
     ES = Schema('((Ax[(R(x)->Q())]&Ex[R(x)])->Q())', {'x', 'Q', 'R'})
@@ -124,7 +123,7 @@ class Prover:
         line_number = len(self.proof.lines) - 1
         assert str(self.proof.lines[line_number].formula) == str(conclusion)
         return line_number
-
+    #  plus(plus(plus(minus(minus(x)),minus(x)),x),0)
     def add_universal_instantiation(self, instantiation: str, line_number: int, term: str) -> int:
         """
         Append a sequence of validly justified lines to the proof being
@@ -226,51 +225,7 @@ class Prover:
 
     def add_free_instantiation(self, instantiation, line_number,
                                substitution_map):
-        def compile_term_helper(term_helper: Term, inst_set):
-            """
-            :param term_helper: the term to process
-            :param z_list_helper:  our list of formula's to update
-            """
-            if str(term_helper) in inst_set: # the term is in the map
-                if term_helper in zs_dict.keys():
-                    return zs_dict[term_helper] # we already have this term
-                else:
-                    var = next(fresh_variable_name_generator) # this a new var
-                    zs_dict[term_helper] = Term(var)
-                return Term(var)
-            else:
-                if not is_function(term_helper.root): # this is not a func, so just return old term
-                    return term_helper
-                else: # we have a func which is not in the map, go inside it's args
-                    new_args = []
-                    for arg in term_helper.arguments:
-                        new_args.append(compile_term_helper(arg, inst_set))
-                    return Term(term_helper.root, new_args)
 
-
-        def make_z_lines(formula, inst_set):
-                if is_unary(formula.root):  # call recursivly with first
-                    make_z_lines(formula.first, inst_set)
-
-                # treat of all these the same way - either make a new z or list an old one
-                elif is_equality(formula.root):
-                    first = compile_term_helper(formula.first, inst_set)
-                    second = compile_term_helper(formula.second, inst_set)
-                    return Formula(formula.root, first, second)
-
-                elif is_relation(formula.root):
-                    new_args = []
-                    for term in formula.arguments:
-                        new_args.append(compile_term_helper(term, inst_set))
-                    return Formula(formula.root, new_args)
-
-                elif is_quantifier(formula.root):
-                    return Formula(formula.root, make_z_lines(formula.predicate, inst_set))
-
-                elif is_binary(formula.root):
-                    first = make_z_lines(formula.first, inst_set)
-                    second = make_z_lines(formula.second, inst_set)
-                    return Formula(formula.root, first, second)
         """ Append a sequence of validly justified lines to the proof being
             constructed, where the formula of the last line is statement, which
             is an instantiation of the formula in line line_number in this
@@ -303,15 +258,6 @@ class Prover:
 
         return line_number
 
-
-        zs_dict = {}
-        f = self.proof.lines[line_number].formula
-        keys_set = set()
-        for key in substitution_map.keys():
-            keys_set.add(key)
-        z_formula = make_z_lines(f, keys_set)
-        print(z_formula)
-
     def add_substituted_equality(self, substituted, line_number,
                                  term_with_free_v: Term):
         """ Add a sequence of validly justified lines to the proof being
@@ -325,17 +271,22 @@ class Prover:
             the (new) line in this proof containing substituted is returned """
         # Task 10.8
         f = self.proof.lines[line_number].formula
+        v_termed = Term.parse(term_with_free_v)
         first_term = str(f.first)
         second_term = str(f.second)
-        me_instantiation_map = {'c': first_term, 'd': second_term, 'R(v)': 'v='+str(term_with_free_v)}
-        rx_instantiation_map = {'c': term_with_free_v}
-        #ME = Schema('(c=d->(R(c)->R(d)))', {'c', 'd', 'R'})
+        v_termed_with_c = v_termed.substitute({'v': f.first})
+
+        me_instantiation_map = {'c': first_term, 'd': second_term, 'R(v)': str(v_termed_with_c)+'=v'}
+        # (0=plus(minus(minus(x)),minus(x))->(0=plus(plus(0,x),0)->plus(plus(plus(minus(minus(x)),minus(x)),x),0))
+        rx_instantiation_map = {'c': first_term}
+
         subbed_form = Prover.ME.instantiate(me_instantiation_map) #phi(first) = phi(second)
         me_line_number = self.add_instantiated_assumption(Prover.ME.instantiate(me_instantiation_map), Prover.ME,
                                                           me_instantiation_map)
         rx_line_number = self.add_instantiated_assumption(Prover.RX.instantiate(rx_instantiation_map), Prover.RX,
                                                           rx_instantiation_map)
-        return self.add_tautological_inference(subbed_form ,[line_number, me_line_number, rx_line_number])
+
+        return self.add_tautological_inference(str(subbed_form) ,[line_number, me_line_number, rx_line_number])
 
     def _add_chained_two_equalities(self, line1, line2):
         """ Add a sequence of validly justified lines to the proof being
