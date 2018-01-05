@@ -197,6 +197,7 @@ def right_neutral_proof(stop_before_flipped_equality,
     if stop_before_substituted_equality:
         return None
     step13 = prover.add_substituted_equality(
+        #0=plus(minus(minus(x)),minus(x)) to switch
         'plus(plus(0,x),0)=plus(plus(plus(minus(minus(x)),minus(x)),x),0)',
         step7, 'plus(plus(v,x),0)')
     step14 = prover.add_substituted_equality(
