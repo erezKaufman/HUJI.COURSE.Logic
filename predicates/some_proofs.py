@@ -79,9 +79,19 @@ def unique_zero_proof(print_as_proof_forms=False):
     step_6 = prover.add_flipped_equality('plus(minus(a),plus(a,c))=plus(plus(minus(a),a),c)',step_4)
     step_7 = prover.add_chained_equality('plus(minus(a),a)=plus(plus(minus(a),a),c)',[step_5,step_6]) # -a+a = (-a+a)+c
     step_8 = prover.add_assumption('plus(minus(x),x)=0')
-    step_9 = prover.add_free_instantiation('plus(minus(a),a)=0', step_8, {'x':'a'})
+    step_9 = prover.add_free_instantiation('plus(minus(a),a)=0', step_8, {'x':'a'}) # -a+a=0
     step_10 = prover.add_flipped_equality('0=plus(minus(a),a)',step_9) # 0 = -a+a
     step_11 = prover.add_chained_equality('0=plus(plus(minus(a),a),c)',[step_10,step_7]) # 0 = (-a+a)+c
+    step_12 = prover.add_flipped_equality('plus(plus(minus(a),a),c)=0',step_11) # (-a+a)+c = 0
+    step_13 = prover.add_chained_equality('plus(0,c)=c',[step_10,step_12]) # 0+c = 0 #TODO this line doesnt really work
+    step_13_5 = prover.add_flipped_equality('c=plus(0,c)',step_13) # 0=0+c
+    step_14 = prover.add_assumption('plus(0,x)=x')
+    step_15 = prover.add_free_instantiation('plus(0,c)=c', step_14, {'x':'c'}) # 0+c=c
+    step_16 = prover.add_chained_equality('0=c',[step_13_5, step_15]) # 0=c
+    step_17 = prover.add_chained_equality('c=0',step_16) # c=0
+
+
+
 
 
 
