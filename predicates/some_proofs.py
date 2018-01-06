@@ -60,6 +60,10 @@ def homework_proof(print_as_proof_forms=False):
 GROUP_AXIOMS = ['plus(0,x)=x', 'plus(minus(x),x)=0',
                 'plus(plus(x,y),z)=plus(x,plus(y,z))']
 
+ZERO = Schema('plus(0,x)=x',{'x'})
+NEGATE = Schema('plus(minus(x),x)=0',{'x'})
+COMMUTATIVE = Schema('plus(plus(x,y),z)=plus(x,plus(y,z))',{'x','y','z'})
+
 
 def unique_zero_proof(print_as_proof_forms=False):
     """ Return a proof that from the group axioms (in addition to Prover.AXIOMS)
@@ -67,6 +71,22 @@ def unique_zero_proof(print_as_proof_forms=False):
         print_as_proof_forms specifies whether the proof being constructed is
         to be printed in real time as it is being constructed """
     prover = Prover(GROUP_AXIOMS + ['plus(a,c)=a'], 'c=0', print_as_proof_forms)
+    step_1 = prover.add_assumption('plus(a,c)=a')
+    step_2 = prover.add_substituted_equality('plus(minus(a),plus(a,c))=plus(minus(a),a)',step_1,'plus(minus(a),v)')
+    # after step 2 we have 'plus(minus(a),plus(a,c))=plus(minus(a),a)' => (-a)+(a+c)=(-a)+a
+
+    step_3 = prover.add_assumption(GROUP_AXIOMS[2])# assumption GROUP[2]
+    #  after step_3 we have an assumption of plus(plus(x,y),z)=plus(x,plus(y,z)) => (x+y)+z= x+(y+z)
+    step_4 = prover.add_flipped_equality('plus(x,plus(y,z))=plus(plus(x,y),z)',step_3)# flipped step3
+    # after step_4 we have 'plus(x,plus(y,z))=plus(plus(x,y),z)' => (x+(y+z)=(x+y)+z
+    step_5 = prover.add_instantiated_assumption('plus(minus(a),a)=plus(minus(a)',COMMUTATIVE,{'x': 'minus(a)',
+                                                                                              'y': 'a', 'z': 'c'})
+    # instantiate step 4 with step 2
+    # after step_5 we instantiate  {'x': 'minus(a)', 'y': 'a', 'z': 'c'}  and get plus(minus(a),a)=plus(minus(a),
+    # plus(a,c))
+    # step_6 = # assumption GROUP[1] -a+a=0
+    # step_7 = #
+    # prover.add_instantiated_assumption()
     # Task 10.10
     return prover.proof
 

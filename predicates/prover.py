@@ -213,6 +213,7 @@ class Prover:
             which is an equality of the form 'c=d' (for some terms c, d) where
             the formula in line line_numer in this proof is 'd=c'. The number
             of the (new) line in this proof containing flipped is returned """
+        #  c=d => d=c
         # Task 10.6
         unflipped_formula = self.proof.lines[line_number].formula
         first_term = str(unflipped_formula.first)
@@ -237,6 +238,7 @@ class Prover:
             calling this method with the substitution map {'y':'h(w)'}, the
             instantiation should be 'Az[f(x,h(w))=g(z,h(w))]'. The number of the
             (new) line in this proof containing instantiation is returned """
+        # Az[f(x,y)=g(z,y)] | {'y':'h(w)'} => Az[f(x,h(w))=g(z,h(w))]
         # Task 10.7
         current_formula = self.proof.lines[line_number].formula  # plus(x,y)=plus(y,x)
         # create the z dictionary
@@ -271,6 +273,7 @@ class Prover:
             line line_number has the formula 'g(x)=h(y)' and term_with_free_v
             is 'v+7', then substituted should be 'g(x)+7=h(y)+7'. The number of
             the (new) line in this proof containing substituted is returned """
+        # g(x)=h(y) | v+7 =>  g(x)+7=h(y)+7
         # Task 10.8
         f = self.proof.lines[line_number].formula
         v_termed = Term.parse(term_with_free_v)
@@ -307,12 +310,6 @@ class Prover:
                                                           me_dict)
         return self.add_tautological_inference(str(f1.first)+'='+str(f2.second), [flipped,line2 ,me_line_number])
 
-
-        # f1.second=f1.first -> f1.second=f2.second = -> f1.first=f2.second
-        # flipped f1
-        #
-        # Task 10.9.1
-
     def add_chained_equality(self, chained, line_numbers):
         """ Add a sequence of validly justified lines to the proof being
             constructed, where the formula of the last line is chained, which
@@ -323,6 +320,7 @@ class Prover:
             holds 'a=b', Line 3 holds 'b=f(b)' and Line 9 holds 'f(b)=0', then
             if line_numbers=[7,3,9], then chained should be 'a=0'. The number of
             the (new) line in this proof containing substituted is returned """
+        # a=b, b=c => a=c
         cur_pair = self._add_chained_two_equalities(line_numbers[0], line_numbers[1])
         for pair_index in range(2,len(line_numbers)):
             cur_pair = self._add_chained_two_equalities(cur_pair, line_numbers[pair_index])
