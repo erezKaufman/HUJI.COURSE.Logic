@@ -18,6 +18,7 @@ class Prover:
     ES = Schema('((Ax[(R(x)->Q())]&Ex[R(x)])->Q())', {'x', 'Q', 'R'})
     RX = Schema('c=c', {'c'})
     ME = Schema('(c=d->(R(c)->R(d)))', {'c', 'd', 'R'})
+    # R(c) => term.substitute(c)=term.substitute(v)
     AXIOMS = [UI, EI, US, ES, RX, ME]
 
     def __init__(self, assumptions, conclusion, print_as_proof_forms=False):
@@ -123,6 +124,7 @@ class Prover:
         line_number = len(self.proof.lines) - 1
         assert str(self.proof.lines[line_number].formula) == str(conclusion)
         return line_number
+
     #  plus(plus(plus(minus(minus(x)),minus(x)),x),0)
     def add_universal_instantiation(self, instantiation: str, line_number: int, term: str) -> int:
         """
@@ -243,19 +245,19 @@ class Prover:
             z_dict[key] = next(fresh_variable_name_generator)
         # let's say I receive a dictionary of variables as keys and zs as values. I will substitute each time it
         # shows with zs, and then run in loop to find each z and substitute with value in substitution_map
-        for key, value in z_dict.items(): # {x; z1, y: z2}
+        for key, value in z_dict.items():  # {x; z1, y: z2}
             quantified_current_formula = Formula('A', key, current_formula)
-            current_formula = current_formula.substitute({key: Term(value)}) # plus(z1,y)=plus(y,z1)
+            current_formula = current_formula.substitute({key: Term(value)})  # plus(z1,y)=plus(y,z1)
             cur_ug_line = self.add_ug(quantified_current_formula, line_number)
-            line_number = self.add_universal_instantiation(current_formula,cur_ug_line,value)
+            line_number = self.add_universal_instantiation(current_formula, cur_ug_line, value)
 
         # run on all items in the z dictionary, and for each occurrence - switch the z with the proper term
         for key, value in z_dict.items():
-            quantified_current_formula = Formula('A',value,current_formula)
+            quantified_current_formula = Formula('A', value, current_formula)
             current_formula = current_formula.substitute({value: Term.parse(substitution_map[key])})
             cur_ug_line = self.add_ug(quantified_current_formula, line_number)
-            line_number = self.add_universal_instantiation(current_formula,cur_ug_line,substitution_map[key])
-
+            line_number = self.add_universal_instantiation(current_formula, cur_ug_line, substitution_map[key])
+        assert instantiation == self.proof.lines[line_number].formula
         return line_number
 
     def add_substituted_equality(self, substituted, line_number,
@@ -276,17 +278,15 @@ class Prover:
         second_term = str(f.second)
         v_termed_with_c = v_termed.substitute({'v': f.first})
 
-        me_instantiation_map = {'c': first_term, 'd': second_term, 'R(v)': str(v_termed_with_c)+'=v'}
-        # (0=plus(minus(minus(x)),minus(x))->(0=plus(plus(0,x),0)->plus(plus(plus(minus(minus(x)),minus(x)),x),0))
-        rx_instantiation_map = {'c': first_term}
+        me_instantiation_map = {'c': first_term, 'd': second_term,
+                                'R(v)': str(v_termed_with_c) + '=' + term_with_free_v}
+        rx_instantiation_map = {'c': str(v_termed_with_c)}
 
-        subbed_form = Prover.ME.instantiate(me_instantiation_map) #phi(first) = phi(second)
         me_line_number = self.add_instantiated_assumption(Prover.ME.instantiate(me_instantiation_map), Prover.ME,
                                                           me_instantiation_map)
         rx_line_number = self.add_instantiated_assumption(Prover.RX.instantiate(rx_instantiation_map), Prover.RX,
                                                           rx_instantiation_map)
-
-        return self.add_tautological_inference(str(subbed_form) ,[line_number, me_line_number, rx_line_number])
+        return self.add_tautological_inference(substituted, [line_number, rx_line_number, me_line_number])
 
     def _add_chained_two_equalities(self, line1, line2):
         """ Add a sequence of validly justified lines to the proof being
@@ -311,5 +311,3 @@ class Prover:
             if line_numbers=[7,3,9], then chained should be 'a=0'. The number of
             the (new) line in this proof containing substituted is returned """
         # Task 10.9.2
-
-#test
