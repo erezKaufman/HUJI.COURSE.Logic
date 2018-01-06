@@ -262,7 +262,6 @@ class Prover:
 
     def add_substituted_equality(self, substituted, line_number,
                                  term_with_free_v: str):
-                                 term_with_free_v):
         """ Add a sequence of validly justified lines to the proof being
             constructed, where the formula of the last line is substituted,
             which is an equality of two terms, each of which is derived by
@@ -325,8 +324,8 @@ class Prover:
             if line_numbers=[7,3,9], then chained should be 'a=0'. The number of
             the (new) line in this proof containing substituted is returned """
         cur_pair = self._add_chained_two_equalities(line_numbers[0], line_numbers[1])
-        for pair in range(2,len(line_numbers)):
-            cur_pair = self._add_chained_two_equalities(cur_pair, pair)
+        for pair_index in range(2,len(line_numbers)):
+            cur_pair = self._add_chained_two_equalities(cur_pair, line_numbers[pair_index])
         return cur_pair
 
         # Task 10.9.2
