@@ -172,6 +172,7 @@ class Prover:
         formula = Formula.parse(conclusion)
         for i in range(len(line_numbers) - 1, -1, -1):
             formula = Formula('->', self.proof.lines[line_numbers[i]].formula, formula)
+        print(formula)
         last_line_number = self.add_tautology(formula)
         for j in range(len(line_numbers)):
             last_line_number = self.add_mp(formula.second, line_numbers[j], last_line_number)
@@ -261,6 +262,7 @@ class Prover:
 
     def add_substituted_equality(self, substituted, line_number,
                                  term_with_free_v: str):
+                                 term_with_free_v):
         """ Add a sequence of validly justified lines to the proof being
             constructed, where the formula of the last line is substituted,
             which is an equality of two terms, each of which is derived by
@@ -297,6 +299,19 @@ class Prover:
             line added will be the chained equality 'a=f(b)'. The number of the
             (new) line in this proof containing the chained equality is
             returned """
+
+        f1 = self.proof.lines[line1].formula
+        f2 = self.proof.lines[line2].formula
+        me_dict = {'c':str(f1.second), 'd': str(f1.first), 'R(v)': 'v='+str(f2.second)}
+        flipped = self.add_flipped_equality(str(f1.second)+'='+str(f1.first), line1)
+        me_line_number = self.add_instantiated_assumption(Prover.ME.instantiate(me_dict), Prover.ME,
+                                                          me_dict)
+        return self.add_tautological_inference(str(f1.first)+'='+str(f2.second), [flipped,line2 ,me_line_number])
+
+
+        # f1.second=f1.first -> f1.second=f2.second = -> f1.first=f2.second
+        # flipped f1
+        #
         # Task 10.9.1
 
     def add_chained_equality(self, chained, line_numbers):
@@ -309,4 +324,9 @@ class Prover:
             holds 'a=b', Line 3 holds 'b=f(b)' and Line 9 holds 'f(b)=0', then
             if line_numbers=[7,3,9], then chained should be 'a=0'. The number of
             the (new) line in this proof containing substituted is returned """
+        cur_pair = self._add_chained_two_equalities(line_numbers[0], line_numbers[1])
+        for pair in range(2,len(line_numbers)):
+            cur_pair = self._add_chained_two_equalities(cur_pair, pair)
+        return cur_pair
+
         # Task 10.9.2
