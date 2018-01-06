@@ -172,7 +172,6 @@ class Prover:
         formula = Formula.parse(conclusion)
         for i in range(len(line_numbers) - 1, -1, -1):
             formula = Formula('->', self.proof.lines[line_numbers[i]].formula, formula)
-        print(formula)
         last_line_number = self.add_tautology(formula)
         for j in range(len(line_numbers)):
             last_line_number = self.add_mp(formula.second, line_numbers[j], last_line_number)
@@ -261,7 +260,7 @@ class Prover:
         return line_number
 
     def add_substituted_equality(self, substituted, line_number,
-                                 term_with_free_v: Term):
+                                 term_with_free_v: str):
         """ Add a sequence of validly justified lines to the proof being
             constructed, where the formula of the last line is substituted,
             which is an equality of two terms, each of which is derived by
