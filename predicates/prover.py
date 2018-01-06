@@ -18,7 +18,6 @@ class Prover:
     ES = Schema('((Ax[(R(x)->Q())]&Ex[R(x)])->Q())', {'x', 'Q', 'R'})
     RX = Schema('c=c', {'c'})
     ME = Schema('(c=d->(R(c)->R(d)))', {'c', 'd', 'R'})
-    # R(c) => term.substitute(c)=term.substitute(v)
     AXIOMS = [UI, EI, US, ES, RX, ME]
 
     def __init__(self, assumptions, conclusion, print_as_proof_forms=False):

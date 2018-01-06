@@ -73,14 +73,20 @@ def unique_zero_proof(print_as_proof_forms=False):
     prover = Prover(GROUP_AXIOMS + ['plus(a,c)=a'], 'c=0', print_as_proof_forms)
     step_1 = prover.add_assumption('plus(a,c)=a')
     step_2 = prover.add_substituted_equality('plus(minus(a),plus(a,c))=plus(minus(a),a)',step_1,'plus(minus(a),v)')
-    # after step 2 we have 'plus(minus(a),plus(a,c))=plus(minus(a),a)' => (-a)+(a+c)=(-a)+a
+    step_3 = prover.add_assumption('plus(plus(x,y),z)=plus(x,plus(y,z))')
+    step_4 = prover.add_free_instantiation('plus(plus(minus(a),a),c)=plus(minus(a),plus(a,c))', step_3, {'x': 'minus(a)', 'y': 'a', 'z': 'c'})
+    step_5 = prover.add_flipped_equality('plus(minus(a),a)=plus(minus(a),plus(a,c))',step_2)
+    step_6 = prover.add_flipped_equality('plus(minus(a),plus(a,c))=plus(plus(minus(a),a),c)',step_4)
+    step_7 = prover.add_chained_equality('plus(minus(a),a)=plus(plus(minus(a),a),c)',[step_5,step_6]) # -a+a = (-a+a)+c
+    step_8 = prover.add_assumption('plus(minus(x),x)=0')
+    step_9 = prover.add_free_instantiation('plus(minus(a),a)=0', step_8, {'x':'a'})
+    step_10 = prover.add_flipped_equality('0=plus(minus(a),a)',step_9) # 0 = -a+a
+    step_11 = prover.add_chained_equality('0=plus(plus(minus(a),a),c)',[step_10,step_7]) # 0 = (-a+a)+c
 
-    step_3 = prover.add_assumption(GROUP_AXIOMS[2])# assumption GROUP[2]
-    #  after step_3 we have an assumption of plus(plus(x,y),z)=plus(x,plus(y,z)) => (x+y)+z= x+(y+z)
-    step_4 = prover.add_flipped_equality('plus(x,plus(y,z))=plus(plus(x,y),z)',step_3)# flipped step3
-    # after step_4 we have 'plus(x,plus(y,z))=plus(plus(x,y),z)' => (x+(y+z)=(x+y)+z
-    step_5 = prover.add_instantiated_assumption('plus(minus(a),a)=plus(minus(a)',COMMUTATIVE,{'x': 'minus(a)',
-                                                                                              'y': 'a', 'z': 'c'})
+
+
+
+
     # instantiate step 4 with step 2
     # after step_5 we instantiate  {'x': 'minus(a)', 'y': 'a', 'z': 'c'}  and get plus(minus(a),a)=plus(minus(a),
     # plus(a,c))
@@ -90,6 +96,29 @@ def unique_zero_proof(print_as_proof_forms=False):
     # Task 10.10
     return prover.proof
 
+    # prover = Prover(GROUP_AXIOMS + ['plus(a,c)=a'], 'c=0', print_as_proof_forms)
+    # step_1 = prover.add_assumption('plus(a,c)=a')
+    # step_2 = prover.add_substituted_equality('plus(minus(a),plus(a,c))=plus(minus(a),a)', step_1, 'plus(minus(a),v)')
+    # # after step 2 we have 'plus(minus(a),plus(a,c))=plus(minus(a),a)' => (-a)+(a+c)=(-a)+a
+    #
+    # # step_3 = prover.add_assumption(GROUP_AXIOMS[2])# assumption GROUP[2]
+    # #  after step_3 we have an assumption of plus(plus(x,y),z)=plus(x,plus(y,z)) => (x+y)+z= x+(y+z)
+    # # step_4 = prover.add_flipped_equality('plus(x,plus(y,z))=plus(plus(x,y),z)',step_3)# flipped step3
+    # step_4 = prover.add_flipped_equality('plus(minus(a),a)=plus(minus(a),plus(a,c))', step_2)  # flipped step3
+    #
+    # # after step_4 we have 'plus(x,plus(y,z))=plus(plus(x,y),z)' => (x+(y+z)=(x+y)+z
+    # # after step_4 we have 'plus(x,plus(y,z))=plus(plus(x,y),z)' => (x+(y+z)=(x+y)+z
+    # step_5 = prover.add_instantiated_assumption('plus(minus(a),a)=plus(minus(a),plus(minus(a),plus(a,c))',
+    #                                             prover.proof.assumptions[8], {'x': 'minus(a)',
+    #                                                                           'y': 'a', 'z': 'c'})
+    # # instantiate step 4 with step 2
+    # # after step_5 we instantiate  {'x': 'minus(a)', 'y': 'a', 'z': 'c'}  and get plus(minus(a),a)=plus(minus(a),
+    # # plus(a,c))
+    # # step_6 = # assumption GROUP[1] -a+a=0
+    # # step_7 = #
+    # # prover.add_instantiated_assumption()
+    # # Task 10.10
+    # return prover.proof
 
 FIELD_AXIOMS = GROUP_AXIOMS + ['plus(x,y)=plus(y,x)', 'times(x,1)=x',
                                'times(x,y)=times(y,x)',
