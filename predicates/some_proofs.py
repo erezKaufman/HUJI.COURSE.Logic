@@ -183,6 +183,13 @@ def peano_zero_proof(print_as_proof_forms=False):
         being constructed """
     prover = Prover(PEANO_AXIOMS, 'plus(0,x)=x', print_as_proof_forms)
     # Task 10.12
+    step1 = prover.add_assumption(PEANO_AXIOMS[0])
+    step2 = prover.add_assumption(PEANO_AXIOMS[1])
+    step3 = prover.add_assumption(PEANO_AXIOMS[2])
+    step4 = prover.add_assumption(PEANO_AXIOMS[3])
+    step5 = prover.add_assumption(PEANO_AXIOMS[4])
+    step6 = prover.add_assumption(PEANO_AXIOMS[5])
+    step7 = prover.add_assumption(PEANO_AXIOMS[6])
 
     step_1 = prover.add_assumption('plus(x,0)=x')
     step_2 = prover.add_assumption('plus(x,s(y))=s(plus(x,y))')
@@ -213,16 +220,17 @@ def russell_paradox_proof(print_as_proof_forms=False):
     prover = Prover([COMPREHENSION_AXIOM], '(z=z&~z=z)', print_as_proof_forms)
     # Task 10.13
     step_1 = prover.add_instantiated_assumption('Ey[Ax[((In(x,y)->~In(x,x))&(~In(x,x)->In(x,y)))]]',COMPREHENSION_AXIOM,
-                                                {'R(v)' : '~In(v,v)'})
+                                                {'R(v)' : '~In(v,v)'}) # add the assumption with R(v) as ~In(v,v)
+    # using the UI axium, add an instantiated assumption such that R(v):((In(v,y)->~In(v,v))&(~In(v,v)->In(v,y)))
     step_2 = prover.add_instantiated_assumption(
         '(Ax[((In(x,y)->~In(x,x))&(~In(x,x)->In(x,y)))]->((In(y,y)->~In(y,y))&(~In(y,y)->In(y,y))))',Prover.UI,
         {'x': 'x', 'c': 'y', 'R(v)': '((In(v,y)->~In(v,v))&(~In(v,v)->In(v,y)))'})
-
-
+    # the right side (our conclusion) is a contradiction, then the following line is a tautology
     step_3 = prover.add_tautology('(((In(y,y)->~In(y,y))&(~In(y,y)->In(y,y)))->(z=z&~z=z))')
+    # using steps 2 and 3 we can conclude the following line using tautological_inference
     step_4 = prover.add_tautological_inference('(Ax[((In(x,y)->~In(x,x))&(~In(x,x)->In(x,y)))]->(z=z&~z=z))',
                                                [step_2,step_3])
+    # finally, using existential_derivation we on the assumption and step_4 we reach the conclusion
     step_5 = prover.add_existential_derivation('(z=z&~z=z)',step_1,step_4)
-
     return prover.proof
 
