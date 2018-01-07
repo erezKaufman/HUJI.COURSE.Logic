@@ -183,14 +183,6 @@ def peano_zero_proof(print_as_proof_forms=False):
         being constructed """
     prover = Prover(PEANO_AXIOMS, 'plus(0,x)=x', print_as_proof_forms)
     # Task 10.12
-    step1 = prover.add_assumption(PEANO_AXIOMS[0])
-    step2 = prover.add_assumption(PEANO_AXIOMS[1])
-    step3 = prover.add_assumption(PEANO_AXIOMS[2])
-    step4 = prover.add_assumption(PEANO_AXIOMS[3])
-    step5 = prover.add_assumption(PEANO_AXIOMS[4])
-    step6 = prover.add_assumption(PEANO_AXIOMS[5])
-    step7 = prover.add_assumption(PEANO_AXIOMS[6])
-
     step_1 = prover.add_assumption('plus(x,0)=x')
     step_2 = prover.add_assumption('plus(x,s(y))=s(plus(x,y))')
 
@@ -204,7 +196,7 @@ def peano_zero_proof(print_as_proof_forms=False):
     step_9 = prover.add_instantiated_assumption('((plus(0,0)=0&Ax[(plus(0,x)=x->plus(0,s(x))=s(x))])->Ax[plus(0,x)=x])',
                                                 PEANO_AXIOMS[7], {'R(v)': 'plus(0,v)=v'})
     step_10 = prover.add_mp('Ax[plus(0,x)=x]', step_8, step_9)
-    step_11 = prover.add_universal_instantiation('plus(0,x)=x', step_10, 'x')
+    step_11 = prover.add_universal_instantiation(str(prover.proof.conclusion), step_10, 'x')
     return prover.proof
 
 
