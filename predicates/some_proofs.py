@@ -48,17 +48,22 @@ def homework_proof(print_as_proof_forms=False):
     # using inst_assumption on EI we get H(x)&F(x)->Ex[H(x)&F(x)]
     step_3 = prover.add_instantiated_assumption('((Homework(x)&Fun(x))->Ex[(Homework(x)&Fun(x))])', Prover.EI,
                                                 inst_dict)
-
+    # using tauto_inf on step_3 we get the not version of step_3
     step_4 = prover.add_tautological_inference('(~Ex[(Homework(x)&Fun(x))]->~(Homework(x)&Fun(x)))', [step_3])
-    step_5 = prover.add_mp('~(Homework(x)&Fun(x))', step_1, step_4)
+    step_5 = prover.add_mp('~(Homework(x)&Fun(x))', step_1, step_4) # get ~H(x)&F(x) using MP
+    # adding another tau_inf based on step_4
     step_6 = prover.add_tautological_inference('(~(Homework(x)&Fun(x))->(Homework(x)->~Fun(x)))', [step_4])
     s_7_inst_dict = {'R(x)': '(Reading(x)&~Fun(x))', 'c': 'x'}
+    # using inst_assumption on EI we get R(x)&~F(x)->Ex[R(x)&~F(x)]
     step_7 = prover.add_instantiated_assumption('((Reading(x)&~Fun(x))->Ex[(Reading(x)&~Fun(x))])', Prover.EI,
                                                 s_7_inst_dict)
-    step_8 = prover.add_mp('(Homework(x)->~Fun(x))', step_5, step_6)
+    step_8 = prover.add_mp('(Homework(x)->~Fun(x))', step_5, step_6) # get H(x)->~F(x) using mp
+    # use tau_inf on step 6 and step 8 to get H(x)&R(x)->R(x)&~F(x)
     step_9 = prover.add_tautological_inference('((Homework(x)&Reading(x))->(Reading(x)&~Fun(x)))', [step_6, step_8])
+    # se tau_inf on step 7 and step 8 to get H(x)&R(x)->Ex[R(x)&F(x)]
     step_10 = prover.add_tautological_inference('((Homework(x)&Reading(x))->Ex[(Reading(x)&~Fun(x))])',
                                                 [step_7, step_9])
+    # finally conclude what we want using existential_derivation on the second assumption and the last step
     step_11 = prover.add_existential_derivation('Ex[(Reading(x)&~Fun(x))]', step_2, step_10)
     return prover.proof
 
