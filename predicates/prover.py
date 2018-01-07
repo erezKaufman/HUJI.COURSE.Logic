@@ -276,16 +276,20 @@ class Prover:
         v_termed = Term.parse(term_with_free_v)
         first_term = str(f.first)
         second_term = str(f.second)
+        # We will create a termed version of c, and use it with defining R(v)
         v_termed_with_c = v_termed.substitute({'v': f.first})
-
+        # we use the special abilities of 'term_with_free_v' (it has free v in it!) to change every call of R to be
+        # in the form of 'v_termed_with_c=term_with_free_v'
         me_instantiation_map = {'c': first_term, 'd': second_term,
                                 'R(v)': str(v_termed_with_c) + '=' + term_with_free_v}
         rx_instantiation_map = {'c': str(v_termed_with_c)}
-
+        # after creating maps for ME and RX - we add their lines
         me_line_number = self.add_instantiated_assumption(Prover.ME.instantiate(me_instantiation_map), Prover.ME,
                                                           me_instantiation_map)
         rx_line_number = self.add_instantiated_assumption(Prover.RX.instantiate(rx_instantiation_map), Prover.RX,
                                                           rx_instantiation_map)
+        # in the last part, we would take the line_number, ME_line and RX_line and do a tautological run on it,
+        # and from there we will recieve our conclusion
         return self.add_tautological_inference(substituted, [line_number, rx_line_number, me_line_number])
 
     def _add_chained_two_equalities(self, line1, line2):
@@ -301,7 +305,8 @@ class Prover:
 
         f1 = self.proof.lines[line1].formula
         f2 = self.proof.lines[line2].formula
-        # we create a dictionary that we instantiate on the ME axiom. for each two lines we will take
+        # we create a dictionary that we instantiate on the ME axiom. for each two lines we will take each side of
+        # the equations, and deduce the result 'f1.first=f2.second' by tautology
         me_dict = {'c':str(f1.second), 'd': str(f1.first), 'R(v)': 'v='+str(f2.second)}
         flipped = self.add_flipped_equality(str(f1.second)+'='+str(f1.first), line1)
         me_line_number = self.add_instantiated_assumption(Prover.ME.instantiate(me_dict), Prover.ME,
@@ -319,6 +324,9 @@ class Prover:
             if line_numbers=[7,3,9], then chained should be 'a=0'. The number of
             the (new) line in this proof containing substituted is returned """
         # a=b, b=c => a=c
+        # after calling '_add_chained_two_equalities' function for each two lines, we eventually chain the first left
+        #  element in the first line with the last right element in the last line, and return the line number of the
+        # result
         cur_pair = self._add_chained_two_equalities(line_numbers[0], line_numbers[1])
         for pair_index in range(2,len(line_numbers)):
             cur_pair = self._add_chained_two_equalities(cur_pair, line_numbers[pair_index])
