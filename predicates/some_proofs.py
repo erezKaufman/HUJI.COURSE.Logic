@@ -18,15 +18,15 @@ def lovers_proof(print_as_proof_forms=False):
                      'Ax[Az[Ay[(Loves(x,y)->Loves(z,x))]]]'],
                     'Ax[Az[Loves(z,x)]]', print_as_proof_forms)
     # Task 10.4
-    step_1 = prover.add_assumption('Ax[Ey[Loves(x,y)]]')
-    step_2 = prover.add_assumption('Ax[Az[Ay[(Loves(x,y)->Loves(z,x))]]]')
-    step_3 = prover.add_universal_instantiation('Ey[Loves(x,y)]', step_1, 'x')
-    step_4 = prover.add_universal_instantiation('Az[Ay[(Loves(x,y)->Loves(z,x))]]', step_2, 'x')
-    step_5 = prover.add_universal_instantiation('Ay[(Loves(x,y)->Loves(z,x))]', step_4, 'z')
-    step_6 = prover.add_universal_instantiation('(Loves(x,y)->Loves(z,x))', step_5, 'y')
-    step_7 = prover.add_existential_derivation('Loves(z,x)', step_3, step_6)
-    step_8 = prover.add_ug('Az[Loves(z,x)]', step_7)
-    step_9 = prover.add_ug('Ax[Az[Loves(z,x)]]', step_8)
+    step_1 = prover.add_assumption('Ax[Ey[Loves(x,y)]]') # assumption 1
+    step_2 = prover.add_assumption('Ax[Az[Ay[(Loves(x,y)->Loves(z,x))]]]') # assumption 2
+    step_3 = prover.add_universal_instantiation('Ey[Loves(x,y)]', step_1, 'x') # use task_1 to remove Ax
+    step_4 = prover.add_universal_instantiation('Az[Ay[(Loves(x,y)->Loves(z,x))]]', step_2, 'x') # remove Ey
+    step_5 = prover.add_universal_instantiation('Ay[(Loves(x,y)->Loves(z,x))]', step_4, 'z') # remove Az
+    step_6 = prover.add_universal_instantiation('(Loves(x,y)->Loves(z,x))', step_5, 'y') # remove Ay
+    step_7 = prover.add_existential_derivation('Loves(z,x)', step_3, step_6) # conclude Loves(z,x) using task_3
+    step_8 = prover.add_ug('Az[Loves(z,x)]', step_7) # add Az using UG
+    step_9 = prover.add_ug('Ax[Az[Loves(z,x)]]', step_8) # add Ax using UG
     return prover.proof
 
 
@@ -70,8 +70,6 @@ def homework_proof(print_as_proof_forms=False):
 
 GROUP_AXIOMS = ['plus(0,x)=x', 'plus(minus(x),x)=0',
                 'plus(plus(x,y),z)=plus(x,plus(y,z))']
-
-
 
 
 def unique_zero_proof(print_as_proof_forms=False):
@@ -170,7 +168,7 @@ def peano_zero_proof(print_as_proof_forms=False):
         being constructed """
     prover = Prover(PEANO_AXIOMS, 'plus(0,x)=x', print_as_proof_forms)
     # Task 10.12
-    step_1 = prover.add_assumption('plus(x,0)=x')
+    step_1 = prover.add_assumption('plus(x,0)=x') # add assumption
     step_2 = prover.add_assumption('plus(x,s(y))=s(plus(x,y))')
 
     step_3 = prover.add_free_instantiation("plus(0,0)=0", step_1, {'x': '0'})
