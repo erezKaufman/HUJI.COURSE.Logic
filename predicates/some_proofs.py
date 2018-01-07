@@ -159,18 +159,46 @@ def multiply_zero_proof(print_as_proof_forms=False):
     step_1 = prover.add_assumption('times(x,y)=times(y,x)')
     step_2 = prover.add_free_instantiation('times(0,x)=times(x,0)', step_1, {'x': '0', 'y': 'x'})  # #1 in chained!
     step_3 = prover.add_assumption('plus(0,x)=x')
-    step_4 = prover.add_free_instantiation('plus(0,times(x,0))=times(x,0)', step_3, {'x': 'times(x,0'})
+    step_4 = prover.add_free_instantiation('plus(0,times(x,0))=times(x,0)', step_3, {'x': 'times(x,0)'})
     step_5 = prover.add_flipped_equality('times(x,0)=plus(0,times(x,0))', step_4)  # x*0=0+x*0 # #2 in chained!
     step_6 = prover.add_assumption('plus(minus(x),x)=0')  # -0*x+0*x=0
     step_7 = prover.add_free_instantiation('plus(minus(times(x,0)),times(x,0))=0', step_6, {'x': 'times(x,0)'})
-    step_8 = prover.add_substituted_equality('plus(plus(minus(times(x,0)),times(x,0)),times(x,0))=plus(v,times(x,0))', step_7,
+    step_8 = prover.add_substituted_equality('plus(plus(minus(times(x,0)),times(x,0)),times(x,0))=plus(0,times(x,0))', step_7,
                                              'plus(v,times(x,0))')
     step_9 = prover.add_flipped_equality('plus(0,times(x,0))=plus(plus(minus(times(x,0)),times(x,0)),times(x,0))',
-                                         step_8)
+                                         step_8) # #3 in chained!
     step_10 = prover.add_assumption('plus(plus(x,y),z)=plus(x,plus(y,z))')
-    step_11 = prover.add_free_instantiation('plus(plus(minus(times(x,0)),times(x,0)),times(x,0))=plus(plus(minus('
-                                            'times(x,0)),times(x,0)),times(x,0))') # TODO complete this
+    step_11 = prover.add_free_instantiation(
+        'plus(plus(minus(times(x,0)),times(x,0)),times(x,0))=plus(minus(times(x,0)),plus(times(x,0),times(x,0)))',
+        step_10,{'x': 'minus(times(x,0))', 'y':'times(x,0)','z': 'times(x,0)'}) # #4 in chained!
+    # now we want to add the line that says - x*(0+0) = x*0.
+    # We will take the assumption (x*(y+z)=x*y+y*z), flip it, and insert 0's in y,z. I will get that x*0+x*0=x*(0+0)
+    step_12 = prover.add_assumption('times(x,plus(y,z))=plus(times(x,y),times(x,z))')
+    step_13 = prover.add_free_instantiation(
+        'times(x,plus(0,0))=plus(times(x,0),times(x,0))',
+        step_12,{'x': 'x', 'y':'0','z': '0'})
+    step_14 = prover.add_flipped_equality('plus(times(x,0),times(x,0))=times(x,plus(0,0))',step_13)
+    # Now We want to add the line that says - 'x*(0+0)=x*0.
+    # We add the assumption 0+x=x and insert 0 as x.
+    # after that we substitute each side of the equation with 'times(x,v) and get what we want.
+    step_15 = prover.add_assumption('plus(0,x)=x')
+    step_16 = prover.add_free_instantiation('plus(0,0)=0',step_15,{'x':'0'})
+    step_17 = prover.add_substituted_equality('times(x,plus(0,0))=times(x,0)',step_16,'times(x,v)')
 
+
+    # We now chain step 14 with the step 17 and then substitute term 'plus(minus(times(x,0),v)' and will get:
+    # 'plus(minus(times(x,0)),plus(times(x,0),times(x,0)))=plus(minus(times(x,0)),times(x,0))'
+    step_18 = prover.add_chained_equality('plus(times(x,0),times(x,0))=times(x,0)',[step_14,step_17])
+    step_19 = prover.add_substituted_equality(
+        'plus(minus(times(x,0)),plus(times(x,0),times(x,0)))=plus(minus(times(x,0)),times(x,0))',
+        step_18,'plus(minus(times(x,0)),v)') # #5 in chained!
+
+
+    # sanity check - we have now -x*0 +x*0- and we want to do -x*0+x*0=0 and chain it all together
+    step_20 = prover.add_free_instantiation('plus(minus(times(x,0)),times(x,0))=0',
+                                            step_6,{'x' :'times(x,0)' }) # #6 in chained!
+
+    step_21 = prover.add_chained_equality('times(0,x)=0',[step_2,step_5,step_9,step_11,step_19,step_20])
     return prover.proof
 
 
