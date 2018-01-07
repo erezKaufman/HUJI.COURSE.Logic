@@ -249,6 +249,25 @@ def peano_zero_proof(print_as_proof_forms=False):
         being constructed """
     prover = Prover(PEANO_AXIOMS, 'plus(0,x)=x', print_as_proof_forms)
     # Task 10.12
+    step1 = prover.add_assumption(PEANO_AXIOMS[0])
+    step2 = prover.add_assumption(PEANO_AXIOMS[1])
+    step3 = prover.add_assumption(PEANO_AXIOMS[2])
+    step4 = prover.add_assumption(PEANO_AXIOMS[3])
+    step5 = prover.add_assumption(PEANO_AXIOMS[4])
+    step6 = prover.add_assumption(PEANO_AXIOMS[5])
+    step7 = prover.add_assumption(PEANO_AXIOMS[6])
+
+    step10 = prover.add_free_instantiation("plus(0,0)=0", step4, {'x': '0'})
+    step11 = prover.add_instantiated_assumption("(plus(0,x)=x->(plus(0,s(x))=s(plus(0,x))->plus(0,s(x))=s(x)))",
+                                                Prover.ME, {'R(v)': 'plus(0,s(x))=s(v)', 'c': 'plus(0,x)', 'd': 'x'})
+    step12 = prover.add_free_instantiation("plus(0,s(x))=s(plus(0,x))", step5, {'x': '0', 'y': 'x'})
+    step13 = prover.add_tautological_inference('(plus(0,x)=x->plus(0,s(x))=s(x))', [step12, step11])
+    step14 = prover.add_ug('Ax[(plus(0,x)=x->plus(0,s(x))=s(x))]', step13)
+    step15 = prover.add_tautological_inference('(plus(0,0)=0&Ax[(plus(0,x)=x->plus(0,s(x))=s(x))])', [step10, step14])
+    step16 = prover.add_instantiated_assumption('((plus(0,0)=0&Ax[(plus(0,x)=x->plus(0,s(x))=s(x))])->Ax[plus(0,x)=x])',
+                                                prover.proof.assumptions[13], {'R(v)': 'plus(0,v)=v'})
+    step17 = prover.add_mp('Ax[plus(0,x)=x]', step15, step16)
+    step18 = prover.add_universal_instantiation(str(prover.proof.conclusion), step17, 'x')
     return prover.proof
 
 
@@ -263,12 +282,15 @@ def russell_paradox_proof(print_as_proof_forms=False):
         constructed """
     prover = Prover([COMPREHENSION_AXIOM], '(z=z&~z=z)', print_as_proof_forms)
     # Task 10.13
-    step_1 = prover.add_assumption(COMPREHENSION_AXIOM.formula)
-    # step_1 = prover.add_assumption(str(COMPREHENSION_AXIOM.formula))
-    step_2 = prover.add_assumption(str(Prover.UI.formula))
-    step_3 = prover.add_free_instantiation(
-        '(Ax[((In(x,y)->R(x))&(R(x)->In(x,y)))]->((In(y,y)->∼In(y,y))&(∼In(y,y)->In(y,y))))',
-        step_2,{'x':'x', 'c' : 'y', 'R(v)': '~In(v,y)'})
+    # step_1 = prover.add_assumption(COMPREHENSION_AXIOM.formula)
+    step_2 = prover.add_instantiated_assumption(
+        '(Ax[((In(x,y)->~In(x,x))&(~In(x,x)->In(x,y)))]->((In(y,y)->~In(y,y))&(~In(y,y->In(y,y)))))',Prover.UI,
+        # UI => Ax[R(x)]->R(c)
+        # R(x) => ((In(x,y)->~In(x,y))&(~In(x,y->In(x,y)))
+        {'x': 'x', 'c': 'y', 'R(v)': '((In(v,y)->~In(v,y))&(~In(v,y)->In(v,y)))'})
+    # step_3 = prover.add_free_instantiation(
+    #     '(Ax[((In(x,y)->R(x))&(R(x)->In(x,y)))]->((In(y,y)->∼In(y,y))&(∼In(y,y)->In(y,y))))',
+    #     0,{'x':'x', 'c' : 'y', 'R(v)': '~In(v,y)'})
     # step_3 = add_free... with map {'x':'x', 'c' : 'y', 'R(v)': '~In(v,y)'}
     # (Ax[((In(x, y) → R(x))&(R(x) → In(x, y)))] → ((In (y, y) →∼ In (y, y)) & ( ∼ In (y, y) → In (y, y))))
     #     UI = Schema('(Ax[R(x)]->R(c))', {'R', 'x', 'c'})

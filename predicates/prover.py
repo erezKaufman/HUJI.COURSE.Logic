@@ -65,7 +65,6 @@ class Prover:
             this proof is returned """
         assert type(instance) is Formula or type(instance) is str
         assert type(schema) is Schema
-        print(self.proof.assumptions)
         return self._add_line(instance,
                               ('A', self.proof.assumptions.index(schema),
                                instantiation_map))
@@ -172,7 +171,6 @@ class Prover:
         formula = Formula.parse(conclusion)
         for i in range(len(line_numbers) - 1, -1, -1):
             formula = Formula('->', self.proof.lines[line_numbers[i]].formula, formula)
-        print(formula)
         last_line_number = self.add_tautology(formula)
         for j in range(len(line_numbers)):
             last_line_number = self.add_mp(formula.second, line_numbers[j], last_line_number)
