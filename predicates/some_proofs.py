@@ -237,7 +237,7 @@ def multiply_zero_proof(print_as_proof_forms=False):
 
 
 PEANO_AXIOMS = ['(s(x)=s(y)->x=y)', '(~x=0->Ey[s(y)=x])', '~s(x)=0',
-                'plus(x,0)=x', , 'times(x,0)=0',
+                'plus(x,0)=x', 'plus(x,s(y))=s(plus(x,y))', 'times(x,0)=0',
                 'times(x,s(y))=plus(times(x,y),x)',
                 Schema('((R(0)&Ax[(R(x)->R(s(x)))])->Ax[R(x)])', 'R')]
 
@@ -252,6 +252,7 @@ def peano_zero_proof(print_as_proof_forms=False):
 
     step4 = prover.add_assumption('plus(x,0)=x')
     step5 = prover.add_assumption('plus(x,s(y))=s(plus(x,y))')
+
     step10 = prover.add_free_instantiation("plus(0,0)=0", step4, {'x': '0'})
     step11 = prover.add_instantiated_assumption("(plus(0,x)=x->(plus(0,s(x))=s(plus(0,x))->plus(0,s(x))=s(x)))",
                                                 Prover.ME, {'R(v)': 'plus(0,s(x))=s(v)', 'c': 'plus(0,x)', 'd': 'x'})
