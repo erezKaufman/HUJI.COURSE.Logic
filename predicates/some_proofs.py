@@ -42,11 +42,13 @@ def homework_proof(print_as_proof_forms=False):
                      'Ex[(Homework(x)&Reading(x))]'],
                     'Ex[(Reading(x)&~Fun(x))]', print_as_proof_forms)
     # Task 10.5
-    step_1 = prover.add_assumption('~Ex[(Homework(x)&Fun(x))]')
-    step_2 = prover.add_assumption('Ex[(Homework(x)&Reading(x))]')
+    step_1 = prover.add_assumption('~Ex[(Homework(x)&Fun(x))]') # given assumption
+    step_2 = prover.add_assumption('Ex[(Homework(x)&Reading(x))]') # given assumption
     inst_dict = {'R(x)': '(Homework(x)&Fun(x))', 'c': 'x', 'x': 'x'}
+    # using inst_assumption on EI we get H(x)&F(x)->Ex[H(x)&F(x)]
     step_3 = prover.add_instantiated_assumption('((Homework(x)&Fun(x))->Ex[(Homework(x)&Fun(x))])', Prover.EI,
                                                 inst_dict)
+
     step_4 = prover.add_tautological_inference('(~Ex[(Homework(x)&Fun(x))]->~(Homework(x)&Fun(x)))', [step_3])
     step_5 = prover.add_mp('~(Homework(x)&Fun(x))', step_1, step_4)
     step_6 = prover.add_tautological_inference('(~(Homework(x)&Fun(x))->(Homework(x)->~Fun(x)))', [step_4])
@@ -72,50 +74,35 @@ def unique_zero_proof(print_as_proof_forms=False):
         and from the assumption a+c=a proves c=0. The Boolean flag
         print_as_proof_forms specifies whether the proof being constructed is
         to be printed in real time as it is being constructed """
-    # a+c=a => plus(a,c)=a => plus(minus(a),plus(a,c))=plus(minus(a),a) {-a +(a+c)= -a+a} =>
-    # => plus(plus(minus(a),a),c))=plus(minus(a),a) {(-a+a)+c = -a+a}
-    # let's stop now and take plus(minus(x),x)=0 => plus(minus(a),a)=0
-    # I want to set plus(plus(minus(a),a),c)= plus(0,c) - I will do that by substitute the former step with 'plus(v,c)'
-    # I will now have plus(plus(minus(a),a),c)= plus(0,c) and plus(plus(minus(a),a),c)=plus(minus(a),a)
-    # I will flip plus(plus(minus(a),a),c)= plus(0,c) to be  plus(0,c)=plus(plus(minus(a),a),c) and now chain it to get
-    # plus(0,c)=plus(minus(a),a)
-    # Again, use the axiom plus(minus(x),x)=0 and get plus(minus(a),a)=0 and so we have plus(0,c)=0
-    # another axiom, and plus(0,c)=c, then c = 0
-    # -a +(a+c)= -a+a => plus(minus(a),plus(a,c))=plus(minus(a),a)
-    # (-a+a)+c = -a+a => plus(plus(minus(a),a),c)=plus(minus(a),a)
-    #  plus(minus(x),x)=0 :
-
     prover = Prover(GROUP_AXIOMS + ['plus(a,c)=a'], 'c=0', print_as_proof_forms)
-
-    step_1 = prover.add_assumption('plus(a,c)=a')
-    # -a +(a+c) = -a +a
+    step_1 = prover.add_assumption('plus(a,c)=a') # given assumption
+    # using the v_termed plus(minus(a),v) we get -> -a +(a+c) = -a +a
     step_2 = prover.add_substituted_equality('plus(minus(a),plus(a,c))=plus(minus(a),a)', step_1, 'plus(minus(a),v)')
-    # (-a+a)+c=-a+(a+c)
-    step_3 = prover.add_assumption('plus(plus(x,y),z)=plus(x,plus(y,z))')
+    step_3 = prover.add_assumption('plus(plus(x,y),z)=plus(x,plus(y,z))') # third group axiom
+    # input (-a+a)+c=-a+(a+c) using free_inst
     step_4 = prover.add_free_instantiation('plus(plus(minus(a),a),c)=plus(minus(a),plus(a,c))', step_3,
                                            {'x': 'minus(a)', 'y': 'a', 'z': 'c'})
-    step_5 = prover.add_chained_equality('plus(plus(minus(a),a),c)=plus(minus(a),a)', [step_4, step_2])  #(-a+a)+c=-a+a
-    step_6 = prover.add_assumption('plus(minus(x),x)=0')
-    step_7 = prover.add_free_instantiation('plus(minus(a),a)=0', step_6, {'x': 'a'})  # -a+a=0
+    # conclude (-a+a)+c=-a+a using chained_equality of step_2 and step_4
+    step_5 = prover.add_chained_equality('plus(plus(minus(a),a),c)=plus(minus(a),a)', [step_4, step_2])
+    step_6 = prover.add_assumption('plus(minus(x),x)=0') # second group axiom
+    step_7 = prover.add_free_instantiation('plus(minus(a),a)=0', step_6, {'x': 'a'})  # input -a+a=0 using free_inst
+    # using v_termed plus(v,c) we get -> (-a+a)+c = 0+c
     step_8 = prover.add_substituted_equality('plus(plus(minus(a),a),c)=plus(0,c)', step_7, 'plus(v,c)')
-    step_9 = prover.add_flipped_equality('plus(0,c)=plus(plus(minus(a),a),c)', step_8)
+    step_9 = prover.add_flipped_equality('plus(0,c)=plus(plus(minus(a),a),c)', step_8) # flip 8 -> 0+c=(-a+a)+c
+    # conclude 0+c=0 using chained_equality of step_9, step_5, and step_7
     step_10 = prover.add_chained_equality('plus(0,c)=0', [step_9, step_5, step_7])
-    step_11 = prover.add_assumption('plus(0,x)=x')
-    step_12 = prover.add_free_instantiation('plus(0,c)=c', step_11, {'x': 'c'})
-    step_13 = prover.add_flipped_equality('c=plus(0,c)', step_12)
-    step_14 = prover.add_chained_equality('c=0', [step_13, step_10])
-
+    step_11 = prover.add_assumption('plus(0,x)=x') # first group assumption
+    step_12 = prover.add_free_instantiation('plus(0,c)=c', step_11, {'x': 'c'}) # we get 0+c=c using free_inst
+    step_13 = prover.add_flipped_equality('c=plus(0,c)', step_12) # flip 12 -> c=0+c
+    step_14 = prover.add_chained_equality('c=0', [step_13, step_10]) # conclude c=0 using chained on step 13, step 10
     # Task 10.10
     return prover.proof
-
-
 
 FIELD_AXIOMS = GROUP_AXIOMS + ['plus(x,y)=plus(y,x)', 'times(x,1)=x',
                                'times(x,y)=times(y,x)',
                                'times(times(x,y),z)=times(x,times(y,z))',
                                '(~x=0->Ey[times(y,x)=1])',
                                'times(x,plus(y,z))=plus(times(x,y),times(x,z))']
-
 
 def multiply_zero_proof(print_as_proof_forms=False):
     """ Return a proof that from the field axioms (in addition to Prover.AXIOMS)
@@ -124,7 +111,6 @@ def multiply_zero_proof(print_as_proof_forms=False):
         being constructed """
     prover = Prover(FIELD_AXIOMS, 'times(0,x)=0', print_as_proof_forms)
     # Task 10.11
-
     step_1 = prover.add_assumption('times(x,y)=times(y,x)')
     step_2 = prover.add_free_instantiation('times(0,x)=times(x,0)', step_1, {'x': '0', 'y': 'x'})  # #1 in chained!
     step_3 = prover.add_assumption('plus(0,x)=x')
@@ -133,8 +119,7 @@ def multiply_zero_proof(print_as_proof_forms=False):
     step_6 = prover.add_assumption('plus(minus(x),x)=0')  # -0*x+0*x=0
     step_7 = prover.add_free_instantiation('plus(minus(times(x,0)),times(x,0))=0', step_6, {'x': 'times(x,0)'})
     step_8 = prover.add_substituted_equality('plus(plus(minus(times(x,0)),times(x,0)),times(x,0))=plus(0,times(x,0))',
-                                             step_7,
-                                             'plus(v,times(x,0))')
+                                             step_7, 'plus(v,times(x,0))')
     step_9 = prover.add_flipped_equality('plus(0,times(x,0))=plus(plus(minus(times(x,0)),times(x,0)),times(x,0))',
                                          step_8)  # #3 in chained!
     step_10 = prover.add_assumption('plus(plus(x,y),z)=plus(x,plus(y,z))')
@@ -154,18 +139,15 @@ def multiply_zero_proof(print_as_proof_forms=False):
     step_15 = prover.add_assumption('plus(0,x)=x')
     step_16 = prover.add_free_instantiation('plus(0,0)=0', step_15, {'x': '0'})
     step_17 = prover.add_substituted_equality('times(x,plus(0,0))=times(x,0)', step_16, 'times(x,v)')
-
     # We now chain step 14 with the step 17 and then substitute term 'plus(minus(times(x,0),v)' and will get:
     # 'plus(minus(times(x,0)),plus(times(x,0),times(x,0)))=plus(minus(times(x,0)),times(x,0))'
     step_18 = prover.add_chained_equality('plus(times(x,0),times(x,0))=times(x,0)', [step_14, step_17])
     step_19 = prover.add_substituted_equality(
         'plus(minus(times(x,0)),plus(times(x,0),times(x,0)))=plus(minus(times(x,0)),times(x,0))',
         step_18, 'plus(minus(times(x,0)),v)')  # #5 in chained!
-
     # sanity check - we have now -x*0 +x*0- and we want to do -x*0+x*0=0 and chain it all together
     step_20 = prover.add_free_instantiation('plus(minus(times(x,0)),times(x,0))=0',
                                             step_6, {'x': 'times(x,0)'})  # #6 in chained!
-
     step_21 = prover.add_chained_equality('times(0,x)=0', [step_2, step_5, step_9, step_11, step_19, step_20])
     return prover.proof
 
