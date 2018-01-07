@@ -65,6 +65,7 @@ class Prover:
             this proof is returned """
         assert type(instance) is Formula or type(instance) is str
         assert type(schema) is Schema
+        print(self.proof.assumptions)
         return self._add_line(instance,
                               ('A', self.proof.assumptions.index(schema),
                                instantiation_map))
