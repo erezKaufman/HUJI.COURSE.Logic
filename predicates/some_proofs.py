@@ -283,20 +283,18 @@ def russell_paradox_proof(print_as_proof_forms=False):
     prover = Prover([COMPREHENSION_AXIOM], '(z=z&~z=z)', print_as_proof_forms)
     # Task 10.13
     # step_1 = prover.add_assumption(COMPREHENSION_AXIOM.formula)
-    step_2 = prover.add_instantiated_assumption(
-        '(Ax[((In(x,y)->~In(x,x))&(~In(x,x)->In(x,y)))]->((In(y,y)->~In(y,y))&(~In(y,y->In(y,y)))))',Prover.UI,
-        # UI => Ax[R(x)]->R(c)
-        # R(x) => ((In(x,y)->~In(x,y))&(~In(x,y->In(x,y)))
-        {'x': 'x', 'c': 'y', 'R(v)': '((In(v,y)->~In(v,y))&(~In(v,y)->In(v,y)))'})
-    # step_3 = prover.add_free_instantiation(
-    #     '(Ax[((In(x,y)->R(x))&(R(x)->In(x,y)))]->((In(y,y)->∼In(y,y))&(∼In(y,y)->In(y,y))))',
-    #     0,{'x':'x', 'c' : 'y', 'R(v)': '~In(v,y)'})
-    # step_3 = add_free... with map {'x':'x', 'c' : 'y', 'R(v)': '~In(v,y)'}
-    # (Ax[((In(x, y) → R(x))&(R(x) → In(x, y)))] → ((In (y, y) →∼ In (y, y)) & ( ∼ In (y, y) → In (y, y))))
-    #     UI = Schema('(Ax[R(x)]->R(c))', {'R', 'x', 'c'})
-    step_4 = prover.add_tautology('((In(y, y)->~In(y, y)) & ((~In(y, y)->In(y, y))->(z = z & ~z = z)))')
-    # step_5 =
 
+    # print(Prover.UI.instantiate({'x': 'x', 'c': 'y', 'R(v)': '((In(v,y)->~In(v,v))&(~In(v,v)->In(v,y)))'}))
+
+    step_2 = prover.add_instantiated_assumption(
+        '(Ax[((In(x,y)->~In(x,x))&(~In(x,x)->In(x,y)))]->((In(y,y)->~In(y,y))&(~In(y,y)->In(y,y))))',Prover.UI,
+        {'x': 'x', 'c': 'y', 'R(v)': '((In(v,y)->~In(v,v))&(~In(v,v)->In(v,y)))'})
+
+
+    step_3 = prover.add_tautology('(((In(y,y)->~In(y,y))&~In(y,y))->(In(y,y)->(z=z&~z=z)))')
+    step_4 = pro
+    # Formula.parse('(z1->~z1) & ((~In(y, y)->In(y, y))->(z = z & ~z = z))')
+    # step_5 =
     return prover.proof
 
 
