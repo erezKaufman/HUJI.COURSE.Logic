@@ -199,7 +199,7 @@ def peano_zero_proof(print_as_proof_forms=False):
     step_11 = prover.add_universal_instantiation(str(prover.proof.conclusion), step_10, 'x')
     return prover.proof
 
-
+#test
 COMPREHENSION_AXIOM = Schema('Ey[Ax[((In(x,y)->R(x))&(R(x)->In(x,y)))]]', {'R'})
 
 
