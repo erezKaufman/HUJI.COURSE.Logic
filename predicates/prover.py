@@ -168,10 +168,15 @@ class Prover:
             number of the (new) line in this proof containing conclusion is
             returned """
         # Task 10.2
+        # The main idea in the method is similar to proving tautology in Task 6 EX 6. We build a new formula that
+        # each part of the formula suppose to be True, and implies the other. then we want to prove this new line is
+        # indeed a tautology (now it's easy) and then disassemble the line to it's basics by using MP
         formula = Formula.parse(conclusion)
+        # Build the tautology line
         for i in range(len(line_numbers) - 1, -1, -1):
             formula = Formula('->', self.proof.lines[line_numbers[i]].formula, formula)
         last_line_number = self.add_tautology(formula)
+        # Disassemble the line using MP
         for j in range(len(line_numbers)):
             last_line_number = self.add_mp(formula.second, line_numbers[j], last_line_number)
             formula = formula.second
@@ -195,13 +200,17 @@ class Prover:
         f1_var = formula1.variable
         quantified_form2 = Formula('A', f1_var, formula2)
         quantified_form2_line = self.add_ug(str(quantified_form2), line2)
+
         # create es formula
         part_1_es = Formula('&', self.proof.lines[quantified_form2_line].formula, formula1)
         es_formula = Formula('->', part_1_es, formula2.second)
         # finished es formula
+
         # create new instantiation map for ES
         sub = formula1.predicate.substitute({f1_var: Term('v')})
         instantiation_map = {'x': f1_var, 'R(v)': str(sub), 'Q()': str(formula2.second)}
+
+        # Add ES line
         es_line = self.add_instantiated_assumption(es_formula, Prover.ES, instantiation_map)
         return self.add_tautological_inference(statement, [line1, quantified_form2_line, es_line])
 
@@ -213,15 +222,24 @@ class Prover:
             of the (new) line in this proof containing flipped is returned """
         #  c=d => d=c
         # Task 10.6
+        # By using ME and RX axioms, we change the formula to appear as 'x=y->x=x->y=x. Then we use Tautology and
+        # deduce that y=x
+        # --init vars--
         unflipped_formula = self.proof.lines[line_number].formula
         first_term = str(unflipped_formula.first)
         second_term = str(unflipped_formula.second)
+
+        # Create ME map
         me_instantiation_map = {'c': first_term, 'd': second_term, 'R(v)': 'v=' + first_term}
+        # Create RX map
         rx_instantiation_map = {'c': first_term}
+        # Add ME line
         me_line_number = self.add_instantiated_assumption(Prover.ME.instantiate(me_instantiation_map), Prover.ME,
                                                           me_instantiation_map)
+        # Add RX line
         rx_line_number = self.add_instantiated_assumption(Prover.RX.instantiate(rx_instantiation_map), Prover.RX,
                                                           rx_instantiation_map)
+        # Deduce the conclusion based on the main line, ME, and RX
         return self.add_tautological_inference(flipped, [line_number, me_line_number, rx_line_number])
 
     def add_free_instantiation(self, instantiation, line_number,
