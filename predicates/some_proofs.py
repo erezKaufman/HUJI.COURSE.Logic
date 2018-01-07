@@ -28,7 +28,7 @@ def lovers_proof(print_as_proof_forms=False):
     step_8 = prover.add_ug('Az[Loves(z,x)]', step_7) # add Az using UG
     step_9 = prover.add_ug('Ax[Az[Loves(z,x)]]', step_8) # add Ax using UG
     return prover.proof
-
+#test
 
 def homework_proof(print_as_proof_forms=False):
     """ Return a proof that from the assumptions (in addition to Prover.AXIOMS):
