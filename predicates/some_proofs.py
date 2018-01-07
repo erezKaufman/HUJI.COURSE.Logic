@@ -63,7 +63,7 @@ def homework_proof(print_as_proof_forms=False):
     # se tau_inf on step 7 and step 8 to get H(x)&R(x)->Ex[R(x)&F(x)]
     step_10 = prover.add_tautological_inference('((Homework(x)&Reading(x))->Ex[(Reading(x)&~Fun(x))])',
                                                 [step_7, step_9])
-    # finally conclude what we want using existential_derivation on the second assumption and the last step
+    # finally conclude what we want using existential_derivation on the second assumption (step_2) and the last step
     step_11 = prover.add_existential_derivation('Ex[(Reading(x)&~Fun(x))]', step_2, step_10)
     return prover.proof
 
