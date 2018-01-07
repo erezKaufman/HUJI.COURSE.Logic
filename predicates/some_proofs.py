@@ -237,7 +237,7 @@ def multiply_zero_proof(print_as_proof_forms=False):
 
 
 PEANO_AXIOMS = ['(s(x)=s(y)->x=y)', '(~x=0->Ey[s(y)=x])', '~s(x)=0',
-                'plus(x,0)=x', 'plus(x,s(y))=s(plus(x,y))', 'times(x,0)=0',
+                'plus(x,0)=x', , 'times(x,0)=0',
                 'times(x,s(y))=plus(times(x,y),x)',
                 Schema('((R(0)&Ax[(R(x)->R(s(x)))])->Ax[R(x)])', 'R')]
 
@@ -249,14 +249,9 @@ def peano_zero_proof(print_as_proof_forms=False):
         being constructed """
     prover = Prover(PEANO_AXIOMS, 'plus(0,x)=x', print_as_proof_forms)
     # Task 10.12
-    step1 = prover.add_assumption(PEANO_AXIOMS[0])
-    step2 = prover.add_assumption(PEANO_AXIOMS[1])
-    step3 = prover.add_assumption(PEANO_AXIOMS[2])
-    step4 = prover.add_assumption(PEANO_AXIOMS[3])
-    step5 = prover.add_assumption(PEANO_AXIOMS[4])
-    step6 = prover.add_assumption(PEANO_AXIOMS[5])
-    step7 = prover.add_assumption(PEANO_AXIOMS[6])
 
+    step4 = prover.add_assumption('plus(x,0)=x')
+    step5 = prover.add_assumption('plus(x,s(y))=s(plus(x,y))')
     step10 = prover.add_free_instantiation("plus(0,0)=0", step4, {'x': '0'})
     step11 = prover.add_instantiated_assumption("(plus(0,x)=x->(plus(0,s(x))=s(plus(0,x))->plus(0,s(x))=s(x)))",
                                                 Prover.ME, {'R(v)': 'plus(0,s(x))=s(v)', 'c': 'plus(0,x)', 'd': 'x'})
@@ -282,19 +277,18 @@ def russell_paradox_proof(print_as_proof_forms=False):
         constructed """
     prover = Prover([COMPREHENSION_AXIOM], '(z=z&~z=z)', print_as_proof_forms)
     # Task 10.13
-    # step_1 = prover.add_assumption(COMPREHENSION_AXIOM.formula)
-
-    # print(Prover.UI.instantiate({'x': 'x', 'c': 'y', 'R(v)': '((In(v,y)->~In(v,v))&(~In(v,v)->In(v,y)))'}))
-
+    step_1 = prover.add_instantiated_assumption('Ey[Ax[((In(x,y)->~In(x,x))&(~In(x,x)->In(x,y)))]]',COMPREHENSION_AXIOM,
+                                                {'R(v)' : '~In(v,v)'})
     step_2 = prover.add_instantiated_assumption(
         '(Ax[((In(x,y)->~In(x,x))&(~In(x,x)->In(x,y)))]->((In(y,y)->~In(y,y))&(~In(y,y)->In(y,y))))',Prover.UI,
         {'x': 'x', 'c': 'y', 'R(v)': '((In(v,y)->~In(v,v))&(~In(v,v)->In(v,y)))'})
 
 
-    step_3 = prover.add_tautology('(((In(y,y)->~In(y,y))&~In(y,y))->(In(y,y)->(z=z&~z=z)))')
-    step_4 = pro
-    # Formula.parse('(z1->~z1) & ((~In(y, y)->In(y, y))->(z = z & ~z = z))')
-    # step_5 =
+    step_3 = prover.add_tautology('(((In(y,y)->~In(y,y))&(~In(y,y)->In(y,y)))->(z=z&~z=z))')
+    step_4 = prover.add_tautological_inference('(Ax[((In(x,y)->~In(x,x))&(~In(x,x)->In(x,y)))]->(z=z&~z=z))',
+                                               [step_2,step_3])
+    step_5 = prover.add_existential_derivation('(z=z&~z=z)',step_1,step_4)
+
     return prover.proof
 
 

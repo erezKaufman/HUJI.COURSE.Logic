@@ -188,7 +188,7 @@ class Prover:
 
         formula1 = self.proof.lines[line1].formula
         formula2 = self.proof.lines[line2].formula
-        assert is_quantifier(formula1.root)
+        assert formula1.root == 'E'
         assert formula2.root == '->'
 
         # create quantified formula 2:
