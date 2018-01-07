@@ -65,9 +65,6 @@ GROUP_AXIOMS = ['plus(0,x)=x', 'plus(minus(x),x)=0',
                 'plus(plus(x,y),z)=plus(x,plus(y,z))']
 
 
-# ZERO = Schema('plus(0,x)=x',{'x'})
-# NEGATE = Schema('plus(minus(x),x)=0',{'x'})
-# COMMUTATIVE = Schema('plus(plus(x,y),z)=plus(x,plus(y,z))',{'x','y','z'})
 
 
 def unique_zero_proof(print_as_proof_forms=False):
@@ -97,77 +94,20 @@ def unique_zero_proof(print_as_proof_forms=False):
     step_3 = prover.add_assumption('plus(plus(x,y),z)=plus(x,plus(y,z))')
     step_4 = prover.add_free_instantiation('plus(plus(minus(a),a),c)=plus(minus(a),plus(a,c))', step_3,
                                            {'x': 'minus(a)', 'y': 'a', 'z': 'c'})
-    # step5e = prover.add_flipped_equality('plus(plus(minus(a),a),c)=plus(minus(a),plus(a,c))',step_4)
+    step_5 = prover.add_chained_equality('plus(plus(minus(a),a),c)=plus(minus(a),a)', [step_4, step_2])  #(-a+a)+c=-a+a
+    step_6 = prover.add_assumption('plus(minus(x),x)=0')
+    step_7 = prover.add_free_instantiation('plus(minus(a),a)=0', step_6, {'x': 'a'})  # -a+a=0
+    step_8 = prover.add_substituted_equality('plus(plus(minus(a),a),c)=plus(0,c)', step_7, 'plus(v,c)')
+    step_9 = prover.add_flipped_equality('plus(0,c)=plus(plus(minus(a),a),c)', step_8)
+    step_10 = prover.add_chained_equality('plus(0,c)=0', [step_9, step_5, step_7])
+    step_11 = prover.add_assumption('plus(0,x)=x')
+    step_12 = prover.add_free_instantiation('plus(0,c)=c', step_11, {'x': 'c'})
+    step_13 = prover.add_flipped_equality('c=plus(0,c)', step_12)
+    step_14 = prover.add_chained_equality('c=0', [step_13, step_10])
 
-    step5e = prover.add_chained_equality('plus(plus(minus(a),a),c)=plus(minus(a),a)', [step_4, step_2])  # (-a+a)+c=-a+a
-    step6e = prover.add_assumption('plus(minus(x),x)=0')
-    step7e = prover.add_free_instantiation('plus(minus(a),a)=0', step6e, {'x': 'a'})  # -a+a=0
-    step8e = prover.add_substituted_equality('plus(plus(minus(a),a),c)=plus(0,c)', step7e, 'plus(v,c)')
-    step9e = prover.add_flipped_equality('plus(0,c)=plus(plus(minus(a),a),c)', step8e)
-    step10e = prover.add_chained_equality('plus(0,c)=0', [step9e, step5e, step7e])
-    step11e = prover.add_assumption('plus(0,x)=x')
-    step12e = prover.add_free_instantiation('plus(0,c)=c', step11e, {'x': 'c'})
-    step13e = prover.add_flipped_equality('c=plus(0,c)', step12e)
-    step14e = prover.add_chained_equality('c=0', [step13e, step10e])
-
-    # prover = Prover(GROUP_AXIOMS + ['plus(a,c)=a'], 'c=0', print_as_proof_forms)
-    # step_1 = prover.add_assumption('plus(a,c)=a')
-    # step_2 = prover.add_substituted_equality('plus(minus(a),plus(a,c))=plus(minus(a),a)', step_1, 'plus(minus(a),v)')
-    # step_3 = prover.add_assumption('plus(plus(x,y),z)=plus(x,plus(y,z))')
-    # step_4 = prover.add_free_instantiation('plus(plus(minus(a),a),c)=plus(minus(a),plus(a,c))', step_3,
-    #                                        {'x': 'minus(a)', 'y': 'a', 'z': 'c'})
-    # step_5 = prover.add_flipped_equality('plus(minus(a),a)=plus(minus(a),plus(a,c))', step_2)
-    # step_6 = prover.add_flipped_equality('plus(minus(a),plus(a,c))=plus(plus(minus(a),a),c)', step_4)
-    # step_7 = prover.add_chained_equality('plus(minus(a),a)=plus(plus(minus(a),a),c)',
-    #                                      [step_5, step_6])  # -a+a = (-a+a)+c
-    # step_8 = prover.add_assumption('plus(minus(x),x)=0')
-    # step_9 = prover.add_free_instantiation('plus(minus(a),a)=0', step_8, {'x': 'a'})  # -a+a=0
-    # step_10 = prover.add_flipped_equality('0=plus(minus(a),a)', step_9)  # 0 = -a+a
-    # step_11 = prover.add_chained_equality('0=plus(plus(minus(a),a),c)', [step_10, step_7])  # 0 = (-a+a)+c
-    # step_12 = prover.add_flipped_equality('plus(plus(minus(a),a),c)=0', step_11)  # (-a+a)+c = 0
-    # # this line won't work because you try to make '0=plus(minus(a),a)' => 'plus(plus(minus(a),a),c)=0' and there is
-    # # nothing that connects them together. you also need to add 'c' in the right side of the equation
-    # step_13 = prover.add_chained_equality('plus(0,c)=c',
-    #                                       [step_10, step_12])  # 0+c = 0 #TODO this line doesnt really work
-    #
-    # step_13_5 = prover.add_flipped_equality('c=plus(0,c)', step_13)  # 0=0+c
-    # step_14 = prover.add_assumption('plus(0,x)=x')
-    # step_15 = prover.add_free_instantiation('plus(0,c)=c', step_14, {'x': 'c'})  # 0+c=c
-    # step_16 = prover.add_chained_equality('0=c', [step_13_5, step_15])  # 0=c
-    # step_17 = prover.add_chained_equality('c=0', step_16)  # c=0
-
-    # instantiate step 4 with step 2
-    # after step_5 we instantiate  {'x': 'minus(a)', 'y': 'a', 'z': 'c'}  and get plus(minus(a),a)=plus(minus(a),
-    # plus(a,c))
-    # step_6 = # assumption GROUP[1] -a+a=0
-    # step_7 = #
-    # prover.add_instantiated_assumption()
     # Task 10.10
     return prover.proof
 
-    # prover = Prover(GROUP_AXIOMS + ['plus(a,c)=a'], 'c=0', print_as_proof_forms)
-    # step_1 = prover.add_assumption('plus(a,c)=a')
-    # step_2 = prover.add_substituted_equality('plus(minus(a),plus(a,c))=plus(minus(a),a)', step_1, 'plus(minus(a),v)')
-    # # after step 2 we have 'plus(minus(a),plus(a,c))=plus(minus(a),a)' => (-a)+(a+c)=(-a)+a
-    #
-    # # step_3 = prover.add_assumption(GROUP_AXIOMS[2])# assumption GROUP[2]
-    # #  after step_3 we have an assumption of plus(plus(x,y),z)=plus(x,plus(y,z)) => (x+y)+z= x+(y+z)
-    # # step_4 = prover.add_flipped_equality('plus(x,plus(y,z))=plus(plus(x,y),z)',step_3)# flipped step3
-    # step_4 = prover.add_flipped_equality('plus(minus(a),a)=plus(minus(a),plus(a,c))', step_2)  # flipped step3
-    #
-    # # after step_4 we have 'plus(x,plus(y,z))=plus(plus(x,y),z)' => (x+(y+z)=(x+y)+z
-    # # after step_4 we have 'plus(x,plus(y,z))=plus(plus(x,y),z)' => (x+(y+z)=(x+y)+z
-    # step_5 = prover.add_instantiated_assumption('plus(minus(a),a)=plus(minus(a),plus(minus(a),plus(a,c))',
-    #                                             prover.proof.assumptions[8], {'x': 'minus(a)',
-    #                                                                           'y': 'a', 'z': 'c'})
-    # # instantiate step 4 with step 2
-    # # after step_5 we instantiate  {'x': 'minus(a)', 'y': 'a', 'z': 'c'}  and get plus(minus(a),a)=plus(minus(a),
-    # # plus(a,c))
-    # # step_6 = # assumption GROUP[1] -a+a=0
-    # # step_7 = #
-    # # prover.add_instantiated_assumption()
-    # # Task 10.10
-    # return prover.proof
 
 
 FIELD_AXIOMS = GROUP_AXIOMS + ['plus(x,y)=plus(y,x)', 'times(x,1)=x',
@@ -184,13 +124,7 @@ def multiply_zero_proof(print_as_proof_forms=False):
         being constructed """
     prover = Prover(FIELD_AXIOMS, 'times(0,x)=0', print_as_proof_forms)
     # Task 10.11
-    # step_1 = times(x,y)=times(y,x) => x*0 = 0*x
-    # step_2 = 0*x = 0+0*x =>
-    # step_3 = (-0*x+0*x) + 0*x = -0*x+(0*x + 0*x)
-    # step_4 = -0*x+(0*x + 0*x) = -0*x + (0+0)*x
-    # step_5 = -0*x + x*(0+0) = -0*x + 0*x
-    # step_6 = 0*x-0*x=0
-    # step_7 chained equality
+
     step_1 = prover.add_assumption('times(x,y)=times(y,x)')
     step_2 = prover.add_free_instantiation('times(0,x)=times(x,0)', step_1, {'x': '0', 'y': 'x'})  # #1 in chained!
     step_3 = prover.add_assumption('plus(0,x)=x')
@@ -250,20 +184,20 @@ def peano_zero_proof(print_as_proof_forms=False):
     prover = Prover(PEANO_AXIOMS, 'plus(0,x)=x', print_as_proof_forms)
     # Task 10.12
 
-    step4 = prover.add_assumption('plus(x,0)=x')
-    step5 = prover.add_assumption('plus(x,s(y))=s(plus(x,y))')
+    step_1 = prover.add_assumption('plus(x,0)=x')
+    step_2 = prover.add_assumption('plus(x,s(y))=s(plus(x,y))')
 
-    step10 = prover.add_free_instantiation("plus(0,0)=0", step4, {'x': '0'})
-    step11 = prover.add_instantiated_assumption("(plus(0,x)=x->(plus(0,s(x))=s(plus(0,x))->plus(0,s(x))=s(x)))",
+    step_3 = prover.add_free_instantiation("plus(0,0)=0", step_1, {'x': '0'})
+    step_4 = prover.add_instantiated_assumption("(plus(0,x)=x->(plus(0,s(x))=s(plus(0,x))->plus(0,s(x))=s(x)))",
                                                 Prover.ME, {'R(v)': 'plus(0,s(x))=s(v)', 'c': 'plus(0,x)', 'd': 'x'})
-    step12 = prover.add_free_instantiation("plus(0,s(x))=s(plus(0,x))", step5, {'x': '0', 'y': 'x'})
-    step13 = prover.add_tautological_inference('(plus(0,x)=x->plus(0,s(x))=s(x))', [step12, step11])
-    step14 = prover.add_ug('Ax[(plus(0,x)=x->plus(0,s(x))=s(x))]', step13)
-    step15 = prover.add_tautological_inference('(plus(0,0)=0&Ax[(plus(0,x)=x->plus(0,s(x))=s(x))])', [step10, step14])
-    step16 = prover.add_instantiated_assumption('((plus(0,0)=0&Ax[(plus(0,x)=x->plus(0,s(x))=s(x))])->Ax[plus(0,x)=x])',
-                                                prover.proof.assumptions[13], {'R(v)': 'plus(0,v)=v'})
-    step17 = prover.add_mp('Ax[plus(0,x)=x]', step15, step16)
-    step18 = prover.add_universal_instantiation(str(prover.proof.conclusion), step17, 'x')
+    step_5 = prover.add_free_instantiation("plus(0,s(x))=s(plus(0,x))", step_2, {'x': '0', 'y': 'x'})
+    step_6 = prover.add_tautological_inference('(plus(0,x)=x->plus(0,s(x))=s(x))', [step_5, step_4])
+    step_7 = prover.add_ug('Ax[(plus(0,x)=x->plus(0,s(x))=s(x))]', step_6)
+    step_8 = prover.add_tautological_inference('(plus(0,0)=0&Ax[(plus(0,x)=x->plus(0,s(x))=s(x))])', [step_3, step_7])
+    step_9 = prover.add_instantiated_assumption('((plus(0,0)=0&Ax[(plus(0,x)=x->plus(0,s(x))=s(x))])->Ax[plus(0,x)=x])',
+                                                PEANO_AXIOMS[7], {'R(v)': 'plus(0,v)=v'})
+    step_10 = prover.add_mp('Ax[plus(0,x)=x]', step_8, step_9)
+    step_11 = prover.add_universal_instantiation('plus(0,x)=x', step_10, 'x')
     return prover.proof
 
 
@@ -292,8 +226,3 @@ def russell_paradox_proof(print_as_proof_forms=False):
 
     return prover.proof
 
-
-if __name__ == '__main__':
-    pass
-    # f = Formula.parse('((Ay[(Loves(x,y)->Loves(z,x))]&Ey[Loves(x,y)])->Loves(z,x))')
-    # print(f.root)

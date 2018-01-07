@@ -271,7 +271,6 @@ class Prover:
             line line_number has the formula 'g(x)=h(y)' and term_with_free_v
             is 'v+7', then substituted should be 'g(x)+7=h(y)+7'. The number of
             the (new) line in this proof containing substituted is returned """
-        # g(x)=h(y) | v+7 =>  g(x)+7=h(y)+7
         # Task 10.8
         f = self.proof.lines[line_number].formula
         v_termed = Term.parse(term_with_free_v)
@@ -302,6 +301,7 @@ class Prover:
 
         f1 = self.proof.lines[line1].formula
         f2 = self.proof.lines[line2].formula
+        # we create a dictionary that we instantiate on the ME axiom. for each two lines we will take
         me_dict = {'c':str(f1.second), 'd': str(f1.first), 'R(v)': 'v='+str(f2.second)}
         flipped = self.add_flipped_equality(str(f1.second)+'='+str(f1.first), line1)
         me_line_number = self.add_instantiated_assumption(Prover.ME.instantiate(me_dict), Prover.ME,
