@@ -25,8 +25,6 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
     assert type(assumption) is str
     assert Schema(assumption) in proof.assumptions
     assert proof.assumptions[:len(Prover.AXIOMS)] == Prover.AXIOMS
-    print('org proof assumptions:', proof.assumptions)
-    print('our kilshon' , assumption)
 
     # create new assumptions
     new_proof_assump = copy.deepcopy(proof.assumptions)
@@ -42,8 +40,8 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
     for line in proof.lines:
         l_type = line.justification[0]
         l_formula = line.formula
-        if l_type == 'A' or l_type == 'T':
-            if l_type == 'A' and l_formula == assumption:
+        if l_type == 'A':
+            if l_formula == assumption:
                 conc = make_tautology(assumption, assumption)
                 step_1 = new_prover.add_tautology(conc)
                 line_num_conc_dict[conc] = step_1
@@ -53,6 +51,14 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
                 conc = make_implication(assumption, l_formula)  # we want assumption -> T
                 step_3 = new_prover.add_mp(conc, step_2, step_1)  # do MP and we get assumption -> T
                 line_num_conc_dict[conc] = step_3
+
+        if l_type == 'T':
+            step_1 = new_prover.add_tautology(make_tautology(l_formula, assumption))  # T -> assumption -> T
+            step_2 = new_prover.add_assumption(l_formula)
+            conc = make_implication(assumption, l_formula)  # we want assumption -> T
+            step_3 = new_prover.add_mp(conc, step_2, step_1)  # do MP and we get assumption -> T
+            line_num_conc_dict[conc] = step_3
+
         elif l_type == 'MP':
             psi_1 = line.justification[1]
             psi_2 = line.justification[2]
