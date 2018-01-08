@@ -175,7 +175,6 @@ class Prover:
         # Build the tautology line
         for i in range(len(line_numbers) - 1, -1, -1):
             formula = Formula('->', self.proof.lines[line_numbers[i]].formula, formula)
-        print('the formula is:' ,formula)
         last_line_number = self.add_tautology(formula)
         # Disassemble the line using MP
         for j in range(len(line_numbers)):
