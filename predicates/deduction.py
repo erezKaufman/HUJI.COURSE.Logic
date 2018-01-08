@@ -10,11 +10,10 @@ from predicates.prover import *
 
 def inverse_mp(proof, assumption, print_as_proof_forms=False):
     def make_tautology(first, second):
-        return str(first) + '->' + str(second) + '->' + str(first)
+        return '('+str(first) + '->(' +str(second) + '->' + str(first)+')'+')'
 
     def make_implication(assumption, line):
-        return str(assumption) + '->' + str(line)
-
+        return '('+str(assumption) + '->' + str(line) +')'
     """ Takes a proof, whose first six assumptions/axioms are Prover.AXIOMS, of
         a conclusion from a list of assumptions/axioms that contains the given
         assumption as a simple formula (i.e., without any templates), where no
@@ -27,14 +26,14 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
     assert Schema(assumption) in proof.assumptions
     assert proof.assumptions[:len(Prover.AXIOMS)] == Prover.AXIOMS
     print('org proof assumptions:', proof.assumptions)
-    print('our kilshon', assumption)
+    print('our kilshon' , assumption)
 
     # create new assumptions
     new_proof_assump = copy.deepcopy(proof.assumptions)
     del new_proof_assump[(new_proof_assump.index(Schema(assumption)))]
 
     # create new conclusion
-    new_conclusion = Formula('->', assumption, proof.conclusion)
+    new_conclusion = make_implication(assumption, proof.conclusion)
     # new_proof = Proof(new_proof_assump, new_conclusion, [])
     new_prover = Prover(new_proof_assump, new_conclusion)
 
@@ -80,14 +79,14 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
             step_2 = new_prover.add_instantiated_assumption(us_formula, new_prover.US, instantiation_map)
             step_3 = new_prover.add_tautological_inference(str(us_formula.second),[step_1.step_2])
 
-            # CASE1 line just is T    sol: T -> assumption -> T ; do MP and we get assumption -> T
-            # CASE2 line just is A    solution1: A -> assumption -> A; do MP and we get assumption -> A (when A!=assumption)
-            # solution2:
-            # CASE3 line just is MP   solution: find assumption -> (A->B) , find assumption -> A in prev lines
-            # use tau_inf to get assumption -> B
-            # CASE4 line just is UG   solution: add UG  Ax[assumption -> cur] , when x is the same var used in org line
-            # add US Ax[assumption -> cur] -> (assumption -> Ax[cur])
-            # add MG to get assumption -> Ax[cur]
+    # CASE1 line just is T    sol: T -> assumption -> T ; do MP and we get assumption -> T
+    # CASE2 line just is A    solution1: A -> assumption -> A; do MP and we get assumption -> A (when A!=assumption)
+                              #solution2:
+    # CASE3 line just is MP   solution: find assumption -> (A->B) , find assumption -> A in prev lines
+                                        # use tau_inf to get assumption -> B
+    # CASE4 line just is UG   solution: add UG  Ax[assumption -> cur] , when x is the same var used in org line
+                                        # add US Ax[assumption -> cur] -> (assumption -> Ax[cur])
+                                        # add MG to get assumption -> Ax[cur]
 
             # Task 11.1
 
