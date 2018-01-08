@@ -168,20 +168,20 @@ def peano_zero_proof(print_as_proof_forms=False):
         being constructed """
     prover = Prover(PEANO_AXIOMS, 'plus(0,x)=x', print_as_proof_forms)
     # Task 10.12
-    step_1 = prover.add_assumption('plus(x,0)=x') # add assumption 4
-    step_2 = prover.add_assumption('plus(x,s(y))=s(plus(x,y))')  # add assumption 5
-    # use free_inst on step_1 to get 0+0=0
-    step_3 = prover.add_free_instantiation("plus(0,0)=0", step_1, {'x': '0'})
     # calling ME and using inst_ass with the map R(v)': 'plus(0,s(x))=s(v)'
-    step_4 = prover.add_instantiated_assumption("(plus(0,x)=x->(plus(0,s(x))=s(plus(0,x))->plus(0,s(x))=s(x)))",
+    step_1 = prover.add_instantiated_assumption("(plus(0,x)=x->(plus(0,s(x))=s(plus(0,x))->plus(0,s(x))=s(x)))",
                                                 Prover.ME, {'R(v)': 'plus(0,s(x))=s(v)', 'c': 'plus(0,x)', 'd': 'x'})
+    step_2 = prover.add_assumption('plus(x,s(y))=s(plus(x,y))')  # add assumption 5
     # following assumption 5, use free_inst to get 0+s(x)=s(0+x)
-    step_5 = prover.add_free_instantiation("plus(0,s(x))=s(plus(0,x))", step_2, {'x': '0', 'y': 'x'})
-    # using tautological_inf and steps 4 and 5 to get 0+x=x -> 0+s(x)=s(x)
-    step_6 = prover.add_tautological_inference('(plus(0,x)=x->plus(0,s(x))=s(x))', [step_5, step_4])
-    step_7 = prover.add_ug('Ax[(plus(0,x)=x->plus(0,s(x))=s(x))]', step_6) # use UG to add Ax
+    step_3 = prover.add_free_instantiation("plus(0,s(x))=s(plus(0,x))", step_2, {'x': '0', 'y': 'x'})
+    # using tautological_inf and steps 1 and 3 to get 0+x=x -> 0+s(x)=s(x)
+    step_4 = prover.add_tautological_inference('(plus(0,x)=x->plus(0,s(x))=s(x))', [step_3, step_1])
+    step_5 = prover.add_ug('Ax[(plus(0,x)=x->plus(0,s(x))=s(x))]', step_4) # use UG to add Ax
+    step_6 = prover.add_assumption('plus(x,0)=x') # add assumption 4
+    # use free_inst on step_1 to get 0+0=0
+    step_7 = prover.add_free_instantiation("plus(0,0)=0", step_6, {'x': '0'})
     # following step_7, call tau_inf on step_3 and step_7 , now we have those '&'nded
-    step_8 = prover.add_tautological_inference('(plus(0,0)=0&Ax[(plus(0,x)=x->plus(0,s(x))=s(x))])', [step_3, step_7])
+    step_8 = prover.add_tautological_inference('(plus(0,0)=0&Ax[(plus(0,x)=x->plus(0,s(x))=s(x))])', [step_7, step_5])
     # use the last peano axiom and the R(v): 0+v=v to get step_8 -> Ax[0+x=x]
     step_9 = prover.add_instantiated_assumption('((plus(0,0)=0&Ax[(plus(0,x)=x->plus(0,s(x))=s(x))])->Ax[plus(0,x)=x])',
                                                 PEANO_AXIOMS[7], {'R(v)': 'plus(0,v)=v'})
