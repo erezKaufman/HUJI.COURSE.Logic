@@ -180,13 +180,14 @@ def peano_zero_proof(print_as_proof_forms=False):
     step_6 = prover.add_assumption('plus(x,0)=x') # add assumption 4
     # use free_inst on step_1 to get 0+0=0
     step_7 = prover.add_free_instantiation("plus(0,0)=0", step_6, {'x': '0'})
-    # following step_7, call tau_inf on step_3 and step_7 , now we have those '&'nded
+    # following step_7, call tau_inf on step_7 and step_5 , now we have those '&'nded
     step_8 = prover.add_tautological_inference('(plus(0,0)=0&Ax[(plus(0,x)=x->plus(0,s(x))=s(x))])', [step_7, step_5])
     # use the last peano axiom and the R(v): 0+v=v to get step_8 -> Ax[0+x=x]
     step_9 = prover.add_instantiated_assumption('((plus(0,0)=0&Ax[(plus(0,x)=x->plus(0,s(x))=s(x))])->Ax[plus(0,x)=x])',
                                                 PEANO_AXIOMS[7], {'R(v)': 'plus(0,v)=v'})
     step_10 = prover.add_mp('Ax[plus(0,x)=x]', step_8, step_9) # use mp to conclude Ax[(0,x)=x]
-    step_11 = prover.add_universal_instantiation(str(prover.proof.conclusion), step_10, 'x') # remove Ax and finish
+    step_11 = prover.add_universal_instantiation('plus(0,x)=x', step_10, 'x') # remove Ax and finish
+    assert str(prover.proof.conclusion == prover.proof.lines[step_11])
     return prover.proof
 
 
