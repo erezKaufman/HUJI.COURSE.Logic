@@ -47,14 +47,14 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
                 line_num_conc_dict[conc] = step_1
             else:
                 step_1 = new_prover.add_tautology(make_tautology(l_formula, assumption))  # T -> assumption -> T
-                step_2 = new_prover.add_assumption(l_formula)
+                step_2 = new_prover.add_instantiated_assumption(l_formula, proof.assumptions[line.justification[1]],
+                                                                line.justification[2])
                 conc = make_implication(assumption, l_formula)  # we want assumption -> T
                 step_3 = new_prover.add_mp(conc, step_2, step_1)  # do MP and we get assumption -> T
                 line_num_conc_dict[conc] = step_3
-
-        if l_type == 'T':
+        elif l_type == 'T':
             step_1 = new_prover.add_tautology(make_tautology(l_formula, assumption))  # T -> assumption -> T
-            step_2 = new_prover.add_assumption(l_formula)
+            step_2 = new_prover.add_tautology(l_formula)
             conc = make_implication(assumption, l_formula)  # we want assumption -> T
             step_3 = new_prover.add_mp(conc, step_2, step_1)  # do MP and we get assumption -> T
             line_num_conc_dict[conc] = step_3
@@ -66,7 +66,7 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
             new_psi_2 = line_num_conc_dict[make_implication(assumption, proof.lines[psi_2].formula)]
             assert (new_psi_1, new_psi_2)  # check that we found the looked up psi1 and psi2
             new_prover.add_tautological_inference(make_implication(assumption, l_formula), [new_psi_2, new_psi_1])
-
+            # (plus(minus(a),plus(a,c))=plus(minus(a),plus(a,c))->((plus(a,c)=a->(plus(minus(a),plus(a,c))=plus(minus(a),plus(a,c))->plus(minus(a),plus(a,c))=plus(minus(a),a)))->plus(minus(a),plus(a,c))=plus(minus(a),a)))
         elif l_type == 'UG':
             # Ax[assumption -> cur] , when x is the same var used in org line
             # we want to make US. but first we need to create with UG the formula of the left side of US
