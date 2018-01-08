@@ -184,4 +184,3 @@ def is_tautological_inference(rule):
         implication of its assumptions """
     list_of_evaluate_interface = [evaluate_inference(rule,a) for a in list(all_models(list(rule.variables())))]
     return False if False in list_of_evaluate_interface else True
-
