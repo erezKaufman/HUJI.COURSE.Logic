@@ -80,14 +80,13 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
             # 'Q()->R(x)' is already in our lines of proof. we would like to add UG on all and get
             # 'Ax[Q()->R(x)]'. now we will use US and get '(Ax[Q()->R(x)]->(Q()->Ax[R(x)]))'
             # now we will do MP and receive our goal :)
-            ug_base_formula = make_implication(assumption, l_formula)  # we have assumption -> cur somewhere
-            print(ug_base_formula)
-            print(line_num_conc_dict)
+            l_just = proof.lines[line.justification[1]].formula
+            ug_base_formula = make_implication(assumption, l_just)  # we have assumption -> cur somewhere
             ug_base_formula_line_number = line_num_conc_dict[ug_base_formula]
             ug_formula = 'A' + l_formula.variable + '[' + ug_base_formula + ']'  # Ax[Q()->R(x)]
             step_1 = new_prover.add_ug(ug_formula, ug_base_formula_line_number)  # Ax[assumption -> R(x)]
             # US = Schema('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'x', 'Q', 'R'})
-            instantiation_map = {'x': str(l_formula.variable), 'Q': str(assumption), 'R': str(l_formula)}
+            instantiation_map = {'x': str(l_formula.variable), 'Q': str(assumption), 'R': str(ug_formula)}
             us_formula = new_prover.US.instantiate(instantiation_map)
             step_2 = new_prover.add_instantiated_assumption(us_formula, new_prover.US, instantiation_map)
             step_3 = new_prover.add_tautological_inference(str(us_formula.second),[step_1.step_2])
