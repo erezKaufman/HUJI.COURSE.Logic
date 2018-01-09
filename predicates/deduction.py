@@ -45,6 +45,7 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
                 conc = make_tautology(assumption, assumption)
                 step_1 = new_prover.add_tautology(conc)
                 line_num_conc_dict[conc] = step_1
+
             else:
                 step_1 = new_prover.add_tautology(make_tautology(l_formula, assumption))  # T -> assumption -> T
                 step_2 = new_prover.add_instantiated_assumption(l_formula, proof.assumptions[line.justification[1]],
@@ -60,12 +61,17 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
             line_num_conc_dict[conc] = step_3
 
         elif l_type == 'MP':
-            psi_1 = line.justification[1]
-            psi_2 = line.justification[2]
-            new_psi_1 = line_num_conc_dict[make_implication(assumption, proof.lines[psi_1].formula)]
-            new_psi_2 = line_num_conc_dict[make_implication(assumption, proof.lines[psi_2].formula)]
+            psi_1 = proof.lines[line.justification[1]].formula
+            if psi_1 == assumption:
+                new_psi_1 = line_num_conc_dict[make_tautology(assumption, psi_1)]
+            else:
+                new_psi_1 = line_num_conc_dict[make_implication(assumption, psi_1)]
+            psi_2 = proof.lines[line.justification[2]].formula
+            new_psi_2 = line_num_conc_dict[make_implication(assumption,psi_2)]
             assert (new_psi_1, new_psi_2)  # check that we found the looked up psi1 and psi2
-            new_prover.add_tautological_inference(make_implication(assumption, l_formula), [new_psi_2, new_psi_1])
+            conc = make_implication(assumption, l_formula)
+            step_1 = new_prover.add_tautological_inference(conc, [new_psi_2, new_psi_1])
+            line_num_conc_dict[conc] = step_1
             # (plus(minus(a),plus(a,c))=plus(minus(a),plus(a,c))->((plus(a,c)=a->(plus(minus(a),plus(a,c))=plus(minus(a),plus(a,c))->plus(minus(a),plus(a,c))=plus(minus(a),a)))->plus(minus(a),plus(a,c))=plus(minus(a),a)))
         elif l_type == 'UG':
             # Ax[assumption -> cur] , when x is the same var used in org line
@@ -75,9 +81,10 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
             # 'Ax[Q()->R(x)]'. now we will use US and get '(Ax[Q()->R(x)]->(Q()->Ax[R(x)]))'
             # now we will do MP and receive our goal :)
             ug_base_formula = make_implication(assumption, l_formula)  # we have assumption -> cur somewhere
+            print(ug_base_formula)
+            print(line_num_conc_dict)
             ug_base_formula_line_number = line_num_conc_dict[ug_base_formula]
             ug_formula = 'A' + l_formula.variable + '[' + ug_base_formula + ']'  # Ax[Q()->R(x)]
-
             step_1 = new_prover.add_ug(ug_formula, ug_base_formula_line_number)  # Ax[assumption -> R(x)]
             # US = Schema('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'x', 'Q', 'R'})
             instantiation_map = {'x': str(l_formula.variable), 'Q': str(assumption), 'R': str(l_formula)}
