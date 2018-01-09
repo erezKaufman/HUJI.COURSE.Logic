@@ -86,8 +86,11 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
             ug_formula = 'A' + l_formula.variable + '[' + ug_base_formula + ']'  # Ax[Q()->R(x)]
             step_1 = new_prover.add_ug(ug_formula, ug_base_formula_line_number)  # Ax[assumption -> R(x)]
             # US = Schema('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'x', 'Q', 'R'})
-            instantiation_map = {'x': str(l_formula.variable), 'Q': str(assumption), 'R': str(ug_formula)}
+            print(ug_formula)
+            var = str(l_formula.variable)
+            instantiation_map = {'x': var, 'Q': str(assumption), 'R': str(ug_formula)}
             us_formula = new_prover.US.instantiate(instantiation_map)
+            print('here')
             step_2 = new_prover.add_instantiated_assumption(us_formula, new_prover.US, instantiation_map)
             step_3 = new_prover.add_tautological_inference(str(us_formula.second),[step_1,step_2])
             line_num_conc_dict[us_formula.second] = step_3
