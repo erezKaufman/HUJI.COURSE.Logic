@@ -18,8 +18,8 @@ def test_inverse_mp(debug=False):
          syllogism_all_exists_proof_with_existential_derivation
 
     # Test one invocation
-    test_unique_zero_proof()
-    proof = unique_zero_proof()
+    test_unique_zero_proof(True)
+    proof = unique_zero_proof(True)
     if (debug):
         print("Testing inverse_mp with assumption 'plus(a,c)=a' for the "
               'following proof:\n' + str(proof))

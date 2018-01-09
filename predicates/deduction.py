@@ -25,6 +25,7 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
     assert type(assumption) is str
     assert Schema(assumption) in proof.assumptions
     assert proof.assumptions[:len(Prover.AXIOMS)] == Prover.AXIOMS
+    # Task 11.1
 
     # create new assumptions
     new_proof_assump = copy.deepcopy(proof.assumptions)
@@ -80,32 +81,21 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
             # 'Q()->R(x)' is already in our lines of proof. we would like to add UG on all and get
             # 'Ax[Q()->R(x)]'. now we will use US and get '(Ax[Q()->R(x)]->(Q()->Ax[R(x)]))'
             # now we will do MP and receive our goal :)
+            var = str(l_formula.variable)
             l_just = proof.lines[line.justification[1]].formula
             ug_base_formula = make_implication(assumption, l_just)  # we have assumption -> cur somewhere
             ug_base_formula_line_number = line_num_conc_dict[ug_base_formula]
-            ug_formula = 'A' + l_formula.variable + '[' + ug_base_formula + ']'  # Ax[Q()->R(x)]
+            ug_formula = 'A' + var + '[' + ug_base_formula + ']'  # Ax[Q()->R(x)]
             step_1 = new_prover.add_ug(ug_formula, ug_base_formula_line_number)  # Ax[assumption -> R(x)]
-            # US = Schema('(Ax[(Q()->R(x))]->(Q()->Ax[R(x)]))', {'x', 'Q', 'R'})
-            print(ug_formula)
-            var = str(l_formula.variable)
-            instantiation_map = {'x': var, 'Q': str(assumption), 'R': str(ug_formula)}
+
+            instantiation_map = {'x': var, 'Q()': str(assumption), 'R('+var+')': str(l_formula.predicate)}
             us_formula = new_prover.US.instantiate(instantiation_map)
-            print('here')
             step_2 = new_prover.add_instantiated_assumption(us_formula, new_prover.US, instantiation_map)
+            # the us_formula.second suppose to be __ but instead it's (plus(a,c)=a->Ax[Ax[(plus(a,c)=a->plus(plus(x,y),z)=plus(x,plus(y,z)))]])
             step_3 = new_prover.add_tautological_inference(str(us_formula.second),[step_1,step_2])
             line_num_conc_dict[us_formula.second] = step_3
 
-    # CASE1 line just is T    sol: T -> assumption -> T ; do MP and we get assumption -> T
-    # CASE2 line just is A    solution1: A -> assumption -> A; do MP and we get assumption -> A (when A!=assumption)
-                              #solution2:
-    # CASE3 line just is MP   solution: find assumption -> (A->B) , find assumption -> A in prev lines
-                                        # use tau_inf to get assumption -> B
-    # CASE4 line just is UG   solution: add UG  Ax[assumption -> cur] , when x is the same var used in org line
-                                        # add US Ax[assumption -> cur] -> (assumption -> Ax[cur])
-                                        # add MG to get assumption -> Ax[cur]
-
-            # Task 11.1
-
+    return new_prover.proof
 
 def proof_by_contradiction(proof, assumption, print_as_proof_forms=False):
     """ Takes a proof, whose first six assumptions/axioms are Prover.AXIOMS, of
