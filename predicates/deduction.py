@@ -89,7 +89,8 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
             instantiation_map = {'x': str(l_formula.variable), 'Q': str(assumption), 'R': str(ug_formula)}
             us_formula = new_prover.US.instantiate(instantiation_map)
             step_2 = new_prover.add_instantiated_assumption(us_formula, new_prover.US, instantiation_map)
-            step_3 = new_prover.add_tautological_inference(str(us_formula.second),[step_1.step_2])
+            step_3 = new_prover.add_tautological_inference(str(us_formula.second),[step_1,step_2])
+            line_num_conc_dict[us_formula.second] = step_3
 
     # CASE1 line just is T    sol: T -> assumption -> T ; do MP and we get assumption -> T
     # CASE2 line just is A    solution1: A -> assumption -> A; do MP and we get assumption -> A (when A!=assumption)
