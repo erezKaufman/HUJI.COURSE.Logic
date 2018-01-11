@@ -8,12 +8,14 @@ from predicates.proofs import *
 from predicates.prover import *
 
 
+def make_implication(assumption, line_formula):
+    return '(' + str(assumption) + '->' + str(line_formula) + ')'
+
+
 def inverse_mp(proof, assumption, print_as_proof_forms=False):
     def make_tautology(first, second):
-        return '('+str(first) + '->(' +str(second) + '->' + str(first)+')'+')'
+        return '(' + str(first) + '->(' + str(second) + '->' + str(first) + ')' + ')'
 
-    def make_implication(assumption, line):
-        return '('+str(assumption) + '->' + str(line) +')'
     """ Takes a proof, whose first six assumptions/axioms are Prover.AXIOMS, of
         a conclusion from a list of assumptions/axioms that contains the given
         assumption as a simple formula (i.e., without any templates), where no
@@ -34,7 +36,7 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
     # create new conclusion
     new_conclusion = make_implication(assumption, proof.conclusion)
     # new_proof = Proof(new_proof_assump, new_conclusion, [])
-    new_prover = Prover(new_proof_assump, new_conclusion)
+    new_prover = Prover(new_proof_assump, new_conclusion, print_as_proof_forms)
 
     line_num_conc_dict = {}
     # divide to cases and run recurs
@@ -68,7 +70,7 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
             else:
                 new_psi_1 = line_num_conc_dict[make_implication(assumption, psi_1)]
             psi_2 = proof.lines[line.justification[2]].formula
-            new_psi_2 = line_num_conc_dict[make_implication(assumption,psi_2)]
+            new_psi_2 = line_num_conc_dict[make_implication(assumption, psi_2)]
             assert (new_psi_1, new_psi_2)  # check that we found the looked up psi1 and psi2
             conc = make_implication(assumption, l_formula)
             step_1 = new_prover.add_tautological_inference(conc, [new_psi_2, new_psi_1])
@@ -88,16 +90,17 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
             ug_formula = 'A' + var + '[' + ug_base_formula + ']'  # Ax[Q()->R(x)]
             step_1 = new_prover.add_ug(ug_formula, ug_base_formula_line_number)  # Ax[assumption -> R(x)]
 
-            instantiation_map = {'x': var, 'Q()': str(assumption), 'R('+var+')': str(l_formula.predicate)}
+            instantiation_map = {'x': var, 'Q()': str(assumption), 'R(' + var + ')': str(l_formula.predicate)}
             us_formula = new_prover.US.instantiate(instantiation_map)
             step_2 = new_prover.add_instantiated_assumption(us_formula, new_prover.US, instantiation_map)
             # the us_formula.second suppose to be __ but instead it's (plus(a,c)=a->Ax[Ax[(plus(a,c)=a->plus(plus(x,y),z)=plus(x,plus(y,z)))]])
-            step_3 = new_prover.add_tautological_inference(str(us_formula.second),[step_1,step_2])
+            step_3 = new_prover.add_tautological_inference(str(us_formula.second), [step_1, step_2])
             line_num_conc_dict[us_formula.second] = step_3
 
     return new_prover.proof
 
-def proof_by_contradiction(proof, assumption, print_as_proof_forms=False):
+
+def proof_by_contradiction(proof: Proof, assumption: str, print_as_proof_forms=False):
     """ Takes a proof, whose first six assumptions/axioms are Prover.AXIOMS, of
         a contradiction (a formula whose negation is a tautology)  a list of
         assumptions/axioms that contains the given assumption as a simple
@@ -111,3 +114,15 @@ def proof_by_contradiction(proof, assumption, print_as_proof_forms=False):
     assert Schema(assumption) in proof.assumptions
     assert proof.assumptions[:len(Prover.AXIOMS)] == Prover.AXIOMS
     # Task 11.2
+    negate_assumption = '~' + assumption
+    new_assumption = copy.deepcopy(proof.assumptions)
+    new_conclustion = negate_assumption
+    del new_assumption[(new_assumption.index(Schema(assumption)))]
+    new_prover = Prover(new_assumption, new_conclustion, print_as_proof_forms)
+    proofs_conclustion = new_prover.add_proof(make_implication(assumption, proof.conclusion),
+                                              inverse_mp(proof, assumption,
+                                                         print_as_proof_forms))
+    tautology_line_number = new_prover.add_tautology(make_implication(new_prover.proof.lines[
+                                                                         proofs_conclustion].formula, negate_assumption))
+    new_prover.add_tautological_inference(negate_assumption,[tautology_line_number,proofs_conclustion])
+    return new_prover.proof

@@ -101,6 +101,7 @@ def test_proof_by_contradiction(debug=False):
               'the following proof:\n' + str(prover.proof))
     result = proof_by_contradiction(prover.proof, 'Ax[~x=c]', debug)
     assert result.assumptions == Prover.AXIOMS + [Schema('Ax[x=c]')]
+    print()
     assert str(result.conclusion) == '~Ax[~x=c]'
     # Will be tested with the course staff's implementation of is_valid
     assert result.is_valid()
