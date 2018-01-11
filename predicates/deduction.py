@@ -114,15 +114,22 @@ def proof_by_contradiction(proof: Proof, assumption: str, print_as_proof_forms=F
     assert Schema(assumption) in proof.assumptions
     assert proof.assumptions[:len(Prover.AXIOMS)] == Prover.AXIOMS
     # Task 11.2
-    negate_assumption = '~' + assumption
+    # create negate to assumption == conclusion for our proof
+    new_conclustion = '~' + assumption
+
+    # create a copy for the original assumptions and delete the assumption we received as input
     new_assumption = copy.deepcopy(proof.assumptions)
-    new_conclustion = negate_assumption
     del new_assumption[(new_assumption.index(Schema(assumption)))]
+
+    # create new Prover object
     new_prover = Prover(new_assumption, new_conclustion, print_as_proof_forms)
+
+    # add the proof of inverse_mp without the input assumption
     proofs_conclustion = new_prover.add_proof(make_implication(assumption, proof.conclusion),
-                                              inverse_mp(proof, assumption,
-                                                         print_as_proof_forms))
+                                              inverse_mp(proof, assumption, print_as_proof_forms))
+    # add tautology that looks like '((assumption->conclusion)->~assumption)'
     tautology_line_number = new_prover.add_tautology(make_implication(new_prover.proof.lines[
-                                                                         proofs_conclustion].formula, negate_assumption))
-    new_prover.add_tautological_inference(negate_assumption,[tautology_line_number,proofs_conclustion])
+                                                                         proofs_conclustion].formula, new_conclustion))
+    # do MP on the last two lines and receive our conclusion.
+    new_prover.add_tautological_inference(new_conclustion,[tautology_line_number,proofs_conclustion])
     return new_prover.proof
