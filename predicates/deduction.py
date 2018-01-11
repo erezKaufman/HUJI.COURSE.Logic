@@ -71,7 +71,7 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
                 new_psi_1 = line_num_conc_dict[make_implication(assumption, psi_1)]
             psi_2 = proof.lines[line.justification[2]].formula
             new_psi_2 = line_num_conc_dict[make_implication(assumption, psi_2)]
-            assert (new_psi_1, new_psi_2)  # check that we found the looked up psi1 and psi2
+            # assert (new_psi_1, new_psi_2)  # check that we found the looked up psi1 and psi2
             conc = make_implication(assumption, l_formula)
             step_1 = new_prover.add_tautological_inference(conc, [new_psi_2, new_psi_1])
             line_num_conc_dict[conc] = step_1
