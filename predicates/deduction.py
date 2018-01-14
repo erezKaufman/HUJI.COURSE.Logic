@@ -77,12 +77,6 @@ def inverse_mp(proof, assumption, print_as_proof_forms=False):
             line_num_conc_dict[conc] = step_1
             # (plus(minus(a),plus(a,c))=plus(minus(a),plus(a,c))->((plus(a,c)=a->(plus(minus(a),plus(a,c))=plus(minus(a),plus(a,c))->plus(minus(a),plus(a,c))=plus(minus(a),a)))->plus(minus(a),plus(a,c))=plus(minus(a),a)))
         elif l_type == 'UG':
-            # Ax[assumption -> cur] , when x is the same var used in org line
-            # we want to make US. but first we need to create with UG the formula of the left side of US
-            # let's say KILSHON is Q(), and the original line without UG is R(x). then -
-            # 'Q()->R(x)' is already in our lines of proof. we would like to add UG on all and get
-            # 'Ax[Q()->R(x)]'. now we will use US and get '(Ax[Q()->R(x)]->(Q()->Ax[R(x)]))'
-            # now we will do MP and receive our goal :)
             var = str(l_formula.variable)
             l_just = proof.lines[line.justification[1]].formula
             ug_base_formula = make_implication(assumption, l_just)  # we have assumption -> cur somewhere
