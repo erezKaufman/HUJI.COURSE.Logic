@@ -121,10 +121,11 @@ def find_unsatisfied_quantifier_free_sentence(sentences, constants, model,
         """
         for constant in constants:
             v = unsatisfied.variable  # the var in the quntifier
-            inner = unsatisfied.predicate # the inner formula after the A
-            sub = inner.substitute({v: Term(constant)})
-            if sub in sentences and not model.evaluate_formula(sub): # this sentence is in F and does not satisfy M:
-                return sub
+            inner_formula = unsatisfied.predicate # the inner formula after the A
+            substituted_formula = inner_formula.substitute({v: Term(constant)})
+            # this sentence is in F and does not satisfy M:
+            if substituted_formula in sentences and not model.evaluate_formula(substituted_formula):
+                return substituted_formula
         return None
 
     """ Given a set of prenex-normal-form sentences that is closed with respect
