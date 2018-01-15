@@ -23,8 +23,10 @@ def is_closed(sentences, constants):
            is_existentially_closed(sentences, constants)
 
 
-def create_all_(constants: set(), k: int):
-    return list(combinations(constants,k))
+def create_all_combinations(constants: set(), k: int):
+    return list(product(constants,repeat=k))
+    # print(list)
+    # return list(combinations(constants,k))
 
 
 
@@ -36,7 +38,7 @@ def is_primitively_closed(sentences, constants):
     for constant in constants:
         assert is_constant(constant)
 
-    all_subsets_of_k = create_all_subsets(constants,2)
+    all_subsets_of_k = create_all_combinations(constants,2)
 
     # Task 12.1.1
 
