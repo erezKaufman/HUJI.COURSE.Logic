@@ -27,28 +27,22 @@ def is_closed(sentences, constants):
            is_existentially_closed(sentences, constants)
 
 
-def create_all_combinations(constants: set(), k: int):
-    """
-
-    :param constants:
-    :param k:
-    :return:
-    """
-    if k not in permutations_by_k_dict:
-        list_of_subsets = list(product(constants, repeat=k))
-        list_of_terms = []
-        for subset in list_of_subsets:
-            subset_terms = []
-            for var in subset:
-                subset_terms.append(Term(var))
-            list_of_terms.append(subset_terms)
-        permutations_by_k_dict[k] = list_of_terms
-    return permutations_by_k_dict[k]
-    # print(list)
-    # return list(combinations(constants,k))
-
-
 def is_primitively_closed(sentences: set(), constants: set()):
+    def create_all_combinations(constants: set(), k: int):
+        """
+        help mehtod to return all permutations of constant, as list of Term objects
+        """
+        if k not in permutations_by_k_dict:
+            list_of_subsets = list(product(constants, repeat=k))
+            list_of_terms = []
+            for subset in list_of_subsets:
+                subset_terms = []
+                for var in subset:
+                    subset_terms.append(Term(var))
+                list_of_terms.append(subset_terms)
+            permutations_by_k_dict[k] = list_of_terms
+        return permutations_by_k_dict[k]
+
     """ Return whether the given set of prenex-normal-form sentences is
         primitively closed with respect to the given set of constant names """
     relations_dict = {}
@@ -56,9 +50,7 @@ def is_primitively_closed(sentences: set(), constants: set()):
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
         if not is_quantifier(sentence.root):
             pair = sentence.relations()
-            if len(pair) > 1:
-                return False
-            else:
+            while pair != set():
                 relation_name, arity = pair.pop()
                 if relation_name not in relations_dict:
                     relations_dict[relation_name] = arity
@@ -123,7 +115,7 @@ def find_unsatisfied_quantifier_free_sentence(sentences, constants, model,
     def fuqfs_helper(unsatisfied):
         """
             helper func to remove on quantifier
-            not that it does not matter if we have E or A.
+            note that it does not matter if we have E or A.
                 if we have A then sub is in sentences for sure, but may not 'not' satisfy M
                 if we have E then sub does not satisfy M for sure, but may not be in sentences
         """
@@ -173,6 +165,7 @@ def model_or_inconsistent(sentences, constants):
         given set of sentences, or a proof of a contradiction from these
         sentences as assumptions """
     assert is_closed(sentences, constants)
+    for sentence in sentences
     # Task 12.3.2
 
 def combine_contradictions(proof_true, proof_false):
