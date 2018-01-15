@@ -254,11 +254,11 @@ def model_or_inconsistent(sentences, constants):
     for assumption in assumptions: # adding all assumptions -> H and phi
         cur_step = new_prover.add_assumption(assumption)
         line_number_dict[assumption] = cur_step
-    step_get_not_phi = new_prover.add_tautological_inference(not_phi, line_number_dict.values()) # get not_phi
+    step_get_not_phi = new_prover.add_tautological_inference(not_phi_str, list(line_number_dict.values())) # get not_phi
     line_number_dict[not_phi] = step_get_not_phi
-    step_final = new_prover.add_tautological_inference(contradiction,
-                                                       [line_number_dict[false_sentence], line_number_dict[not_phi]])
-    return new_prover
+    # conclude the contradiction with phi and not_phi
+    step_final = new_prover.add_tautological_inference(contradiction, [line_number_dict[phi],step_get_not_phi])
+    return new_prover.proof
     # Task 12.3.2
 
 
