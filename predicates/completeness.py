@@ -121,20 +121,19 @@ def is_existentially_closed(sentences, constants):
 def find_unsatisfied_quantifier_free_sentence(sentences, constants, model,
                                                 unsatisfied):
     def fuqfs_helper(unsatisfied):
-        # if unsatisfied.root == 'A': #Ax(phi_x)
+        """
+            helper func to remove on quantifier
+            not that it does not matter if we have E or A.
+                if we have A then sub is in sentences for sure, but may not 'not' satisfy M
+                if we have E then sub does not satisfy M for sure, but may not be in sentences
+        """
         for constant in constants:
             v = unsatisfied.variable  # the var in the quntifier
             inner = unsatisfied.predicate # the inner formula after the A
             sub = inner.substitute({v: Term(constant)})
             if sub in sentences and not model.evaluate_formula(sub): # this sentence is in F and does not satisfy M:
                 return sub
-
-        # elif unsatisfied.root == 'E': #Ex(phi_x)
-
-
-        print('something went wrong')
-        # Ax[sentence(x)] = unset , sentence in F , we have to find it
-        # sentence(x) -> filled_x_sentence in F , does not satisfaed model
+        return None
 
     """ Given a set of prenex-normal-form sentences that is closed with respect
         to the given set of constants names, given a model whose universe is
@@ -152,9 +151,10 @@ def find_unsatisfied_quantifier_free_sentence(sentences, constants, model,
     assert unsatisfied in sentences
     assert not model.evaluate_formula(unsatisfied)
 
-    while(unsatisfied.root is 'A' or unsatisfied.root is 'E'):
+    while(unsatisfied.root is 'A' or unsatisfied.root is 'E'): # remove one quantifier at every iteration
         unsatisfied = fuqfs_helper(unsatisfied)
-    return unsatisfied
+        assert unsatisfied # if unsatisfied is None then something went wrong
+    return unsatisfied # we have a unsatisfied formula without any quantifiers
 
     # Task 12.2
 
