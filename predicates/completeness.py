@@ -192,9 +192,9 @@ def model_or_inconsistent(sentences, constants):
         for prime in prime_set:
             # str_prime = str(prime)
             if prime in sentences:
-                H.append(prime)
+                H.append(str(prime))
             if Formula('~', prime) in sentences:
-                H.append(Formula('~' , prime))
+                H.append(str(Formula('~' , prime)))
         return H
 
     """ Given a set of prenex-normal-form sentences that is closed with respect
@@ -243,9 +243,10 @@ def model_or_inconsistent(sentences, constants):
     assert false_sentence # check that it's not None
     primitive_formulae = get_primitives(phi) # get set G
     assumptions = get_H(primitive_formulae) # get set H from G
-    assumptions.append(phi) # add phi to assumptions
+    assumptions.append(str(phi)) # add phi to assumptions
     not_phi = Formula('~',phi)
-    contradiction = Formula('&', phi, not_phi) # this is the contradiction we wish to prove
+    not_phi_str = str(not_phi)
+    contradiction = str(Formula('&', phi, not_phi)) # this is the contradiction we wish to prove
     new_prover = Prover(assumptions,contradiction)
     line_number_dict = {}
 
