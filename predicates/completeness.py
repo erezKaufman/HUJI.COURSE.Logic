@@ -181,7 +181,7 @@ def get_primitives(quantifier_free):
 
 
 def model_or_inconsistent(sentences, constants):
-    def get_H(prime_set) -> list():
+    def get_H(prime_set)  -> list():
         """
         H is the group of prime formula derived from G - a quantifier-free sentence prime forumla or thier negation
         that exsists in F
@@ -194,9 +194,7 @@ def model_or_inconsistent(sentences, constants):
             if prime in sentences:
                 H.append(prime)
             if Formula('~', prime) in sentences:
-                H.append(Formula('~', prime))
-            if is_unary(prime.root) and prime.first in sentences:
-                H.append(prime.first)
+                H.append(Formula('~' , prime))
         return H
 
     """ Given a set of prenex-normal-form sentences that is closed with respect
@@ -229,6 +227,7 @@ def model_or_inconsistent(sentences, constants):
             model_meaning[prim.root].add(tuple(constants_list))
             # print(prim.free_variables())
     new_model = Model(constants, model_meaning)
+    false_sentence = None
     for sentence in sentences:
         # print(sentence)
         false_sentence = sentence
@@ -239,24 +238,27 @@ def model_or_inconsistent(sentences, constants):
     if model_is_true:
         return new_model
     # run task 2 on the given false sentence
-    false_sentence = find_unsatisfied_quantifier_free_sentence(sentences, constants, new_model,
-                                                               false_sentence)
-    # test
-    primitive_formulae = get_primitives(false_sentence)
-    assumptions = get_H(primitive_formulae)
-    assumptions.append(false_sentence)
-    print(assumptions)
-    conclusion = Formula('~', false_sentence)
-    new_prover = Prover(assumptions, conclusion)
+    phi = find_unsatisfied_quantifier_free_sentence(sentences, constants, new_model,
+                                                    false_sentence)
+    assert false_sentence # check that it's not None
+    primitive_formulae = get_primitives(phi) # get set G
+    assumptions = get_H(primitive_formulae) # get set H from G
+    assumptions.append(phi) # add phi to assumptions
+    not_phi = Formula('~',phi)
+    contradiction = Formula('&', phi, not_phi) # this is the contradiction we wish to prove
+    new_prover = Prover(assumptions,contradiction)
     line_number_dict = {}
 
     # --START OF PROOF--
-    for assumption in assumptions:
-        line_number_dict[assumption] = new_prover.add_assumption(assumption)
-
-
-
-        # Task 12.3.2
+    for assumption in assumptions: # adding all assumptions -> H and phi
+        cur_step = new_prover.add_assumption(assumption)
+        line_number_dict[assumption] = cur_step
+    step_get_not_phi = new_prover.add_tautological_inference(not_phi, line_number_dict.values()) # get not_phi
+    line_number_dict[not_phi] = step_get_not_phi
+    step_final = new_prover.add_tautological_inference(contradiction,
+                                                       [line_number_dict[false_sentence], line_number_dict[not_phi]])
+    return new_prover
+    # Task 12.3.2
 
 
 def combine_contradictions(proof_true, proof_false):
