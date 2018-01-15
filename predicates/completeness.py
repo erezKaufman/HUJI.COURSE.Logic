@@ -151,12 +151,29 @@ def find_unsatisfied_quantifier_free_sentence(sentences, constants, model,
     # Task 12.2
 
 def get_primitives(quantifier_free):
+    def get_prime_helper(q_f, ret):
+        """
+        :param q_f: the quantifier_free formula to get prime formula of
+        :param ret: the over all set used to save the prime formula'
+        """
+        if is_relation(q_f.root):
+            ret.add(q_f)
+        elif is_binary(q_f.root):
+            get_prime_helper(q_f.first,ret)
+            get_prime_helper(q_f.second, ret)
+        elif is_unary(q_f.root):
+            get_prime_helper(q_f.first, ret)
+
     """ Return a set containing the primitive formulae (i.e., relation
         instantiations) that appear in the given quantifier-free formula. For
         example, if quantifier_free is '(R(c1,d)|~(Q(c1)->~R(c2,a))', then the
         returned set should be {'R(c1,d)', 'Q(c1)', 'R(c2,a)'} """
     assert type(quantifier_free) is Formula and \
            is_quantifier_free(quantifier_free)
+    ret = set()
+    get_prime_helper(quantifier_free, ret)
+    return ret
+
     # Task 12.3.1
 
 def model_or_inconsistent(sentences, constants):
@@ -165,7 +182,7 @@ def model_or_inconsistent(sentences, constants):
         given set of sentences, or a proof of a contradiction from these
         sentences as assumptions """
     assert is_closed(sentences, constants)
-    for sentence in sentences
+    # for sentence in sentences
     # Task 12.3.2
 
 def combine_contradictions(proof_true, proof_false):
@@ -262,3 +279,8 @@ def existentially_close(sentences, constants):
     for constant in constants:
         assert is_constant(constant)
     # Task 12.9
+
+# if __name__ == '__main__':
+#     f = Formula.parse('(R(c1,d)|~(Q(c1)->~R(c2,a)))')
+#     s = get_primitives(f)
+#     print(s)
