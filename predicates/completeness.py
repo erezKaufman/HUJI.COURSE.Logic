@@ -3,6 +3,7 @@
     by Gonczarowski and Nisan.
     File name: code/predicates/completeness.py """
 
+from itertools import  combinations as combinations
 from predicates.syntax import *
 from predicates.semantics import *
 from predicates.proofs import *
@@ -21,6 +22,12 @@ def is_closed(sentences, constants):
            is_universally_closed(sentences, constants) and \
            is_existentially_closed(sentences, constants)
 
+
+def create_all_(constants: set(), k: int):
+    return list(combinations(constants,k))
+
+
+
 def is_primitively_closed(sentences, constants):
     """ Return whether the given set of prenex-normal-form sentences is
         primitively closed with respect to the given set of constant names """
@@ -28,6 +35,9 @@ def is_primitively_closed(sentences, constants):
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
     for constant in constants:
         assert is_constant(constant)
+
+    all_subsets_of_k = create_all_subsets(constants,2)
+
     # Task 12.1.1
 
 def is_universally_closed(sentences, constants):
