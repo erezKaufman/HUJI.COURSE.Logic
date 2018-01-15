@@ -35,8 +35,17 @@ def is_universally_closed(sentences, constants):
         universally closed with respect to the given set of constant names """
     for sentence in sentences:
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
+        if sentence.root == 'A':
+            v = sentence.variable
+            r = sentence.predicate # r is for relation
+            for constant in constants:
+                cur_sub = r.substitute({v:Term(constant)})
+                if cur_sub not in sentences:
+                    return False
     for constant in constants:
         assert is_constant(constant)
+
+    return True
     # Task 12.1.2
 
 def is_existentially_closed(sentences, constants):
@@ -44,8 +53,23 @@ def is_existentially_closed(sentences, constants):
         existentially closed with respect to the given set of constant names """
     for sentence in sentences:
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
+        if sentence.root == 'E':
+            v = sentence.variable  # the var in the quntifier
+            r = sentence.predicate  # r is for relation
+            match = False
+            for constant in constants:  # iter over all constants
+                cur_sub = r.substitute({v: Term(constant)})
+                if cur_sub in sentences:
+                    match = True
+                    break  # we found one match, break and then go to next sentence
+            if match == False:
+                return False  # no matches were found, return false
     for constant in constants:
         assert is_constant(constant)
+        # for sentence in sentences:
+    # Forumla[realtion_name,  [z1,z2,...z_n] , n is the size of subset
+    return True # all sentence passed
+
     # Task 12.1.3
 
 def find_unsatisfied_quantifier_free_sentence(sentences, constants, model,

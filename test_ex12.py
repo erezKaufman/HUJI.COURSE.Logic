@@ -6,7 +6,7 @@
 from predicates.completeness_test import *
 
 def test_task1(debug=False):
-    test_is_primitively_closed(debug)
+    # test_is_primitively_closed(debug)
     test_is_universally_closed(debug)
     test_is_existentially_closed(debug)
 
@@ -35,11 +35,11 @@ def test_task9(debug=False):
     test_existentially_close(debug)
 
 test_task1(True)
-test_task2(True)
-test_task3(True)
-test_task4(True)
-test_task5(True)
-test_task6(True)
-test_task7(True)
-test_task8(True)
-test_task9(True)
+# test_task2(True)
+# test_task3(True)
+# test_task4(True)
+# test_task5(True)
+# test_task6(True)
+# test_task7(True)
+# test_task8(True)
+# test_task9(True)
