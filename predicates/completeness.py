@@ -381,7 +381,15 @@ def universally_close(sentences, constants):
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
     for constant in constants:
         assert is_constant(constant)
-        # Task 12.6
+    # Task 12.6
+    # first, we look for a universal formula
+    for sentence in sentences:
+        # once we do, we would like to get all the possible permutations of the inner predicate, and insert to
+        # sentences new formulas with implementations of the new constants
+        if sentence.root == 'A':
+
+
+
 
 
 def replace_constant(proof, constant, variable='zz'):
