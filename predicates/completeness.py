@@ -121,10 +121,11 @@ def find_unsatisfied_quantifier_free_sentence(sentences, constants, model,
         """
         for constant in constants:
             v = unsatisfied.variable  # the var in the quntifier
-            inner = unsatisfied.predicate # the inner formula after the A
-            sub = inner.substitute({v: Term(constant)})
-            if sub in sentences and not model.evaluate_formula(sub): # this sentence is in F and does not satisfy M:
-                return sub
+            inner_formula = unsatisfied.predicate # the inner formula after the A
+            substituted_formula = inner_formula.substitute({v: Term(constant)})
+            # this sentence is in F and does not satisfy M:
+            if substituted_formula in sentences and not model.evaluate_formula(substituted_formula):
+                return substituted_formula
         return None
 
     """ Given a set of prenex-normal-form sentences that is closed with respect
@@ -199,7 +200,30 @@ def model_or_inconsistent(sentences, constants):
 
 
     assert is_closed(sentences, constants)
-    # for sentence in sentences
+    primitives_list = []
+    for sentence in sentences:
+        # check that the sentence is not quantifier
+        if not is_quantifier(sentence.root):
+            # update the list with the relation and the variables inside
+            primitives_list = primitives_list + list(get_primitives(sentence))
+    # what we need to do is to create a dictionary where the relation name is the key and there is a set in the
+    # value. the set will contain all the written permutations of the constants in the relation.
+    # so now we will run on the primitives_list, and if the relation name doesn't appear in the dictionary,
+    # we shall add it and add the relations as a tuple to the set
+    model_meaning = {}
+    for prim in primitives_list:
+        constants_list = []
+        for arg in prim.arguments:
+            constants_list.append(arg.root)
+        if prim.root not in model_meaning:
+            model_meaning[prim.root] = {tuple(constants_list)}
+        else:
+            model_meaning[prim.root].add(tuple(constants_list))
+        # print(prim.free_variables())
+    new_model = Model(constants,model_meaning)
+    # print(new_model)
+
+
     # Task 12.3.2
 
 def combine_contradictions(proof_true, proof_false):
@@ -296,8 +320,3 @@ def existentially_close(sentences, constants):
     for constant in constants:
         assert is_constant(constant)
     # Task 12.9
-
-# if __name__ == '__main__':
-#     f = Formula.parse('(R(c1,d)|~(Q(c1)->~R(c2,a)))')
-#     s = get_primitives(f)
-#     print(s)
