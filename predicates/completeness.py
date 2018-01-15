@@ -286,6 +286,7 @@ def combine_contradictions(proof_true, proof_false):
     assert proof_true.assumptions[-1].templates == set()
     assert proof_false.assumptions[-1].formula == \
            Formula('~', proof_true.assumptions[-1].formula)
+    # Task 12.4
     # get the last assumptions from the assumptions list of the two proofs
     last_assumption_true = str(proof_true.assumptions[-1].formula)
     last_assumption_false = str(proof_false.assumptions[-1].formula)
@@ -312,8 +313,8 @@ def combine_contradictions(proof_true, proof_false):
     # and return the proof
     final_line = new_prover.add_tautological_inference(contradiction,
                                                        [true_conclusion_line_number, false_conclusion_line_number])
-    # Task 12.4
     return new_prover.proof
+
 
 def eliminate_universal_instance_assumption(proof, constant):
     """ Given a proof of a contradiction from a list of assumptions, where the
@@ -331,7 +332,42 @@ def eliminate_universal_instance_assumption(proof, constant):
     assert proof.assumptions[-1].formula == \
            proof.assumptions[-2].formula.predicate.substitute(
                {proof.assumptions[-2].formula.variable: Term(constant)})
+
     # Task 12.5
+
+    last_assumption = proof.assumptions[-1].formula
+
+    # return a contradiction proof of the given proof
+    new_proof_by_contradiction = proof_by_contradiction(proof, str(last_assumption))
+
+    # create a new proof
+    # --START PROOF--
+    new_prover = Prover(proof.assumptions[:-1], proof.conclusion)
+
+    # add whole proof of the contradiction proof we've just created
+    contradiction_proof_line_number = new_prover.add_proof(new_proof_by_contradiction.conclusion,
+                                                           new_proof_by_contradiction)
+
+    # create line using UI axiom, with the following map
+    quantified_form = new_prover.proof.assumptions[-1].formula
+    ui_instantiation_map = {'R(' + quantified_form.variable + ')': str(quantified_form.predicate),
+                            'x': quantified_form.variable,
+                            'c': constant}
+    quantified_assumption_line_number = new_prover.add_assumption(str(quantified_form))
+    ui_line_number = new_prover.add_instantiated_assumption(
+        str(Formula('->', new_prover.proof.assumptions[-1].formula, last_assumption)), Prover.UI, ui_instantiation_map)
+
+    # add tautological line that involves the UI line and the last line of the quantified assumption, to create the
+    #  contradiction assumption
+    tautological_line_number = new_prover.add_tautological_inference(
+        str(last_assumption), [ui_line_number, quantified_assumption_line_number])
+
+    # add tautological line that involves the conclusion from the contradiction proof and the last line, so together
+    # we create again the contradiction from the original proof
+    conclusion_line_number = new_prover.add_tautological_inference(str(proof.conclusion),
+                                                                   [contradiction_proof_line_number,
+                                                                    tautological_line_number])
+    return new_prover.proof
 
 
 def universally_close(sentences, constants):
