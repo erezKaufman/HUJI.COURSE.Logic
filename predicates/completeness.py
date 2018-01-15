@@ -188,12 +188,15 @@ def model_or_inconsistent(sentences, constants):
         :return: H
         """
         H = []
+
         for prime in prime_set:
-            str_prime = str(prime)
+            # str_prime = str(prime)
             if prime in sentences:
-                H.append(str_prime)
+                H.append(prime)
             if Formula('~', prime) in sentences:
-                H.append('~' + str_prime)
+                H.append(Formula('~' , prime))
+            if is_unary(prime.root) and prime.first in sentences:
+                H.append(prime.first)
         return H
 
     """ Given a set of prenex-normal-form sentences that is closed with respect
@@ -241,10 +244,10 @@ def model_or_inconsistent(sentences, constants):
 
     primitive_formulae = get_primitives(false_sentence)
     assumptions = get_H(primitive_formulae)
-    assumptions.append(str(false_sentence))
-    conclusion = 'DUMMY CONCLUSION'
+    print(assumptions)
+    assumptions.append(false_sentence)
+    conclusion = Formula('~',false_sentence)
     new_prover = Prover(assumptions,conclusion)
-
     line_number_dict = {}
     # --START OF PROOF--
     for assumption in assumptions:
