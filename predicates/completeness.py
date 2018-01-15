@@ -181,7 +181,7 @@ def get_primitives(quantifier_free):
 
 
 def model_or_inconsistent(sentences, constants):
-    def get_H(prime_set)  -> list():
+    def get_H(prime_set) -> list():
         """
         H is the group of prime formula derived from G - a quantifier-free sentence prime forumla or thier negation
         that exsists in F
@@ -194,7 +194,7 @@ def model_or_inconsistent(sentences, constants):
             if prime in sentences:
                 H.append(prime)
             if Formula('~', prime) in sentences:
-                H.append(Formula('~' , prime))
+                H.append(Formula('~', prime))
             if is_unary(prime.root) and prime.first in sentences:
                 H.append(prime.first)
         return H
@@ -208,9 +208,9 @@ def model_or_inconsistent(sentences, constants):
     primitives_list = []
     for sentence in sentences:
         # check that the sentence is not quantifier
-        if not is_quantifier(sentence.root):
+        if is_relation(sentence.root):
             # update the list with the relation and the variables inside
-            primitives_list = primitives_list + list(get_primitives(sentence))
+            primitives_list.append(sentence)
     # what we need to do is to create a dictionary where the relation name is the key and there is a set in the
     # value. the set will contain all the written permutations of the constants in the relation.
     # so now we will run on the primitives_list, and if the relation name doesn't appear in the dictionary,
@@ -244,18 +244,19 @@ def model_or_inconsistent(sentences, constants):
 
     primitive_formulae = get_primitives(false_sentence)
     assumptions = get_H(primitive_formulae)
-    print(assumptions)
     assumptions.append(false_sentence)
-    conclusion = Formula('~',false_sentence)
-    new_prover = Prover(assumptions,conclusion)
+    print(assumptions)
+    conclusion = Formula('~', false_sentence)
+    new_prover = Prover(assumptions, conclusion)
     line_number_dict = {}
+
     # --START OF PROOF--
     for assumption in assumptions:
         line_number_dict[assumption] = new_prover.add_assumption(assumption)
 
 
 
-            # Task 12.3.2
+        # Task 12.3.2
 
 
 def combine_contradictions(proof_true, proof_false):
