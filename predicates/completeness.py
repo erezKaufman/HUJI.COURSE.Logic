@@ -205,7 +205,7 @@ def model_or_inconsistent(sentences, constants):
     assert is_closed(sentences, constants)
     primitives_list = []
     for sentence in sentences:
-        # check that the sentence is not quantifier
+        # check that the sentence is a relation quantifier
         if is_relation(sentence.root):
             # update the list with the relation and the variables inside
             primitives_list.append(sentence)
@@ -215,26 +215,33 @@ def model_or_inconsistent(sentences, constants):
     # we shall add it and add the relations as a tuple to the set
     model_meaning = {}
     model_is_true = True
+    # add all constants to the model_meaning as their own values
     for constant in constants:
         model_meaning[constant] = constant
+    # for each primitive value, we will want to run on all the relation's arguments and them as a tuple to the
+    # meaning of the relation.
     for prim in primitives_list:
         constants_list = []
+        # create a constants_list of all arguments
         for arg in prim.arguments:
             constants_list.append(arg.root)
+        # if the relation doesn't exists in the meaning_model, add it
         if prim.root not in model_meaning:
             model_meaning[prim.root] = {tuple(constants_list)}
+        # else, add the constants_list as a tuple
         else:
             model_meaning[prim.root].add(tuple(constants_list))
-            # print(prim.free_variables())
+    # create the new model
     new_model = Model(constants, model_meaning)
     false_sentence = None
+    # check for each sentence in the sentences if the sentence evaluates with the model
+    # ( actually we want to know if the formula satisfies the model)
     for sentence in sentences:
-        # print(sentence)
         false_sentence = sentence
         if not new_model.evaluate_formula(sentence):
-            print(false_sentence)
-            model_is_true = False
+            model_is_true = False # raise the flag if we stopped the evaluation mid-run
             break
+    # if we didn't stop the run, then the model is good. return it.
     if model_is_true:
         return new_model
     # run task 2 on the given false sentence
@@ -254,11 +261,11 @@ def model_or_inconsistent(sentences, constants):
     for assumption in assumptions: # adding all assumptions -> H and phi
         cur_step = new_prover.add_assumption(assumption)
         line_number_dict[assumption] = cur_step
-    step_get_not_phi = new_prover.add_tautological_inference(not_phi, line_number_dict.values()) # get not_phi
+    step_get_not_phi = new_prover.add_tautological_inference(not_phi_str, list(line_number_dict.values())) # get not_phi
     line_number_dict[not_phi] = step_get_not_phi
     step_final = new_prover.add_tautological_inference(contradiction,
-                                                       [line_number_dict[false_sentence], line_number_dict[not_phi]])
-    return new_prover
+                                                       [line_number_dict[phi], line_number_dict[not_phi]])
+    return new_prover.proof
     # Task 12.3.2
 
 
