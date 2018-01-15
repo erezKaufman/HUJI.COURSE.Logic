@@ -7,8 +7,8 @@ from predicates.completeness_test import *
 
 def test_task1(debug=False):
     test_is_primitively_closed(debug)
-    # test_is_universally_closed(debug)
-    # test_is_existentially_closed(debug)
+    test_is_universally_closed(debug)
+    test_is_existentially_closed(debug)
 
 def test_task2(debug=False):
     test_find_unsatisfied_quantifier_free_sentence(debug)
@@ -34,8 +34,8 @@ def test_task8(debug=False):
 def test_task9(debug=False):
     test_existentially_close(debug)
 
-test_task1(True)
-# test_task2(True)
+# test_task1(True)
+test_task2(True)
 # test_task3(True)
 # test_task4(True)
 # test_task5(True)
