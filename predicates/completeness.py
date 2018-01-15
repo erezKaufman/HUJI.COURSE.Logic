@@ -3,7 +3,7 @@
     by Gonczarowski and Nisan.
     File name: code/predicates/completeness.py """
 
-from itertools import  combinations as combinations
+from itertools import combinations as combinations
 from predicates.syntax import *
 from predicates.semantics import *
 from predicates.proofs import *
@@ -12,7 +12,6 @@ from predicates.prenex import *
 from predicates.util import *
 
 permutations_by_k_dict = {}
-
 
 
 def is_closed(sentences, constants):
@@ -60,8 +59,8 @@ def is_primitively_closed(sentences: set(), constants: set()):
     for relation, arity in relations_dict.items():
         all_subsets_of_k = create_all_combinations(constants, arity)
         for subset in all_subsets_of_k:
-            cur_formula =Formula(relation,subset)
-            cur_neg_formula = Formula('~',cur_formula)
+            cur_formula = Formula(relation, subset)
+            cur_neg_formula = Formula('~', cur_formula)
             if cur_formula not in sentences and cur_neg_formula not in sentences:
                 return False
     return True
@@ -80,13 +79,14 @@ def is_universally_closed(sentences, constants):
     for sentence in sentences:
         if sentence.root == 'A':
             v = sentence.variable
-            r = sentence.predicate # r is for inner formula
+            r = sentence.predicate  # r is for inner formula
             for constant in constants:
-                cur_sub = r.substitute({v:Term(constant)})
+                cur_sub = r.substitute({v: Term(constant)})
                 if cur_sub not in sentences:
                     return False
     return True
     # Task 12.1.2
+
 
 def is_existentially_closed(sentences, constants):
     """ Return whether the given set of prenex-normal-form sentences is
@@ -110,8 +110,9 @@ def is_existentially_closed(sentences, constants):
     return True
     # Task 12.1.3
 
+
 def find_unsatisfied_quantifier_free_sentence(sentences, constants, model,
-                                                unsatisfied):
+                                              unsatisfied):
     def fuqfs_helper(unsatisfied):
         """
             helper func to remove on quantifier
@@ -121,7 +122,7 @@ def find_unsatisfied_quantifier_free_sentence(sentences, constants, model,
         """
         for constant in constants:
             v = unsatisfied.variable  # the var in the quntifier
-            inner_formula = unsatisfied.predicate # the inner formula after the A
+            inner_formula = unsatisfied.predicate  # the inner formula after the A
             substituted_formula = inner_formula.substitute({v: Term(constant)})
             # this sentence is in F and does not satisfy M:
             if substituted_formula in sentences and not model.evaluate_formula(substituted_formula):
@@ -144,12 +145,13 @@ def find_unsatisfied_quantifier_free_sentence(sentences, constants, model,
     assert unsatisfied in sentences
     assert not model.evaluate_formula(unsatisfied)
 
-    while(unsatisfied.root is 'A' or unsatisfied.root is 'E'): # remove one quantifier at every iteration
+    while (unsatisfied.root is 'A' or unsatisfied.root is 'E'):  # remove one quantifier at every iteration
         unsatisfied = fuqfs_helper(unsatisfied)
-        assert unsatisfied # if unsatisfied is None then something went wrong
-    return unsatisfied # we have a unsatisfied formula without any quantifiers
+        assert unsatisfied  # if unsatisfied is None then something went wrong
+    return unsatisfied  # we have a unsatisfied formula without any quantifiers
 
     # Task 12.2
+
 
 def get_primitives(quantifier_free):
     def get_prime_helper(q_f, ret):
@@ -160,7 +162,7 @@ def get_primitives(quantifier_free):
         if is_relation(q_f.root):
             ret.add(q_f)
         elif is_binary(q_f.root):
-            get_prime_helper(q_f.first,ret)
+            get_prime_helper(q_f.first, ret)
             get_prime_helper(q_f.second, ret)
         elif is_unary(q_f.root):
             get_prime_helper(q_f.first, ret)
@@ -177,27 +179,27 @@ def get_primitives(quantifier_free):
 
     # Task 12.3.1
 
-def model_or_inconsistent(sentences, constants):
 
-    def get_H(prime_set):
+def model_or_inconsistent(sentences, constants):
+    def get_H(prime_set)  -> list():
         """
         H is the group of prime formula derived from G - a quantifier-free sentence prime forumla or thier negation
         that exsists in F
         :return: H
         """
-        H = set()
+        H = []
         for prime in prime_set:
-            if prime in sentences or Formula('~', prime) in sentences:
-                H.add(prime)
+            str_prime = str(prime)
+            if prime in sentences:
+                H.append(str_prime)
+            if Formula('~', prime) in sentences:
+                H.append('~' + str_prime)
         return H
-
 
     """ Given a set of prenex-normal-form sentences that is closed with respect
         to the given set of constants names, return either a model for the
         given set of sentences, or a proof of a contradiction from these
         sentences as assumptions """
-
-
 
     assert is_closed(sentences, constants)
     primitives_list = []
@@ -211,6 +213,9 @@ def model_or_inconsistent(sentences, constants):
     # so now we will run on the primitives_list, and if the relation name doesn't appear in the dictionary,
     # we shall add it and add the relations as a tuple to the set
     model_meaning = {}
+    model_is_true = True
+    for constant in constants:
+        model_meaning[constant] = constant
     for prim in primitives_list:
         constants_list = []
         for arg in prim.arguments:
@@ -219,12 +224,36 @@ def model_or_inconsistent(sentences, constants):
             model_meaning[prim.root] = {tuple(constants_list)}
         else:
             model_meaning[prim.root].add(tuple(constants_list))
-        # print(prim.free_variables())
-    new_model = Model(constants,model_meaning)
-    # print(new_model)
+            # print(prim.free_variables())
+    new_model = Model(constants, model_meaning)
+    for sentence in sentences:
+        # print(sentence)
+        false_sentence = sentence
+        if not new_model.evaluate_formula(sentence):
+            print(false_sentence)
+            model_is_true = False
+            break
+    if model_is_true:
+        return new_model
+    # run task 2 on the given false sentence
+    false_sentence = find_unsatisfied_quantifier_free_sentence(sentences, constants, new_model,
+                                                               false_sentence)
+
+    primitive_formulae = get_primitives(false_sentence)
+    assumptions = get_H(primitive_formulae)
+    assumptions.append(str(false_sentence))
+    conclusion = 'DUMMY CONCLUSION'
+    new_prover = Prover(assumptions,conclusion)
+
+    line_number_dict = {}
+    # --START OF PROOF--
+    for assumption in assumptions:
+        line_number_dict[assumption] = new_prover.add_assumption(assumption)
 
 
-    # Task 12.3.2
+
+            # Task 12.3.2
+
 
 def combine_contradictions(proof_true, proof_false):
     """ Given two proofs of contradictions from two lists of assumptions that
@@ -243,6 +272,7 @@ def combine_contradictions(proof_true, proof_false):
            Formula('~', proof_true.assumptions[-1].formula)
     # Task 12.4
 
+
 def eliminate_universal_instance_assumption(proof, constant):
     """ Given a proof of a contradiction from a list of assumptions, where the
         last assumption is an instantiation of the form 'formula(consatnt)'
@@ -258,8 +288,9 @@ def eliminate_universal_instance_assumption(proof, constant):
     assert proof.assumptions[-2].formula.root == "A"
     assert proof.assumptions[-1].formula == \
            proof.assumptions[-2].formula.predicate.substitute(
-               {proof.assumptions[-2].formula.variable:Term(constant)})
+               {proof.assumptions[-2].formula.variable: Term(constant)})
     # Task 12.5
+
 
 def universally_close(sentences, constants):
     """ Return a set of sentences that contains the given set of
@@ -272,7 +303,8 @@ def universally_close(sentences, constants):
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
     for constant in constants:
         assert is_constant(constant)
-    # Task 12.6
+        # Task 12.6
+
 
 def replace_constant(proof, constant, variable='zz'):
     """ Given a proof, a constant name that (potentially) appears in the
@@ -286,6 +318,7 @@ def replace_constant(proof, constant, variable='zz'):
     assert is_variable(variable)
     assert type(proof) is Proof
     # Task 12.7
+
 
 def eliminate_existential_witness_assumption(proof, constant):
     """ Given a proof of a contradiction from a list of assumptions, where the
@@ -303,8 +336,9 @@ def eliminate_existential_witness_assumption(proof, constant):
     assert proof.assumptions[-2].formula.root == "E"
     assert proof.assumptions[-1].formula == \
            proof.assumptions[-2].formula.predicate.substitute(
-               {proof.assumptions[-2].formula.variable:Term(constant)})
+               {proof.assumptions[-2].formula.variable: Term(constant)})
     # Task 12.8
+
 
 def existentially_close(sentences, constants):
     """ Return a pair of a set of sentences that contains the given set of
@@ -319,4 +353,4 @@ def existentially_close(sentences, constants):
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
     for constant in constants:
         assert is_constant(constant)
-    # Task 12.9
+        # Task 12.9
