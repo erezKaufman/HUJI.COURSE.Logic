@@ -10,6 +10,7 @@ from predicates.proofs import *
 from predicates.prover import *
 from predicates.prenex import *
 from predicates.util import *
+from predicates.deduction import *
 
 permutations_by_k_dict = {}
 
@@ -26,17 +27,17 @@ def is_closed(sentences, constants):
            is_existentially_closed(sentences, constants)
 
 
-def is_primitively_closed(sentences: set(), constants: set()):
-    def create_all_combinations(constants: set(), k: int):
+def is_primitively_closed(sentences: set(), constants: set()) -> bool:
+    def create_all_combinations(temp_constants: set(), k: int) -> list():
         """
         help mehtod to return all permutations of constant, as list of Term objects
         """
         if k not in permutations_by_k_dict:
-            list_of_subsets = list(product(constants, repeat=k))
+            list_of_subsets = list(product(temp_constants, repeat=k))
             list_of_terms = []
-            for subset in list_of_subsets:
+            for temp_subset in list_of_subsets:
                 subset_terms = []
-                for var in subset:
+                for var in temp_subset:
                     subset_terms.append(Term(var))
                 list_of_terms.append(subset_terms)
             permutations_by_k_dict[k] = list_of_terms
@@ -68,7 +69,7 @@ def is_primitively_closed(sentences: set(), constants: set()):
     # Task 12.1.1
 
 
-def is_universally_closed(sentences, constants):
+def is_universally_closed(sentences, constants) -> bool:
     """ Return whether the given set of prenex-normal-form sentences is
         universally closed with respect to the given set of constant names """
     for sentence in sentences:
@@ -145,7 +146,7 @@ def find_unsatisfied_quantifier_free_sentence(sentences, constants, model,
     assert unsatisfied in sentences
     assert not model.evaluate_formula(unsatisfied)
 
-    while (unsatisfied.root is 'A' or unsatisfied.root is 'E'):  # remove one quantifier at every iteration
+    while unsatisfied.root is 'A' or unsatisfied.root is 'E':  # remove one quantifier at every iteration
         unsatisfied = fuqfs_helper(unsatisfied)
         assert unsatisfied  # if unsatisfied is None then something went wrong
     return unsatisfied  # we have a unsatisfied formula without any quantifiers
@@ -181,7 +182,7 @@ def get_primitives(quantifier_free):
 
 
 def model_or_inconsistent(sentences, constants):
-    def get_H(prime_set)  -> list():
+    def get_H(prime_set) -> list():
         """
         H is the group of prime formula derived from G - a quantifier-free sentence prime forumla or thier negation
         that exsists in F
@@ -190,11 +191,11 @@ def model_or_inconsistent(sentences, constants):
         H = []
 
         for prime in prime_set:
-            # str_prime = str(prime)
+            str_prime = str(prime)
             if prime in sentences:
-                H.append(str(prime))
+                H.append(str_prime)
             if Formula('~', prime) in sentences:
-                H.append(str(Formula('~' , prime)))
+                H.append('~' + str_prime)
         return H
 
     """ Given a set of prenex-normal-form sentences that is closed with respect
@@ -239,7 +240,7 @@ def model_or_inconsistent(sentences, constants):
     for sentence in sentences:
         false_sentence = sentence
         if not new_model.evaluate_formula(sentence):
-            model_is_true = False # raise the flag if we stopped the evaluation mid-run
+            model_is_true = False  # raise the flag if we stopped the evaluation mid-run
             break
     # if we didn't stop the run, then the model is good. return it.
     if model_is_true:
@@ -247,21 +248,22 @@ def model_or_inconsistent(sentences, constants):
     # run task 2 on the given false sentence
     phi = find_unsatisfied_quantifier_free_sentence(sentences, constants, new_model,
                                                     false_sentence)
-    assert false_sentence # check that it's not None
-    primitive_formulae = get_primitives(phi) # get set G
-    assumptions = get_H(primitive_formulae) # get set H from G
-    assumptions.append(str(phi)) # add phi to assumptions
-    not_phi = Formula('~',phi)
+    assert false_sentence  # check that it's not None
+    primitive_formulae = get_primitives(phi)  # get set G
+    assumptions = get_H(primitive_formulae)  # get set H from G
+    assumptions.append(str(phi))  # add phi to assumptions
+    not_phi = Formula('~', phi)
     not_phi_str = str(not_phi)
-    contradiction = str(Formula('&', phi, not_phi)) # this is the contradiction we wish to prove
-    new_prover = Prover(assumptions,contradiction)
+    contradiction = str(Formula('&', phi, not_phi))  # this is the contradiction we wish to prove
+    new_prover = Prover(assumptions, contradiction)
     line_number_dict = {}
 
     # --START OF PROOF--
-    for assumption in assumptions: # adding all assumptions -> H and phi
+    for assumption in assumptions:  # adding all assumptions -> H and phi
         cur_step = new_prover.add_assumption(assumption)
         line_number_dict[assumption] = cur_step
-    step_get_not_phi = new_prover.add_tautological_inference(not_phi_str, list(line_number_dict.values())) # get not_phi
+    step_get_not_phi = new_prover.add_tautological_inference(not_phi_str,
+                                                             list(line_number_dict.values()))  # get not_phi
     line_number_dict[not_phi] = step_get_not_phi
     step_final = new_prover.add_tautological_inference(contradiction,
                                                        [line_number_dict[phi], line_number_dict[not_phi]])
@@ -284,8 +286,21 @@ def combine_contradictions(proof_true, proof_false):
     assert proof_true.assumptions[-1].templates == set()
     assert proof_false.assumptions[-1].formula == \
            Formula('~', proof_true.assumptions[-1].formula)
+    last_assumption_true = proof_true.assumptions[-1]
+    last_assumption_false = proof_false.assumptions[-1]
+    proof_by_contradiction_true = proof_by_contradiction(proof_true, str(last_assumption_true.formula))
+    proof_by_contradiction_false = proof_by_contradiction(proof_false, str(last_assumption_false.formula))
+    # this is the contradiction we wish to prove
+    true_proof_conclusion = proof_by_contradiction_true.conclusion
+    false_proof_conclusion = proof_by_contradiction_false.conclusion
+    contradiction = str(Formula('&', true_proof_conclusion, false_proof_conclusion))
+    new_prover = Prover(proof_by_contradiction_true.assumptions, contradiction)
+    true_conclusion_line_number = new_prover.add_proof(true_proof_conclusion, proof_by_contradiction_true)
+    false_conclusion_line_number = new_prover.add_proof(false_proof_conclusion, proof_by_contradiction_false)
+    final_line = new_prover.add_tautological_inference(contradiction,
+                                                       [true_conclusion_line_number, false_conclusion_line_number])
     # Task 12.4
-
+    return new_prover.proof
 
 def eliminate_universal_instance_assumption(proof, constant):
     """ Given a proof of a contradiction from a list of assumptions, where the
