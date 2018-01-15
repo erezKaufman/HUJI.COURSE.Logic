@@ -177,10 +177,27 @@ def get_primitives(quantifier_free):
     # Task 12.3.1
 
 def model_or_inconsistent(sentences, constants):
+
+    def get_H(prime_set):
+        """
+        H is the group of prime formula derived from G - a quantifier-free sentence prime forumla or thier negation
+        that exsists in F
+        :return: H
+        """
+        H = set()
+        for prime in prime_set:
+            if prime in sentences or Formula('~', prime) in sentences:
+                H.add(prime)
+        return H
+
+
     """ Given a set of prenex-normal-form sentences that is closed with respect
         to the given set of constants names, return either a model for the
         given set of sentences, or a proof of a contradiction from these
         sentences as assumptions """
+
+
+
     assert is_closed(sentences, constants)
     # for sentence in sentences
     # Task 12.3.2
