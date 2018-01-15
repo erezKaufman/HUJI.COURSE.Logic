@@ -3,13 +3,16 @@
     by Gonczarowski and Nisan.
     File name: code/predicates/completeness.py """
 
-from itertools import  combinations as combinations
+from itertools import combinations as combinations
 from predicates.syntax import *
 from predicates.semantics import *
 from predicates.proofs import *
 from predicates.prover import *
 from predicates.prenex import *
 from predicates.util import *
+
+permutations_by_k_dict = {}
+
 
 def is_closed(sentences, constants):
     """ Return whether the given set of sentences closed with respect to the
@@ -24,12 +27,22 @@ def is_closed(sentences, constants):
 
 
 def create_all_combinations(constants: set(), k: int):
-    if k not in permutations_by_k_dict:
+    """
 
-        permutations_by_k_dict[k] = list(product(constants, repeat=k))
+    :param constants:
+    :param k:
+    :return:
+    """
+    if k not in permutations_by_k_dict:
+        list_of_subsets = list(product(constants, repeat=k))
+        list_of_terms = []
+        for subset in list_of_subsets:
+            subset_terms = []
+            for var in subset:
+                subset_terms.append(Term(var))
+            list_of_terms.append(subset_terms)
+        permutations_by_k_dict[k] = list_of_terms
     return permutations_by_k_dict[k]
-    # print(list)
-    # return list(combinations(constants,k))
 
 
 def is_primitively_closed(sentences: set(), constants: set()):
@@ -49,9 +62,17 @@ def is_primitively_closed(sentences: set(), constants: set()):
     for constant in constants:
         assert is_constant(constant)
 
-    all_subsets_of_k = create_all_combinations(constants,2)
+    for relation, arity in relations_dict.items():
+        all_subsets_of_k = create_all_combinations(constants, arity)
+        for subset in all_subsets_of_k:
+            cur_formula =Formula(relation,subset)
+            cur_neg_formula = Formula('~',cur_formula)
+            if cur_formula not in sentences and cur_neg_formula not in sentences:
+                return False
+    return True
 
     # Task 12.1.1
+
 
 def is_universally_closed(sentences, constants):
     """ Return whether the given set of prenex-normal-form sentences is
@@ -60,14 +81,15 @@ def is_universally_closed(sentences, constants):
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
         if sentence.root == 'A':
             v = sentence.variable
-            r = sentence.predicate # r is for relation
+            r = sentence.predicate  # r is for relation
             for constant in constants:
-                cur_sub = r.substitute({v:Term(constant)})
+                cur_sub = r.substitute({v: Term(constant)})
                 if cur_sub not in sentences:
                     return False
     for constant in constants:
         assert is_constant(constant)
-    # Task 12.1.2
+        # Task 12.1.2
+
 
 def is_existentially_closed(sentences, constants):
     """ Return whether the given set of prenex-normal-form sentences is
@@ -87,7 +109,8 @@ def is_existentially_closed(sentences, constants):
                 return False  # no matches were found, return false
     for constant in constants:
         assert is_constant(constant)
-    # Task 12.1.3
+        # Task 12.1.3
+
 
 def find_unsatisfied_quantifier_free_sentence(sentences, constants, model,
                                               unsatisfied):
@@ -108,6 +131,7 @@ def find_unsatisfied_quantifier_free_sentence(sentences, constants, model,
     assert not model.evaluate_formula(unsatisfied)
     # Task 12.2
 
+
 def get_primitives(quantifier_free):
     """ Return a set containing the primitive formulae (i.e., relation
         instantiations) that appear in the given quantifier-free formula. For
@@ -117,6 +141,7 @@ def get_primitives(quantifier_free):
            is_quantifier_free(quantifier_free)
     # Task 12.3.1
 
+
 def model_or_inconsistent(sentences, constants):
     """ Given a set of prenex-normal-form sentences that is closed with respect
         to the given set of constants names, return either a model for the
@@ -124,6 +149,7 @@ def model_or_inconsistent(sentences, constants):
         sentences as assumptions """
     assert is_closed(sentences, constants)
     # Task 12.3.2
+
 
 def combine_contradictions(proof_true, proof_false):
     """ Given two proofs of contradictions from two lists of assumptions that
@@ -142,6 +168,7 @@ def combine_contradictions(proof_true, proof_false):
            Formula('~', proof_true.assumptions[-1].formula)
     # Task 12.4
 
+
 def eliminate_universal_instance_assumption(proof, constant):
     """ Given a proof of a contradiction from a list of assumptions, where the
         last assumption is an instantiation of the form 'formula(consatnt)'
@@ -157,8 +184,9 @@ def eliminate_universal_instance_assumption(proof, constant):
     assert proof.assumptions[-2].formula.root == "A"
     assert proof.assumptions[-1].formula == \
            proof.assumptions[-2].formula.predicate.substitute(
-               {proof.assumptions[-2].formula.variable:Term(constant)})
+               {proof.assumptions[-2].formula.variable: Term(constant)})
     # Task 12.5
+
 
 def universally_close(sentences, constants):
     """ Return a set of sentences that contains the given set of
@@ -171,7 +199,8 @@ def universally_close(sentences, constants):
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
     for constant in constants:
         assert is_constant(constant)
-    # Task 12.6
+        # Task 12.6
+
 
 def replace_constant(proof, constant, variable='zz'):
     """ Given a proof, a constant name that (potentially) appears in the
@@ -185,6 +214,7 @@ def replace_constant(proof, constant, variable='zz'):
     assert is_variable(variable)
     assert type(proof) is Proof
     # Task 12.7
+
 
 def eliminate_existential_witness_assumption(proof, constant):
     """ Given a proof of a contradiction from a list of assumptions, where the
@@ -202,8 +232,9 @@ def eliminate_existential_witness_assumption(proof, constant):
     assert proof.assumptions[-2].formula.root == "E"
     assert proof.assumptions[-1].formula == \
            proof.assumptions[-2].formula.predicate.substitute(
-               {proof.assumptions[-2].formula.variable:Term(constant)})
+               {proof.assumptions[-2].formula.variable: Term(constant)})
     # Task 12.8
+
 
 def existentially_close(sentences, constants):
     """ Return a pair of a set of sentences that contains the given set of
@@ -218,4 +249,4 @@ def existentially_close(sentences, constants):
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
     for constant in constants:
         assert is_constant(constant)
-    # Task 12.9
+        # Task 12.9
