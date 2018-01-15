@@ -286,17 +286,30 @@ def combine_contradictions(proof_true, proof_false):
     assert proof_true.assumptions[-1].templates == set()
     assert proof_false.assumptions[-1].formula == \
            Formula('~', proof_true.assumptions[-1].formula)
-    last_assumption_true = proof_true.assumptions[-1]
-    last_assumption_false = proof_false.assumptions[-1]
-    proof_by_contradiction_true = proof_by_contradiction(proof_true, str(last_assumption_true.formula))
-    proof_by_contradiction_false = proof_by_contradiction(proof_false, str(last_assumption_false.formula))
-    # this is the contradiction we wish to prove
+    # get the last assumptions from the assumptions list of the two proofs
+    last_assumption_true = str(proof_true.assumptions[-1].formula)
+    last_assumption_false = str(proof_false.assumptions[-1].formula)
+
+    # create two new proofs out of the true/false proofs, where each conclusion is the negation of the last
+    # assumption of the proof
+    proof_by_contradiction_true = proof_by_contradiction(proof_true, last_assumption_true)
+    proof_by_contradiction_false = proof_by_contradiction(proof_false, last_assumption_false)
+
+    # this is the contradiction we wish to prove, from the two conclusions of the above proofs
     true_proof_conclusion = proof_by_contradiction_true.conclusion
     false_proof_conclusion = proof_by_contradiction_false.conclusion
     contradiction = str(Formula('&', true_proof_conclusion, false_proof_conclusion))
+
+    # create a new proof out of the first assumptions, and the conclusion is a contrudiction based from AND between
+    # the two former conclusions
+    # --START PROOF--
     new_prover = Prover(proof_by_contradiction_true.assumptions, contradiction)
+
+    # we now add the whole proofs to the new proof, and save the line number of each conclusion
     true_conclusion_line_number = new_prover.add_proof(true_proof_conclusion, proof_by_contradiction_true)
     false_conclusion_line_number = new_prover.add_proof(false_proof_conclusion, proof_by_contradiction_false)
+    # last of all, we use the tautoligical inference rule to return a line where we conclude the stated conclusion,
+    # and return the proof
     final_line = new_prover.add_tautological_inference(contradiction,
                                                        [true_conclusion_line_number, false_conclusion_line_number])
     # Task 12.4
