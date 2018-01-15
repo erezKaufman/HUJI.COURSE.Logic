@@ -241,7 +241,7 @@ def model_or_inconsistent(sentences, constants):
     # run task 2 on the given false sentence
     false_sentence = find_unsatisfied_quantifier_free_sentence(sentences, constants, new_model,
                                                                false_sentence)
-
+    # test
     primitive_formulae = get_primitives(false_sentence)
     assumptions = get_H(primitive_formulae)
     assumptions.append(false_sentence)
