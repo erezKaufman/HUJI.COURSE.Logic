@@ -3,6 +3,7 @@
     by Gonczarowski and Nisan.
     File name: code/predicates/completeness.py """
 
+from itertools import  combinations as combinations
 from predicates.syntax import *
 from predicates.semantics import *
 from predicates.proofs import *
@@ -21,13 +22,35 @@ def is_closed(sentences, constants):
            is_universally_closed(sentences, constants) and \
            is_existentially_closed(sentences, constants)
 
-def is_primitively_closed(sentences, constants):
+
+def create_all_combinations(constants: set(), k: int):
+    if k not in permutations_by_k_dict:
+
+        permutations_by_k_dict[k] = list(product(constants, repeat=k))
+    return permutations_by_k_dict[k]
+    # print(list)
+    # return list(combinations(constants,k))
+
+
+def is_primitively_closed(sentences: set(), constants: set()):
     """ Return whether the given set of prenex-normal-form sentences is
         primitively closed with respect to the given set of constant names """
+    relations_dict = {}
     for sentence in sentences:
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
+        if not is_quantifier(sentence.root):
+            pair = sentence.relations()
+            if len(pair) > 1:
+                return False
+            else:
+                relation_name, arity = pair.pop()
+                if relation_name not in relations_dict:
+                    relations_dict[relation_name] = arity
     for constant in constants:
         assert is_constant(constant)
+
+    all_subsets_of_k = create_all_combinations(constants,2)
+
     # Task 12.1.1
 
 def is_universally_closed(sentences, constants):
@@ -44,8 +67,6 @@ def is_universally_closed(sentences, constants):
                     return False
     for constant in constants:
         assert is_constant(constant)
-
-    return True
     # Task 12.1.2
 
 def is_existentially_closed(sentences, constants):
@@ -66,10 +87,6 @@ def is_existentially_closed(sentences, constants):
                 return False  # no matches were found, return false
     for constant in constants:
         assert is_constant(constant)
-        # for sentence in sentences:
-    # Forumla[realtion_name,  [z1,z2,...z_n] , n is the size of subset
-    return True # all sentence passed
-
     # Task 12.1.3
 
 def find_unsatisfied_quantifier_free_sentence(sentences, constants, model,
