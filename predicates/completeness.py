@@ -27,21 +27,23 @@ def is_closed(sentences, constants):
            is_existentially_closed(sentences, constants)
 
 
+def create_all_combinations(temp_constants: set(), k: int) -> list():
+    """
+    help mehtod to return all permutations of constant, as list of Term objects
+    """
+    if k not in permutations_by_k_dict:
+        list_of_subsets = list(product(temp_constants, repeat=k))
+        list_of_terms = []
+        for temp_subset in list_of_subsets:
+            subset_terms = []
+            for var in temp_subset:
+                subset_terms.append(Term(var))
+            list_of_terms.append(subset_terms)
+        permutations_by_k_dict[k] = list_of_terms
+    return permutations_by_k_dict[k]
+
 def is_primitively_closed(sentences: set(), constants: set()) -> bool:
-    def create_all_combinations(temp_constants: set(), k: int) -> list():
-        """
-        help mehtod to return all permutations of constant, as list of Term objects
-        """
-        if k not in permutations_by_k_dict:
-            list_of_subsets = list(product(temp_constants, repeat=k))
-            list_of_terms = []
-            for temp_subset in list_of_subsets:
-                subset_terms = []
-                for var in temp_subset:
-                    subset_terms.append(Term(var))
-                list_of_terms.append(subset_terms)
-            permutations_by_k_dict[k] = list_of_terms
-        return permutations_by_k_dict[k]
+
 
     """ Return whether the given set of prenex-normal-form sentences is
         primitively closed with respect to the given set of constant names """
@@ -349,6 +351,7 @@ def eliminate_universal_instance_assumption(proof, constant):
                                                            new_proof_by_contradiction)
 
     # create line using UI axiom, with the following map
+    #  we takes the last assumption of the NEW list of assumptions - that means 'Ax[R(x)]'
     quantified_form = new_prover.proof.assumptions[-1].formula
     ui_instantiation_map = {'R(' + quantified_form.variable + ')': str(quantified_form.predicate),
                             'x': quantified_form.variable,
@@ -369,8 +372,18 @@ def eliminate_universal_instance_assumption(proof, constant):
                                                                     tautological_line_number])
     return new_prover.proof
 
+# constants_product_dict = dict()
+# def create_products(temp_constants: set(), k: int) -> list():
+#     """
+#     help mehtod to return all permutations of constant, as list of Term objects
+#     """
+#     if k not in constants_product_dict:
+#         list_of_subsets = list(product(temp_constants, repeat=k))
+#         permutations_by_k_dict[k] = list_of_subsets
+#     return permutations_by_k_dict[k]
 
-def universally_close(sentences, constants):
+
+def universally_close(sentences: set(), constants: set()) -> set():
     """ Return a set of sentences that contains the given set of
         prenex-normal-form sentences and is universally closed with respect to
         the given set of constant names. For example, if sentences is the
@@ -386,10 +399,18 @@ def universally_close(sentences, constants):
     for sentence in sentences:
         # once we do, we would like to get all the possible permutations of the inner predicate, and insert to
         # sentences new formulas with implementations of the new constants
-        if sentence.root == 'A':
+        k = 0
+        substitution_map = {}
+        while sentence.root == 'A':
+            k += 1
+            constants_product = create_all_combinations(constants,k)
+            var = sentence.variable
+            sentence = sentence.predicate
+            for constant in constants_product:
+                temp_sentence = sentence.substitute({var: constant})
+                sentences.add(temp_sentence)
 
-
-
+    return sentences
 
 
 def replace_constant(proof, constant, variable='zz'):
