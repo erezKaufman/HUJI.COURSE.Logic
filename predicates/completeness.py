@@ -425,7 +425,7 @@ def replace_constant(proof, constant, variable='zz'):
     proof_new_assumptions = []
     substitude_dict = {constant: Term(variable)}
     for assumption in proof.assumptions:
-        new_schema = Schema(assumption.formula.substitute(substitude_dict), assumption.templates)
+        new_schema = Schema(str(assumption.formula.substitute(substitude_dict)), assumption.templates)
         proof_new_assumptions.append(new_schema)
     proof_new_conclusion = proof.conclusion.substitute(substitude_dict)
     new_proof_lines = []
@@ -435,7 +435,10 @@ def replace_constant(proof, constant, variable='zz'):
         if line.justification[0] == 'A':
             new_instantiation_map = {}
             for key, value in line.justification[2].items():
-                new_instantiation_map[key] = value.substitute(substitude_dict)
+                if is_relation(key[0]):
+                    new_instantiation_map[key] = str(Formula.parse(value).substitute(substitude_dict))
+                else:
+                    new_instantiation_map[key] = str(Term.parse(value).substitute(substitude_dict))
             new_line_justification = (line.justification[0],line.justification[1],new_instantiation_map)
         else:
             new_line_justification = line.justification

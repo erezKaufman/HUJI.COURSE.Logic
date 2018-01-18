@@ -23,6 +23,8 @@ class Schema:
         """ Create a schema from a string representation of a Formula alongside
             a set of names of elements that are considered to be templates in
             it """
+        # print(formula)
+        # print(type(formula))
         self.formula = Formula.parse(formula)
         self.templates = templates
 
