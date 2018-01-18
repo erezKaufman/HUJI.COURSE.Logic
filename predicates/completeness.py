@@ -391,7 +391,6 @@ def universally_close(sentences: set(), constants: set()) -> set():
         # once we do, we would like to get all the possible permutations of the inner predicate, and insert to
         # sentences new formulas with implementations of the new constants
         k = 0
-        #Ax[Ay[R(x,y)]]
         substitution_set = []
         while sentence.root == 'A':
             k += 1
@@ -405,7 +404,8 @@ def universally_close(sentences: set(), constants: set()) -> set():
                 for cur_constant, added_var in zip(constant_in_size_k, substitution_set): # a, b
                     substitution_map[added_var] = cur_constant #x=a ; $x=b
                 temp_sentence = sentence.substitute(substitution_map) #(var: constant[0], set[0] =constant[1])
-                new_sentences.add(temp_sentence)
+                if temp_sentence not in sentences:
+                    new_sentences.add(temp_sentence)
 
     return new_sentences
 
