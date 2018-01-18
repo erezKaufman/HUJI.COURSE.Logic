@@ -1,3 +1,4 @@
+import time
 """ (c) This file is part of the course
     Mathematical Logic through Programming
     by Gonczarowski and Nisan.
@@ -385,6 +386,7 @@ def universally_close(sentences: set(), constants: set()) -> set():
     for constant in constants:
         assert is_constant(constant)
     # Task 12.6
+    permutations_by_k_dict = {}
     # first, we look for a universal formula
     new_sentences = copy.deepcopy(sentences)
     for sentence in sentences:
@@ -393,9 +395,13 @@ def universally_close(sentences: set(), constants: set()) -> set():
         k = 0
         #Ax[Ay[R(x,y)]]
         substitution_set = []
+        start_time = time.time()
         while sentence.root == 'A':
             k += 1
+            time2 = time.time()
             constants_product = create_all_combinations(constants,k)
+            after_time2 = time.time() - time2
+            print("time duration is", after_time2)
             var = sentence.variable # x
             if var not in substitution_set:
                 substitution_set.append(var)
@@ -406,7 +412,9 @@ def universally_close(sentences: set(), constants: set()) -> set():
                     substitution_map[added_var] = cur_constant #x=a ; $x=b
                 temp_sentence = sentence.substitute(substitution_map) #(var: constant[0], set[0] =constant[1])
                 new_sentences.add(temp_sentence)
-
+        time_duration = time.time() - start_time
+        print("sentence that took",sentence)
+        print("time duration is", time_duration)
     return new_sentences
 
 
