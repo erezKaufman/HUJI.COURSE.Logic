@@ -464,6 +464,40 @@ def eliminate_existential_witness_assumption(proof, constant):
     assert proof.assumptions[-1].formula == \
            proof.assumptions[-2].formula.predicate.substitute(
                {proof.assumptions[-2].formula.variable: Term(constant)})
+
+    # proof_replaced_consant = replace_constant(proof,constant)
+
+    proof_replaced_consant = proof # TODO - TEST
+
+    last_origin_assumption = proof_replaced_consant.assumptions[-1]
+
+    # now we have the line that says '~R(zz)'
+    new_proof_by_contradiction = proof_by_contradiction(proof_replaced_consant,str(last_origin_assumption.formula))
+    last_new_assumption = new_proof_by_contradiction.assumptions[-1].formula
+    new_conclusion = Formula('&',last_new_assumption,Formula('~',last_new_assumption))
+
+    new_prover = Prover(new_proof_by_contradiction.assumptions,new_conclusion)
+
+    proof_line = new_prover.add_proof(new_proof_by_contradiction.conclusion,new_proof_by_contradiction)
+    negate_last_origin_assumption = Formula('~',last_origin_assumption.formula)
+    tautology_formula = Formula('->',negate_last_origin_assumption,Formula('->',last_origin_assumption.formula,
+                                                                           Formula('~',last_new_assumption)))
+    tautology_line = new_prover.add_tautology(tautology_formula)
+    first_EI_step = new_prover.add_tautological_inference(str(Formula('->',last_origin_assumption.formula,
+                                           Formula('~',last_new_assumption))), [proof_line])
+    second_EI_step = new_prover.add_assumption(new_prover.proof.assumptions[-1].formula)
+    final_step = new_prover.add_existential_derivation(str(Formula('~',last_new_assumption)),
+                                                       second_EI_step, first_EI_step)
+    print(tautology_formula)
+
+    # from assumption, you've got Ax[R(x)]
+    # we will use UI to make Ax[R(x)]->R(zz)
+    # (~phi(x)->(Phi(x)->~E[phi(x)]))
+    # (~z1->(z1->~z2))
+    #  with tautological we get (z1->~z2)
+    #  and then with EI (using (z1->~z2) and E[z1] ) we receive
+
+
     # Task 12.8
 
 

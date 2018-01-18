@@ -286,7 +286,7 @@ def test_combine_contradictions(debug=False):
         '(Ax[R(x)]->R(x))', Prover.UI, {'c':'x'})
     step6 = prover_false.add_tautological_inference(
         '(~(~R(x)->(Q()&~Q()))->~Ax[R(x)])', [step5])
-    step7 = prover_false.add_existential_derivation(
+    step7 = prover_false.   add_existential_derivation(
         '~Ax[R(x)]', step4, step6)
     step8 = prover_false.add_tautological_inference(
         '(Ax[R(x)]&~Ax[R(x)])', [step1, step7])

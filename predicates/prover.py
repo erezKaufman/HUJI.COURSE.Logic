@@ -160,7 +160,7 @@ class Prover:
 
         return self.add_mp(instantiation, line_number, ui_line_num)
 
-    def add_tautological_inference(self, conclusion, line_numbers):
+    def add_tautological_inference(self, conclusion:str, line_numbers: [int]):
         """ Add a sequence of validly justified lines to the proof being
             constructed, where the formula of the last line is conclusion,
             which is a tautological inference of the formulae in the lines in
