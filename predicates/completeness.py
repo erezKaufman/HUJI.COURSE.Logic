@@ -396,21 +396,27 @@ def universally_close(sentences: set(), constants: set()) -> set():
         assert is_constant(constant)
     # Task 12.6
     # first, we look for a universal formula
+    new_sentences = copy.deepcopy(sentences)
     for sentence in sentences:
         # once we do, we would like to get all the possible permutations of the inner predicate, and insert to
         # sentences new formulas with implementations of the new constants
         k = 0
-        substitution_map = {}
+        #Ax[Ay[R(x,y)]]
+        substitution_set = []
         while sentence.root == 'A':
             k += 1
             constants_product = create_all_combinations(constants,k)
-            var = sentence.variable
+            var = sentence.variable # x
+            substitution_set.append(var)
             sentence = sentence.predicate
-            for constant in constants_product:
-                temp_sentence = sentence.substitute({var: constant})
-                sentences.add(temp_sentence)
+            substitution_map = {}
+            for constant_in_size_k in constants_product: #first iter a,b ; second iter ((a,a), (a,b), (b,a), (b,b))
+                for cur_constant, added_var in zip(constant_in_size_k, substitution_set): # a, b
+                    substitution_map[added_var] = cur_constant #x=a ; $x=b
+                    temp_sentence = sentence.substitute(substitution_map) #(var: constant[0], set[0] =constant[1])
+                    new_sentences.add(temp_sentence)
 
-    return sentences
+    return new_sentences
 
 
 def replace_constant(proof, constant, variable='zz'):
