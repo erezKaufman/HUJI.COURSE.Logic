@@ -353,9 +353,10 @@ def test_universally_close(debug=False):
               'elements...')
     closed = universally_close({Formula.parse(COMMUTATIVITY_AXIOM)},
                                SIX_ELEMENTS)
-    assert closed == {Formula.parse(sentence) for sentence in
+    asserted_close = {Formula.parse(sentence) for sentence in
                       {COMMUTATIVITY_AXIOM}.union(
                           SIX_ELEMENT_COMMUTATIVITY_CLOSURE)}
+    assert closed == asserted_close
     # Will be tested with the course staff's implementation of is_universally_closed
     assert is_universally_closed(closed, SIX_ELEMENTS)
 

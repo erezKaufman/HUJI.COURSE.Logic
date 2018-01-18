@@ -373,17 +373,6 @@ def eliminate_universal_instance_assumption(proof, constant):
                                                                     tautological_line_number])
     return new_prover.proof
 
-# constants_product_dict = dict()
-# def create_products(temp_constants: set(), k: int) -> list():
-#     """
-#     help mehtod to return all permutations of constant, as list of Term objects
-#     """
-#     if k not in constants_product_dict:
-#         list_of_subsets = list(product(temp_constants, repeat=k))
-#         permutations_by_k_dict[k] = list_of_subsets
-#     return permutations_by_k_dict[k]
-
-
 def universally_close(sentences: set(), constants: set()) -> set():
     """ Return a set of sentences that contains the given set of
         prenex-normal-form sentences and is universally closed with respect to

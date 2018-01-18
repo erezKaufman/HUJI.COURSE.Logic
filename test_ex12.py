@@ -1,3 +1,4 @@
+import time
 """ (c) This file is part of the course
     Mathematical Logic through Programming
     by Gonczarowski and Nisan.
@@ -23,8 +24,10 @@ def test_task5(debug=False):
     test_eliminate_universal_instance_assumption(debug)
 
 def test_task6(debug=False):
+    start_time = time.time()
     test_universally_close(debug)
-
+    time_duration = time.time() - start_time
+    print("time duration is",time_duration)
 def test_task7(debug=False):
     test_replace_constant(debug)
 
