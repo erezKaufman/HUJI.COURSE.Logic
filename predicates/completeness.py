@@ -422,6 +422,25 @@ def replace_constant(proof, constant, variable='zz'):
     assert is_constant(constant)
     assert is_variable(variable)
     assert type(proof) is Proof
+    proof_new_assumptions = []
+    substitude_dict = {constant: Term(variable)}
+    for assumption in proof.assumptions:
+        new_schema = Schema(assumption.formula.substitute(substitude_dict), assumption.templates)
+        proof_new_assumptions.append(new_schema)
+    proof_new_conclusion = proof.conclusion.substitute(substitude_dict)
+    new_proof_lines = []
+    new_prover = Prover(proof_new_assumptions,proof_new_conclusion)
+    for line in proof.lines:
+        new_line_formula = line.formula.substitute(substitude_dict)
+        if line.justification[0] == 'A':
+            new_instantiation_map = {}
+            for key, value in line.justification[2].items():
+                new_instantiation_map[key] = value.substitute(substitude_dict)
+            new_line_justification = (line.justification[0],line.justification[1],new_instantiation_map)
+        else:
+            new_line_justification = line.justification
+        new_prover._add_line(new_line_formula,new_line_justification)
+    return new_prover.proof
     # Task 12.7
 
 

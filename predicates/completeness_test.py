@@ -393,7 +393,6 @@ def test_universally_close(debug=False):
     if debug:
         print('Testing universally_close on group axioms with six elements...')
     start = time.time()
-    print('our func starts')
     closed = universally_close({Formula.parse(sentence) for sentence in
                                 [ZERO_AXIOM, NEGATION_AXIOM,
                                  ASSOCIATIVITY_AXIOM]},

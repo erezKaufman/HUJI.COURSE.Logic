@@ -19,7 +19,7 @@ class Schema:
         be the same as the number of parameters in each relation instantiation
         of the matching relation name in the schema formula """
 
-    def __init__(self, formula, templates=set()):
+    def __init__(self, formula: str, templates=set()):
         """ Create a schema from a string representation of a Formula alongside
             a set of names of elements that are considered to be templates in
             it """

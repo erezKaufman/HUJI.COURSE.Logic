@@ -372,7 +372,7 @@ class Formula:
         return returned_formula, Term.str
 
     @staticmethod
-    def parse(s):
+    def parse(s: str):
         """ Return a first-order formula parsed from its given string
             representation """
         Term.str = s
