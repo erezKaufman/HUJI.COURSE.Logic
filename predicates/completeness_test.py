@@ -392,6 +392,8 @@ def test_universally_close(debug=False):
 
     if debug:
         print('Testing universally_close on group axioms with six elements...')
+    start = time.time()
+    print('our func starts')
     closed = universally_close({Formula.parse(sentence) for sentence in
                                 [ZERO_AXIOM, NEGATION_AXIOM,
                                  ASSOCIATIVITY_AXIOM]},
@@ -400,12 +402,21 @@ def test_universally_close(debug=False):
             [ZERO_AXIOM, NEGATION_AXIOM, ASSOCIATIVITY_AXIOM]}.issubset(closed)
     assert len(closed) == 56001
     # Will be tested with the course staff's implementation of is_universally_closed
+    end = time.time() - start
+    print('our func ends:', end)
+
+    start = time.time()
+    print('not our func starts')
+
     assert is_universally_closed(closed, SIX_ELEMENTS)
     for model in [SIX_ELEMENT_COMMUTATIVE_GROUP_MODEL,
                   SIX_ELEMENT_NON_COMMUTATIVE_GROUP_MODEL]:
         for sentence in closed:
             # Will be tested with the course staff's implementation of evaluate_formula
             assert model.evaluate_formula(sentence)
+    end = time.time() - start
+    print('not our func ends:', end)
+
 
 def test_replace_constant(debug=False):
     from predicates.prover_test import syllogism_proof,\

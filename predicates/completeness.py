@@ -32,7 +32,6 @@ def create_all_combinations(temp_constants: set(), k: int) -> list():
     """
     help mehtod to return all permutations of constant, as list of Term objects
     """
-    permutations_by_k_dict = {}
     if k not in permutations_by_k_dict:
         list_of_subsets = list(product(temp_constants, repeat=k))
         list_of_terms = []
@@ -390,37 +389,26 @@ def universally_close(sentences: set(), constants: set()) -> set():
     for constant in constants:
         assert is_constant(constant)
     # Task 12.6
-    # first, we look for a universal formula
-    new_sentences = copy.deepcopy(sentences)
+    added_sentences = set() # the set of added sentences
     for sentence in sentences:
-        # once we do, we would like to get all the possible permutations of the inner predicate, and insert to
-        # sentences new formulas with implementations of the new constants
         k = 0
-        substitution_set = []
-        start_time = time.time()
+        substitution_set = [] # this is our set of already added var's , in prev scopes
         while sentence.root == 'A':
-            k += 1
-            time2 = time.time()
+            k += 1 # we added a var
+            # create all the products in size k, use dict of already made products to cut run time
             constants_product = create_all_combinations(constants,k)
-            after_time2 = time.time() - time2
-            print("time duration is", after_time2)
-            var = sentence.variable # x
+            var = sentence.variable # the cur var
             if var not in substitution_set:
-                substitution_set.append(var)
-            sentence = sentence.predicate
+                substitution_set.append(var) # add that var if it's not already added
+            sentence = sentence.predicate # we are now looking at the inner predicate
             substitution_map = {}
-            for constant_in_size_k in constants_product: #first iter a,b ; second iter ((a,a), (a,b), (b,a), (b,b))
-                for cur_constant, added_var in zip(constant_in_size_k, substitution_set): # a, b
-                    substitution_map[added_var] = cur_constant #x=a ; $x=b
-                temp_sentence = sentence.substitute(substitution_map) #(var: constant[0], set[0] =constant[1])
-                if temp_sentence not in sentences:
-                    new_sentences.add(temp_sentence)
-
-                new_sentences.add(temp_sentence)
-        time_duration = time.time() - start_time
-        print("sentence that took",sentence)
-        print("time duration is", time_duration)
-    return new_sentences
+            for constant_in_size_k in constants_product: # iterate over all made products
+                for cur_constant, added_var in zip(constant_in_size_k, substitution_set):
+                    substitution_map[added_var] = cur_constant # connect each var to a constant
+                temp_sentence = sentence.substitute(substitution_map) # make sub to the sentences
+                if temp_sentence not in added_sentences:
+                    added_sentences.add(temp_sentence) # add that sentence
+    return added_sentences.union(sentences)
 
 
 def replace_constant(proof, constant, variable='zz'):
