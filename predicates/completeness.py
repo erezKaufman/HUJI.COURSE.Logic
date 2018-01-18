@@ -381,19 +381,21 @@ def universally_close(sentences: set(), constants: set()) -> set():
         singleton {'Ax[Ay[R(x,y)]]'} and constants is {a,b}, then the returned
         set should be: {'Ax[Ay[R(x,y)]]', 'Ay[R(a,y)]', 'Ay[R(b,y)]', 'R(a,a)',
         'R(a,b)', 'R(b,a)', 'R(b,b)'} """
+    global permutations_by_k_dict
+    permutations_by_k_dict = {}
+
+
     for sentence in sentences:
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
     for constant in constants:
         assert is_constant(constant)
     # Task 12.6
-    permutations_by_k_dict = {}
     # first, we look for a universal formula
     new_sentences = copy.deepcopy(sentences)
     for sentence in sentences:
         # once we do, we would like to get all the possible permutations of the inner predicate, and insert to
         # sentences new formulas with implementations of the new constants
         k = 0
-        #Ax[Ay[R(x,y)]]
         substitution_set = []
         start_time = time.time()
         while sentence.root == 'A':
@@ -411,6 +413,9 @@ def universally_close(sentences: set(), constants: set()) -> set():
                 for cur_constant, added_var in zip(constant_in_size_k, substitution_set): # a, b
                     substitution_map[added_var] = cur_constant #x=a ; $x=b
                 temp_sentence = sentence.substitute(substitution_map) #(var: constant[0], set[0] =constant[1])
+                if temp_sentence not in sentences:
+                    new_sentences.add(temp_sentence)
+
                 new_sentences.add(temp_sentence)
         time_duration = time.time() - start_time
         print("sentence that took",sentence)
