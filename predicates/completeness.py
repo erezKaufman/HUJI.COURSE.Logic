@@ -31,7 +31,6 @@ def create_all_combinations(temp_constants: set(), k: int) -> list():
     """
     help mehtod to return all permutations of constant, as list of Term objects
     """
-    permutations_by_k_dict = {}
     if k not in permutations_by_k_dict:
         list_of_subsets = list(product(temp_constants, repeat=k))
         list_of_terms = []
@@ -380,6 +379,10 @@ def universally_close(sentences: set(), constants: set()) -> set():
         singleton {'Ax[Ay[R(x,y)]]'} and constants is {a,b}, then the returned
         set should be: {'Ax[Ay[R(x,y)]]', 'Ay[R(a,y)]', 'Ay[R(b,y)]', 'R(a,a)',
         'R(a,b)', 'R(b,a)', 'R(b,b)'} """
+    global permutations_by_k_dict
+    permutations_by_k_dict = {}
+
+
     for sentence in sentences:
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
     for constant in constants:
