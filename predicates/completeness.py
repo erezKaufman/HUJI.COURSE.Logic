@@ -31,6 +31,7 @@ def create_all_combinations(temp_constants: set(), k: int) -> list():
     """
     help mehtod to return all permutations of constant, as list of Term objects
     """
+    permutations_by_k_dict = {}
     if k not in permutations_by_k_dict:
         list_of_subsets = list(product(temp_constants, repeat=k))
         list_of_terms = []
@@ -407,14 +408,15 @@ def universally_close(sentences: set(), constants: set()) -> set():
             k += 1
             constants_product = create_all_combinations(constants,k)
             var = sentence.variable # x
-            substitution_set.append(var)
+            if var not in substitution_set:
+                substitution_set.append(var)
             sentence = sentence.predicate
             substitution_map = {}
             for constant_in_size_k in constants_product: #first iter a,b ; second iter ((a,a), (a,b), (b,a), (b,b))
                 for cur_constant, added_var in zip(constant_in_size_k, substitution_set): # a, b
                     substitution_map[added_var] = cur_constant #x=a ; $x=b
-                    temp_sentence = sentence.substitute(substitution_map) #(var: constant[0], set[0] =constant[1])
-                    new_sentences.add(temp_sentence)
+                temp_sentence = sentence.substitute(substitution_map) #(var: constant[0], set[0] =constant[1])
+                new_sentences.add(temp_sentence)
 
     return new_sentences
 
