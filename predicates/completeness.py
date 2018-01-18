@@ -471,3 +471,5 @@ def existentially_close(sentences, constants):
     for constant in constants:
         assert is_constant(constant)
         # Task 12.9
+
+#test
