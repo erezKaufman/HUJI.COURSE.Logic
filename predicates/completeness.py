@@ -34,14 +34,14 @@ def create_all_combinations(temp_constants: set(), k: int) -> list():
     help mehtod to return all permutations of constant, as list of Term objects
     """
     if k not in permutations_by_k_dict:
-        list_of_subsets = list(product(temp_constants, repeat=k))
+        list_of_subsets = list(product(temp_constants, repeat=k)) # create all subsets using product
         list_of_terms = []
         for temp_subset in list_of_subsets:
             subset_terms = []
             for var in temp_subset:
-                subset_terms.append(Term(var))
+                subset_terms.append(Term(var)) # add Term(var) to subset
             list_of_terms.append(subset_terms)
-        permutations_by_k_dict[k] = list_of_terms
+        permutations_by_k_dict[k] = list_of_terms # add cur k to the dict holding all already made permutations
     return permutations_by_k_dict[k]
 
 
@@ -51,22 +51,22 @@ def is_primitively_closed(sentences: set(), constants: set()) -> bool:
     relations_dict = {}
     for sentence in sentences:
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
-        if not is_quantifier(sentence.root):
-            pair = sentence.relations()
+        if not is_quantifier(sentence.root): # we have something other then quantifier
+            pair = sentence.relations() # get all relations
             while pair != set():
-                relation_name, arity = pair.pop()
+                relation_name, arity = pair.pop() #
                 if relation_name not in relations_dict:
-                    relations_dict[relation_name] = arity
+                    relations_dict[relation_name] = arity # add relation name and recived arity to mapping
     for constant in constants:
         assert is_constant(constant)
 
     for relation, arity in relations_dict.items():
-        all_subsets_of_k = create_all_combinations(constants, arity)
+        all_subsets_of_k = create_all_combinations(constants, arity) # get all constant permutation based on arity size
         for subset in all_subsets_of_k:
             cur_formula = Formula(relation, subset)
             cur_neg_formula = Formula('~', cur_formula)
             if cur_formula not in sentences and cur_neg_formula not in sentences:
-                return False
+                return False # neither of the normal formula form or it's negation does not appear in sentence
     return True
 
     # Task 12.1.1
@@ -82,13 +82,13 @@ def is_universally_closed(sentences, constants) -> bool:
 
     for sentence in sentences:
         if sentence.root == 'A':
-            v = sentence.variable
+            v = sentence.variable # cur variable
             r = sentence.predicate  # r is for inner formula
             for constant in constants:
-                cur_sub = r.substitute({v: Term(constant)})
+                cur_sub = r.substitute({v: Term(constant)}) # for each constant, substitute with v
                 if cur_sub not in sentences:
-                    return False
-    return True
+                    return False # we didnt found the sub in F , return false
+    return True # all subs were found
     # Task 12.1.2
 
 
@@ -192,7 +192,6 @@ def model_or_inconsistent(sentences, constants):
         :return: H
         """
         H = []
-
         for prime in prime_set:
             str_prime = str(prime)
             if prime in sentences:
@@ -304,7 +303,7 @@ def combine_contradictions(proof_true, proof_false):
     false_proof_conclusion = proof_by_contradiction_false.conclusion
     contradiction = str(Formula('&', true_proof_conclusion, false_proof_conclusion))
 
-    # create a new proof out of the first assumptions, and the conclusion is a contrudiction based from AND between
+    # create a new proof out of the first assumptions, and the conclusion is a contradiction based from AND between
     # the two former conclusions
     # --START PROOF--
     new_prover = Prover(proof_by_contradiction_true.assumptions, contradiction)
@@ -312,7 +311,7 @@ def combine_contradictions(proof_true, proof_false):
     # we now add the whole proofs to the new proof, and save the line number of each conclusion
     true_conclusion_line_number = new_prover.add_proof(true_proof_conclusion, proof_by_contradiction_true)
     false_conclusion_line_number = new_prover.add_proof(false_proof_conclusion, proof_by_contradiction_false)
-    # last of all, we use the tautoligical inference rule to return a line where we conclude the stated conclusion,
+    # last of all, we use the tautological inference rule to return a line where we conclude the stated conclusion,
     # and return the proof
     final_line = new_prover.add_tautological_inference(contradiction,
                                                        [true_conclusion_line_number, false_conclusion_line_number])
@@ -424,25 +423,25 @@ def replace_constant(proof, constant, variable='zz'):
     assert type(proof) is Proof
     proof_new_assumptions = []
     substitude_dict = {constant: Term(variable)}
-    for assumption in proof.assumptions:
+    for assumption in proof.assumptions: # sub constant with var for each assumption
         new_schema = Schema(str(assumption.formula.substitute(substitude_dict)), assumption.templates)
         proof_new_assumptions.append(new_schema)
-    proof_new_conclusion = proof.conclusion.substitute(substitude_dict)
-    new_proof_lines = []
-    new_prover = Prover(proof_new_assumptions, proof_new_conclusion)
+    proof_new_conclusion = proof.conclusion.substitute(substitude_dict) # sub conclusion with var
+    new_prover = Prover(proof_new_assumptions, proof_new_conclusion) # create new_prover
     for line in proof.lines:
-        new_line_formula = line.formula.substitute(substitude_dict)
-        if line.justification[0] == 'A':
+        new_line_formula = line.formula.substitute(substitude_dict) # change cur line with mapping
+        if line.justification[0] == 'A': #
             new_instantiation_map = {}
             for key, value in line.justification[2].items():
-                if is_relation(key[0]):
+                if is_relation(key[0]): # we have a relation, use Formual's parse and sub with mapping
                     new_instantiation_map[key] = str(Formula.parse(value).substitute(substitude_dict))
-                else:
+                else: # we have a term, use Term's parse and sub with mapping
                     new_instantiation_map[key] = str(Term.parse(value).substitute(substitude_dict))
+            # add the needed prev justifications as well as created mapping
             new_line_justification = (line.justification[0], line.justification[1], new_instantiation_map)
         else:
-            new_line_justification = line.justification
-        new_prover._add_line(new_line_formula, new_line_justification)
+            new_line_justification = line.justification # just take the original line justifications
+        new_prover._add_line(new_line_formula, new_line_justification) # add line to new prover
     return new_prover.proof
     # Task 12.7
 
@@ -513,34 +512,26 @@ def eliminate_existential_witness_assumption(proof, constant):
                                                               first_EI_step,second_EI_step)
     final_step = new_prover.add_tautological_inference(str(new_conclusion),[first_EI_step,penultimate_step])
     return new_prover.proof
-
-    # print("hey")
-    # print(new_prover.proof)
-    # TODO - we need to return from ~phi(zz) to the original ~phi(x) using add_free_instantiation
-
-
-    # then use 'add_existential_derivation' to conclude '~Ex[phi(x)]' using second_EI_step  and  first_EI_step
-
-    # and finally conclude that  '(~Ex[phi(x)]&Ex[phi(x)])'
-    # DONE!
-
-    # TODO - ignore
-    # final_step = new_prover.add_existential_derivation(str(Formula('~', last_new_assumption)),
-    #                                                    second_EI_step, first_EI_step)
-    # print(tautology_formula)
-
-    # from assumption, you've got Ax[R(x)]
-    # we will use UI to make Ax[R(x)]->R(zz)
-    # (~phi(x)->(Phi(x)->~E[phi(x)]))
-    # (~z1->(z1->~z2))
-    #  with tautological we get (z1->~z2)
-    #  and then with EI (using (z1->~z2) and E[z1] ) we receive
-
-
     # Task 12.8
 
 
 def existentially_close(sentences, constants):
+
+    def add_inner(sentence , var, map):
+        """
+        the sentence received had a E quantifier, create a fresh constant and insert it instead of received var
+        and update calling function sets
+        :param sentence: sentence with prev E quantifier
+        :param var: the variable to switch
+        :param map: a prev mapping used in this sentence upper scopes
+        """
+        cur_c = next(fresh_constant_name_generator) # create new constant
+        new_contansts.add(cur_c) # add the constant to upper scope set
+        map[var] = Term(cur_c) # add var to mapping
+        new_sentences.add(sentence.substitute(map)) # sub sentence with cur mapping
+        if sentence.root == 'E':
+            add_inner(sentence.predicate, sentence.variable, map) # we met another E quantifier, call add_inner
+
     """ Return a pair of a set of sentences that contains the given set of
         prenex-normal-form sentences and a set of constant names that contains
         the given set of constant names, such that the returned set of
@@ -554,5 +545,11 @@ def existentially_close(sentences, constants):
     for constant in constants:
         assert is_constant(constant)
         # Task 12.9
+        new_sentences = set() # create set for sentences
+        new_contansts = set().union(constants) # create set for constants
+        for sentence in sentences:
+            new_sentences.add(sentence) # add cur sentence
+            if sentence.root == 'E':
+                add_inner(sentence.predicate, sentence.variable, {}) # deal with inner predicate
 
-        # test
+        return (new_sentences, new_contansts)
