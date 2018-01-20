@@ -484,26 +484,41 @@ def eliminate_existential_witness_assumption(proof, constant):
     # create new proof by the assumption of the contradicted proof and the new conclusion
     new_prover = Prover(new_proof_by_contradiction.assumptions, new_conclusion)
 
-    # add the contradicted proof to the lines of the new proof
+    # add the contradicted proof to the lines of the new proof ('~phi(zz)')
     proof_line = new_prover.add_proof(new_proof_by_contradiction.conclusion, new_proof_by_contradiction)
 
     # crete formula for '~phi(zz)'
-    negate_last_origin_assumption = Formula('~', last_origin_assumption)
+    # negate_last_origin_assumption = Formula('~', last_origin_assumption)
+    existance_assumption_var = last_new_assumption.variable
 
-    # create formula for '(~phi(zz)->(phi(zz)->~Ex[phi(x)]))
-    tautology_formula = Formula('->', negate_last_origin_assumption, Formula('->', last_origin_assumption,
-                                                                             Formula('~', last_new_assumption)))
+    # create back ~phi(x)
+    free_instantiated_assumption = new_proof_by_contradiction.conclusion.substitute({'zz': Term(existance_assumption_var)})
+
+    # added the line to create '~phi(x)' back
+    free_instantiated_step = new_prover.add_free_instantiation(free_instantiated_assumption, proof_line,
+                                                               {'zz': existance_assumption_var})
+
+    # create formula for '(~phi(x)->(phi(x)->~Ex[phi(x)]))
+    tautology_formula = Formula('->', free_instantiated_assumption.first, Formula('~', last_new_assumption))
     # add the tautology line of the above formula
-    tautology_line = new_prover.add_tautology(tautology_formula)
+    # tautology_line = new_prover.add_tautology(tautology_formula)
 
     # add the tautological inference of the formula '(phi(zz)->~Ex[phi(x)])'
-    first_EI_step = new_prover.add_tautological_inference(str(Formula('->', last_origin_assumption,
-                                                                      Formula('~', last_new_assumption))), [proof_line])
+    second_EI_step = new_prover.add_tautological_inference(str(tautology_formula), [free_instantiated_step])
 
     # add the assumption of the last assumption 'Ex[phi(x)]'
-    second_EI_step = new_prover.add_assumption(str(last_new_assumption))
+    first_EI_step = new_prover.add_assumption(str(last_new_assumption))
 
+    penultimate_step = new_prover.add_existential_derivation( str(Formula('~', last_new_assumption)),
+                                                              first_EI_step,second_EI_step)
+    final_step = new_prover.add_tautological_inference(str(new_conclusion),[first_EI_step,penultimate_step])
+    return new_prover.proof
+
+    # print("hey")
+    # print(new_prover.proof)
     # TODO - we need to return from ~phi(zz) to the original ~phi(x) using add_free_instantiation
+
+
     # then use 'add_existential_derivation' to conclude '~Ex[phi(x)]' using second_EI_step  and  first_EI_step
 
     # and finally conclude that  '(~Ex[phi(x)]&Ex[phi(x)])'
@@ -512,7 +527,7 @@ def eliminate_existential_witness_assumption(proof, constant):
     # TODO - ignore
     # final_step = new_prover.add_existential_derivation(str(Formula('~', last_new_assumption)),
     #                                                    second_EI_step, first_EI_step)
-    print(tautology_formula)
+    # print(tautology_formula)
 
     # from assumption, you've got Ax[R(x)]
     # we will use UI to make Ax[R(x)]->R(zz)
