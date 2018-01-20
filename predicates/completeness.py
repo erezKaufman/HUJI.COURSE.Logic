@@ -1,4 +1,5 @@
 import time
+
 """ (c) This file is part of the course
     Mathematical Logic through Programming
     by Gonczarowski and Nisan.
@@ -43,9 +44,8 @@ def create_all_combinations(temp_constants: set(), k: int) -> list():
         permutations_by_k_dict[k] = list_of_terms
     return permutations_by_k_dict[k]
 
+
 def is_primitively_closed(sentences: set(), constants: set()) -> bool:
-
-
     """ Return whether the given set of prenex-normal-form sentences is
         primitively closed with respect to the given set of constant names """
     relations_dict = {}
@@ -373,6 +373,7 @@ def eliminate_universal_instance_assumption(proof, constant):
                                                                     tautological_line_number])
     return new_prover.proof
 
+
 def universally_close(sentences: set(), constants: set()) -> set():
     """ Return a set of sentences that contains the given set of
         prenex-normal-form sentences and is universally closed with respect to
@@ -383,31 +384,30 @@ def universally_close(sentences: set(), constants: set()) -> set():
     global permutations_by_k_dict
     permutations_by_k_dict = {}
 
-
     for sentence in sentences:
         assert type(sentence) is Formula and is_in_prenex_normal_form(sentence)
     for constant in constants:
         assert is_constant(constant)
     # Task 12.6
-    added_sentences = set() # the set of added sentences
+    added_sentences = set()  # the set of added sentences
     for sentence in sentences:
         k = 0
-        substitution_set = [] # this is our set of already added var's , in prev scopes
+        substitution_set = []  # this is our set of already added var's , in prev scopes
         while sentence.root == 'A':
-            k += 1 # we added a var
+            k += 1  # we added a var
             # create all the products in size k, use dict of already made products to cut run time
-            constants_product = create_all_combinations(constants,k)
-            var = sentence.variable # the cur var
+            constants_product = create_all_combinations(constants, k)
+            var = sentence.variable  # the cur var
             if var not in substitution_set:
-                substitution_set.append(var) # add that var if it's not already added
-            sentence = sentence.predicate # we are now looking at the inner predicate
+                substitution_set.append(var)  # add that var if it's not already added
+            sentence = sentence.predicate  # we are now looking at the inner predicate
             substitution_map = {}
-            for constant_in_size_k in constants_product: # iterate over all made products
+            for constant_in_size_k in constants_product:  # iterate over all made products
                 for cur_constant, added_var in zip(constant_in_size_k, substitution_set):
-                    substitution_map[added_var] = cur_constant # connect each var to a constant
-                temp_sentence = sentence.substitute(substitution_map) # make sub to the sentences
+                    substitution_map[added_var] = cur_constant  # connect each var to a constant
+                temp_sentence = sentence.substitute(substitution_map)  # make sub to the sentences
                 if temp_sentence not in added_sentences:
-                    added_sentences.add(temp_sentence) # add that sentence
+                    added_sentences.add(temp_sentence)  # add that sentence
     return added_sentences.union(sentences)
 
 
@@ -429,7 +429,7 @@ def replace_constant(proof, constant, variable='zz'):
         proof_new_assumptions.append(new_schema)
     proof_new_conclusion = proof.conclusion.substitute(substitude_dict)
     new_proof_lines = []
-    new_prover = Prover(proof_new_assumptions,proof_new_conclusion)
+    new_prover = Prover(proof_new_assumptions, proof_new_conclusion)
     for line in proof.lines:
         new_line_formula = line.formula.substitute(substitude_dict)
         if line.justification[0] == 'A':
@@ -439,10 +439,10 @@ def replace_constant(proof, constant, variable='zz'):
                     new_instantiation_map[key] = str(Formula.parse(value).substitute(substitude_dict))
                 else:
                     new_instantiation_map[key] = str(Term.parse(value).substitute(substitude_dict))
-            new_line_justification = (line.justification[0],line.justification[1],new_instantiation_map)
+            new_line_justification = (line.justification[0], line.justification[1], new_instantiation_map)
         else:
             new_line_justification = line.justification
-        new_prover._add_line(new_line_formula,new_line_justification)
+        new_prover._add_line(new_line_formula, new_line_justification)
     return new_prover.proof
     # Task 12.7
 
@@ -465,29 +465,53 @@ def eliminate_existential_witness_assumption(proof, constant):
            proof.assumptions[-2].formula.predicate.substitute(
                {proof.assumptions[-2].formula.variable: Term(constant)})
 
-    # proof_replaced_consant = replace_constant(proof,constant)
+    # replace the constant with a 'zz' variable in the given proof
+    proof_replaced_consant = replace_constant(proof, constant)
 
-    proof_replaced_consant = proof # TODO - TEST
+    # save the last formula form assumption from the original proof ( where the assumption will be 'phi(zz)'
+    last_origin_assumption = proof_replaced_consant.assumptions[-1].formula
 
-    last_origin_assumption = proof_replaced_consant.assumptions[-1]
+    # create a new proof by contradiction that will no longer hold phi(zz) as the assumption, and the conclusion of
+    # the proof will be '~phi(zz)'
+    new_proof_by_contradiction = proof_by_contradiction(proof_replaced_consant, str(last_origin_assumption))
 
-    # now we have the line that says '~R(zz)'
-    new_proof_by_contradiction = proof_by_contradiction(proof_replaced_consant,str(last_origin_assumption.formula))
+    # save the last formula form assumption of the new contradicted proof (that will be 'Ex[phi(x)]'
     last_new_assumption = new_proof_by_contradiction.assumptions[-1].formula
-    new_conclusion = Formula('&',last_new_assumption,Formula('~',last_new_assumption))
 
-    new_prover = Prover(new_proof_by_contradiction.assumptions,new_conclusion)
+    # create the new conclusion for the returned proof - '(Ex[phi(x)]&~Ex[phi(x)])'
+    new_conclusion = Formula('&', last_new_assumption, Formula('~', last_new_assumption))
 
-    proof_line = new_prover.add_proof(new_proof_by_contradiction.conclusion,new_proof_by_contradiction)
-    negate_last_origin_assumption = Formula('~',last_origin_assumption.formula)
-    tautology_formula = Formula('->',negate_last_origin_assumption,Formula('->',last_origin_assumption.formula,
-                                                                           Formula('~',last_new_assumption)))
+    # create new proof by the assumption of the contradicted proof and the new conclusion
+    new_prover = Prover(new_proof_by_contradiction.assumptions, new_conclusion)
+
+    # add the contradicted proof to the lines of the new proof
+    proof_line = new_prover.add_proof(new_proof_by_contradiction.conclusion, new_proof_by_contradiction)
+
+    # crete formula for '~phi(zz)'
+    negate_last_origin_assumption = Formula('~', last_origin_assumption)
+
+    # create formula for '(~phi(zz)->(phi(zz)->~Ex[phi(x)]))
+    tautology_formula = Formula('->', negate_last_origin_assumption, Formula('->', last_origin_assumption,
+                                                                             Formula('~', last_new_assumption)))
+    # add the tautology line of the above formula
     tautology_line = new_prover.add_tautology(tautology_formula)
-    first_EI_step = new_prover.add_tautological_inference(str(Formula('->',last_origin_assumption.formula,
-                                           Formula('~',last_new_assumption))), [proof_line])
-    second_EI_step = new_prover.add_assumption(new_prover.proof.assumptions[-1].formula)
-    final_step = new_prover.add_existential_derivation(str(Formula('~',last_new_assumption)),
-                                                       second_EI_step, first_EI_step)
+
+    # add the tautological inference of the formula '(phi(zz)->~Ex[phi(x)])'
+    first_EI_step = new_prover.add_tautological_inference(str(Formula('->', last_origin_assumption,
+                                                                      Formula('~', last_new_assumption))), [proof_line])
+
+    # add the assumption of the last assumption 'Ex[phi(x)]'
+    second_EI_step = new_prover.add_assumption(str(last_new_assumption))
+
+    # TODO - we need to return from ~phi(zz) to the original ~phi(x) using add_free_instantiation
+    # then use 'add_existential_derivation' to conclude '~Ex[phi(x)]' using second_EI_step  and  first_EI_step
+
+    # and finally conclude that  '(~Ex[phi(x)]&Ex[phi(x)])'
+    # DONE!
+
+    # TODO - ignore
+    # final_step = new_prover.add_existential_derivation(str(Formula('~', last_new_assumption)),
+    #                                                    second_EI_step, first_EI_step)
     print(tautology_formula)
 
     # from assumption, you've got Ax[R(x)]
@@ -516,4 +540,4 @@ def existentially_close(sentences, constants):
         assert is_constant(constant)
         # Task 12.9
 
-#test
+        # test
