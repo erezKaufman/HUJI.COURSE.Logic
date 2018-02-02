@@ -162,14 +162,12 @@ class DeductiveProof:
                 if len(line.justification) > 0:  # if there are justifications
                     for i in line.justification:
                         if i > lineNum:
-                            print("1",lineNum) #TODO DELETE ME
                             return False
                 else:  # else, the list is empty, so we might have a
                     if line.rule is None:
                         if line.conclusion in self.statement.assumptions:
                             continue
                         else:  # if the conclusion of the line is not in the assumptions of the statement
-                            print("2",lineNum) #TODO DELETE ME
                             return False
 
             else:  # if the justification is None, we will check if rule is none. if so than
@@ -177,13 +175,11 @@ class DeductiveProof:
                     if line.conclusion in self.statement.assumptions:
                         continue
                     else:  # if the conclusion of the line is not in the assumptions of the statement
-                        print("3", lineNum) #TODO DELETE ME
                         return False
             # if self.lines[lineNum].just
             instance = self.instance_for_line(lineNum)
             rule = self.rules[line.rule]
             if not instance.is_instance_of(rule):
-                print("4", lineNum) #TODO DELETE ME
                 return False
         return self.lines[len(self.lines) - 1].conclusion == self.statement.conclusion
 
@@ -335,7 +331,7 @@ def create_lines(index_to_switch, lemma_proof, lemma_rules_dict, lines, main_pro
     for line_index in range(len(main_proof.lines)):
 
         main_line = main_proof.lines[line_index]  # variable for the main_proof current line
-        if main_line.rule is None:  # if it's none, than keep it that way...
+        if main_line.rule is None:  # if it's none, then keep it that way...
             old_lines_dict[line_index] = line_counter
             lines.append(DeductiveProof.Line(main_line.conclusion))
             line_counter += 1

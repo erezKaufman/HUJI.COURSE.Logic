@@ -102,7 +102,7 @@ def check_if_THE_assumption(assumption: Formula, new_proof_lines: list):
 
 def check_if_MP(assumption, line, new_proof_lines, proof):
     """
-    help method to work on a line that usses the rul of MP
+    help method to work on a line that usses the rule of MP
     :param assumption:  the assumption to be treated
     :param line: the original line
     :param new_proof_lines:  the list of new lines
@@ -179,6 +179,5 @@ def prove_hypothetical_syllogism():
     lines.append(DeductiveProof.Line(Formula('r'), 0, [3, 2]))
     proof = DeductiveProof(statement, rules, lines)
     return_proof = inverse_mp(proof, Formula('p'))
-    print(return_proof)
 
     return return_proof

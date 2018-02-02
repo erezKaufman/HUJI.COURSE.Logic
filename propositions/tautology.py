@@ -94,10 +94,6 @@ def prove_for_is_unary_implies_not(formula, model, lines):
         q_index = -2
         q_index = find_index_by_conclusion(not_q, lines)
 
-        # p_index, q_index = find_index(p, p_index, not_q, q_index, lines)
-        # if p_index == -1 or q_index == -2:
-        #     print("bad index, p is: {}, q is: {}".format(p, not_q))
-        #     exit(-1)
         # add line 2 as an MP conclusion for
         lines.append(DeductiveProof.Line(part_2, 0, [p_index, len(lines) - 1]))
         lines.append(DeductiveProof.Line(formula, 0, [q_index, len(lines) - 1]))
@@ -109,7 +105,7 @@ def prove_for_is_implication_for_implies_not(formula, model, lines):
         not_p = prove_in_model_implies_not_helper(Formula('~', formula.first), model, lines)
         l3 = Formula(IMPLICATION_OPERATOR, not_p, formula)
         lines.append(DeductiveProof.Line(l3, 3, []))  # from I3
-        # l2 = Formula(IMPLICATION_OPERATOR, p, q)  # build psi_1->psi_2
+
         not_p_index = find_index_by_conclusion(not_p, lines)
         if not_p_index is None:
             print('we got a not found conclusion:', not_p_index, 'for conclusion:', not_p)
@@ -557,6 +553,7 @@ def model_or_inconsistent(formulae):
     """ Return either a model where all of formulae hold, or a list of two
         proofs, both from formulae via AXIOMATIC_SYSTEM, the first of some
         formula and the second of the negation of the same formula """
+    # Task 6.7
     variable_set = set
     for formula in formulae:
         variable_set = variable_set.union((formula.variables()))
