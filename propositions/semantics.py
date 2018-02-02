@@ -188,5 +188,5 @@ def is_tautological_inference(rule):
 
 
 if __name__ == '__main__':
-    f = Formula.from_infix('((x->F)->~x)')
-    print(is_tautology(f))
+    f = Formula.from_infix('(((y&~x)&~z)|((x&y)&~z))')
+    print(print_truth_table(f))
